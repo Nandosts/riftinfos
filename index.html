@@ -91,23 +91,25 @@
       </div>
 
       <div id="secao-comparacao" role="tabpanel" aria-labelledby="aba-comparacao" hidden="until-found">
-        <div class="painel-comparacao-form">
-          <div class="comparar-alvo-p1">
-            <span class="eyebrow">JOGADOR 1</span>
-            <div id="comparar-p1-card" class="p1-card-preview">
-              <span id="comparar-p1-nome">—</span>
+        <form id="form-comparar" class="painel-comparacao-bloco">
+          <div class="comparar-versus-grid">
+            <div class="comparar-coluna-card">
+              <span class="eyebrow">JOGADOR 1 (ATUAL)</span>
+              <div id="comparar-p1-card" class="p1-card-preview">
+                <span id="comparar-p1-nome">—</span>
+              </div>
             </div>
-          </div>
-          <div class="comparar-vs-divisor" aria-hidden="true">VS</div>
-          <div class="comparar-alvo-p2">
-            <span class="eyebrow">JOGADOR 2</span>
-            <form id="form-comparar" class="form-comparar">
-              <div class="comparar-inputs-grid">
-                <div class="campo campo-nick">
+
+            <div class="comparar-vs-badge" aria-hidden="true">VS</div>
+
+            <div class="comparar-coluna-card">
+              <span class="eyebrow">JOGADOR 2</span>
+              <div class="p2-card-inputs">
+                <div class="campo">
                   <label for="input-comparar-nick">Nick</label>
-                  <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. shulalino" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+                  <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. otaldojorginho" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
                 </div>
-                <div class="campo campo-plataforma">
+                <div class="campo">
                   <label for="select-comparar-plataforma">Plataforma</label>
                   <select id="select-comparar-plataforma" name="plataforma2">
                     <option value="twitch">Twitch</option>
@@ -115,17 +117,20 @@
                   </select>
                 </div>
               </div>
-              <div class="botoes-comparar-wrap">
-                <button type="submit" id="btn-comparar">Comparar</button>
-                <button type="button" id="btn-comparar-top1" class="btn-secundario">⚡ Top 1 da Classe</button>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
+
+          <div class="comparar-acoes-barra">
+            <button type="submit" id="btn-comparar" class="btn-acao-comparar">Comparar Jogadores</button>
+            <button type="button" id="btn-comparar-top1" class="btn-secundario btn-acao-top1">⚡ Top 1 da Classe</button>
+          </div>
+        </form>
+
         <div class="aviso-comparacao-classe">
           <span class="icone-aviso" aria-hidden="true">ℹ️</span>
           <span><strong>Aviso:</strong> A comparação analisa apenas personagens da <strong>mesma classe</strong>. Ao consultar o Jogador 2, o sistema seleciona automaticamente o personagem dele da mesma classe do Jogador 1.</span>
         </div>
+
         <p id="status-comparacao" role="status" aria-live="polite">Escolha um segundo jogador para comparar os stats lado a lado.</p>
         <div id="resultado-comparacao" hidden></div>
       </div>

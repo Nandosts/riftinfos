@@ -32,7 +32,7 @@ h1 { font-size: clamp(26px, 5.5vw, 42px); }
 h2 { color: var(--gold); font-size: clamp(18px, 4vw, 28px); }
 h3 { font-size: 15px; }
 .panel { padding: clamp(14px, 3vw, 24px); background: var(--panel); border: 2px solid var(--line); box-shadow: 0 4px #0a0818, inset 0 0 0 2px #ffffff08; }
-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, .38fr) auto; gap: 12px; align-items: end; }
+#formulario-busca { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, .38fr) auto; gap: 12px; align-items: end; }
 .campo { display: grid; gap: 6px; }
 label { color: var(--muted); font-size: 0.85rem; }
 input, select, button { min-height: 48px; padding: 8px 12px; font-size: 1rem; }
@@ -126,50 +126,60 @@ a { color: var(--cyan); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 @media (max-width: 540px) {
-  form { grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); }
-  form button { grid-column: 1 / -1; }
+  #formulario-busca { grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); }
+  #formulario-busca button { grid-column: 1 / -1; }
   th, td { padding-inline: 6px; }
   .equip-fc-box { justify-content: flex-start; }
 }
 
 /* Comparação de Jogadores */
-.painel-comparacao-form {
+#form-comparar.painel-comparacao-bloco {
   background: var(--panel-alt);
   border: 2px solid var(--line);
   padding: clamp(14px, 2.5vw, 20px);
   margin-top: 18px;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  box-shadow: 0 4px #0a0818;
+}
+
+.comparar-versus-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
   gap: 16px;
 }
-.comparar-alvo-p1, .comparar-alvo-p2 {
-  display: grid;
+
+.comparar-coluna-card {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
+
 .p1-card-preview {
   display: flex;
   align-items: center;
   gap: 12px;
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   padding: 12px 14px;
-  height: calc(100% - 24px);
-  min-height: 104px;
+  height: 100%;
   box-sizing: border-box;
 }
+
 .p1-card-avatar {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 4px;
   border: 2px solid var(--line);
   object-fit: cover;
   flex-shrink: 0;
+  background: var(--panel);
 }
 .p1-card-avatar-placeholder {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 4px;
   background: var(--panel);
   border: 2px solid var(--line);
@@ -181,7 +191,7 @@ a { color: var(--cyan); }
   min-width: 0;
 }
 .p1-card-nome {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--gold);
   overflow: hidden;
@@ -204,9 +214,9 @@ a { color: var(--cyan); }
   letter-spacing: .06em;
 }
 
-.comparar-vs-divisor {
+.comparar-vs-badge {
   font-family: var(--pix);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: var(--gold);
   background: #26204b;
   border: 2px solid var(--line);
@@ -216,37 +226,42 @@ a { color: var(--cyan); }
   box-shadow: 2px 2px #0a0818;
 }
 
-.form-comparar {
+.p2-card-inputs {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
   gap: 10px;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  padding: 12px 14px;
+  height: 100%;
+  box-sizing: border-box;
+  align-items: end;
 }
-.comparar-inputs-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(110px, 130px);
-  gap: 10px;
-}
-.botoes-comparar-wrap {
+
+.comparar-acoes-barra {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
-.botoes-comparar-wrap button {
-  min-height: 44px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.btn-acao-comparar {
+  min-height: 48px;
+  width: 100%;
+  font-size: 0.95rem;
 }
-.btn-secundario {
-  background: #2a2060;
+.btn-acao-top1 {
+  min-height: 48px;
+  width: 100%;
+  font-size: 0.88rem;
+  background: #26204b;
   color: var(--cyan);
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   box-shadow: 0 3px #18123a;
-  font-size: 0.85rem;
   padding: 8px 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.btn-secundario:hover {
+.btn-acao-top1:hover {
   background: #392b80;
   color: #fff;
 }
@@ -364,12 +379,36 @@ a { color: var(--cyan); }
 .tag-diff.pos { color: var(--green); background: #13331f; }
 .tag-diff.neg { color: #ff9b90; background: #33151c; }
 
-@media (max-width: 768px) {
-  .painel-comparacao-form { grid-template-columns: 1fr; gap: 12px; }
-  .p1-card-preview { min-height: auto; height: auto; }
-  .comparar-vs-divisor { justify-self: center; padding: 6px 14px; }
-  .comparar-inputs-grid { grid-template-columns: 1fr; }
-  .botoes-comparar-wrap { grid-template-columns: 1fr; }
-  .bloco-versus-topo { grid-template-columns: 1fr; }
-  .badge-diferenca-fc { max-width: 100%; margin-inline: auto; }
+@media (max-width: 800px) {
+  .comparar-versus-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .comparar-vs-badge {
+    justify-self: center;
+    width: fit-content;
+    padding: 6px 16px;
+  }
+  .p2-card-inputs {
+    grid-template-columns: minmax(0, 1.4fr) minmax(120px, 1fr);
+  }
+  .bloco-versus-topo {
+    grid-template-columns: 1fr;
+  }
+  .badge-diferenca-fc {
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 580px) {
+  .p2-card-inputs {
+    grid-template-columns: 1fr;
+  }
+  .comparar-acoes-barra {
+    grid-template-columns: 1fr;
+  }
+  .btn-acao-top1 {
+    font-size: 0.82rem;
+  }
 }
