@@ -890,6 +890,13 @@ async function dispararComparacao(nick2, plataforma2) {
     }
 
     const perfilP2 = await resposta.json();
+    if (perfilP2.cls !== perfilCarregadoP1.cls) {
+      const nomeClasseP1 = nomesClasses[perfilCarregadoP1.cls] || perfilCarregadoP1.cls;
+      const nomeClasseP2 = nomesClasses[perfilP2.cls] || perfilP2.cls;
+      throw new Error(
+        `A comparação só é permitida entre jogadores da mesma classe (${nomeClasseP1}). O Jogador 2 não possui personagem dessa classe (classe ativa: ${nomeClasseP2}).`
+      );
+    }
     renderizarPainelComparacao(perfilCarregadoP1, plataformaCarregadaP1, perfilP2, plataforma2);
     statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} e ${perfilP2.displayName || perfilP2.login}.`;
     resultadoComparacao.hidden = false;

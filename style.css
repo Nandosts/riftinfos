@@ -251,6 +251,22 @@ a { color: var(--cyan); }
   color: #fff;
 }
 
+.aviso-comparacao-classe {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold);
+  padding: 10px 14px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.45;
+}
+.aviso-comparacao-classe strong { color: var(--gold); }
+.icone-aviso { font-size: 1rem; flex-shrink: 0; }
+
 #status-comparacao { min-height: 1.5em; margin: 14px 0 6px; color: var(--muted); }
 #status-comparacao[data-error="true"] { color: #ff9b90; }
 
