@@ -15,7 +15,7 @@ class ServidorRiftForjas(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(DIRETORIO_BASE), **kwargs)
 
     def do_GET(self):
-        if self.path.startswith("/api/profile/"):
+        if self.path.startswith("/api/"):
             self.encaminhar_api()
             return
         super().do_GET()

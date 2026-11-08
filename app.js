@@ -813,3 +813,24 @@ if (nickInicial) {
     );
   }
 }
+
+// Atualiza dinamicamente o placeholder com o nick atual do Top 1 do ranking geral
+async function atualizarPlaceholderTop1() {
+  const rotas = [
+    "/api/ranking/characters?page=1&size=1",
+    "https://4o9ys9ib13.execute-api.us-east-1.amazonaws.com/api/ranking/characters?page=1&size=1",
+  ];
+  for (const rota of rotas) {
+    try {
+      const resp = await fetch(rota, { signal: AbortSignal.timeout(3000) });
+      if (!resp.ok) continue;
+      const dados = await resp.json();
+      const top1 = dados?.items?.[0]?.login;
+      if (top1) {
+        inputNick.placeholder = `Ex. ${top1}`;
+        break;
+      }
+    } catch {}
+  }
+}
+void atualizarPlaceholderTop1();
