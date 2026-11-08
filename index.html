@@ -98,24 +98,29 @@
               <span id="comparar-p1-nome">—</span>
             </div>
           </div>
-          <div class="comparar-vs-divisor">VS</div>
-          <form id="form-comparar" class="form-comparar">
-            <div class="campo">
-              <label for="input-comparar-nick">Jogador 2 (Nick)</label>
-              <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. shulalino" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
-            </div>
-            <div class="campo">
-              <label for="select-comparar-plataforma">Plataforma</label>
-              <select id="select-comparar-plataforma" name="plataforma2">
-                <option value="twitch">Twitch</option>
-                <option value="kick">Kick</option>
-              </select>
-            </div>
-            <div class="botoes-comparar-wrap">
-              <button type="submit" id="btn-comparar">Comparar</button>
-              <button type="button" id="btn-comparar-top1" class="btn-secundario">⚡ Top 1 da Classe</button>
-            </div>
-          </form>
+          <div class="comparar-vs-divisor" aria-hidden="true">VS</div>
+          <div class="comparar-alvo-p2">
+            <span class="eyebrow">JOGADOR 2</span>
+            <form id="form-comparar" class="form-comparar">
+              <div class="comparar-inputs-grid">
+                <div class="campo campo-nick">
+                  <label for="input-comparar-nick">Nick</label>
+                  <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. shulalino" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+                </div>
+                <div class="campo campo-plataforma">
+                  <label for="select-comparar-plataforma">Plataforma</label>
+                  <select id="select-comparar-plataforma" name="plataforma2">
+                    <option value="twitch">Twitch</option>
+                    <option value="kick">Kick</option>
+                  </select>
+                </div>
+              </div>
+              <div class="botoes-comparar-wrap">
+                <button type="submit" id="btn-comparar">Comparar</button>
+                <button type="button" id="btn-comparar-top1" class="btn-secundario">⚡ Top 1 da Classe</button>
+              </div>
+            </form>
+          </div>
         </div>
         <p id="status-comparacao" role="status" aria-live="polite">Escolha um segundo jogador para comparar os stats lado a lado.</p>
         <div id="resultado-comparacao" hidden></div>

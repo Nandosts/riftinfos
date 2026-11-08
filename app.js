@@ -834,16 +834,15 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
   if (!compararP1Card) return;
   const nome = perfil.displayName || perfil.login;
   const avatarHtml = perfil.avatar
-    ? `<img src="${perfil.avatar}" alt="${nome}">`
-    : "";
+    ? `<img class="p1-card-avatar" src="${perfil.avatar}" alt="${nome}">`
+    : `<div class="p1-card-avatar-placeholder"></div>`;
   compararP1Card.innerHTML = `
     ${avatarHtml}
-    <div>
-      <strong>${nome}</strong>
-      <div style="font-size: 0.78rem; color: var(--muted);">
-        ${plataforma.toUpperCase()} · ${nomesClasses[perfil.cls] || perfil.cls} Nv. ${perfil.level} · 
-        <span style="color: var(--gold);">${formatadorInteiro.format(perfil.power || 0)} FC</span>
-      </div>
+    <div class="p1-card-info">
+      <span class="card-versus-tag-plat">${plataforma.toUpperCase()}</span>
+      <div class="p1-card-nome">${nome}</div>
+      <div class="p1-card-meta">${nomesClasses[perfil.cls] || perfil.cls} · Nv. ${formatadorInteiro.format(perfil.level)}</div>
+      <div class="p1-card-fc">${formatadorInteiro.format(perfil.power || 0)} FC</div>
     </div>
   `;
 
