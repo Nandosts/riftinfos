@@ -88,6 +88,12 @@ tr[data-forge="arc"] { --rarity: #ff8de6; }
 .cartao-conjunto .bonus-lista { color: var(--muted); font-size: 0.82rem; }
 .tag-fc { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #26204b; border: 1px solid var(--line); color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
 .tag-fc.secundaria { color: var(--cyan); }
+.tag-fc.remover { background: #2d1424; border-color: #5e223b; color: #ff9b90; }
+
+.aviso-sinergia { background: var(--panel-alt); border: 1px solid var(--line); border-left: 4px solid var(--cyan); padding: 12px 14px; margin-top: 14px; font-size: 0.85rem; line-height: 1.5; }
+.aviso-sinergia strong { color: var(--gold); }
+.aviso-sinergia p { margin: 4px 0 0; color: var(--muted); }
+.aviso-sinergia p:first-of-type { margin-top: 2px; }
 
 .lista-equipamentos { display: grid; gap: 14px; margin-top: 16px; }
 .cartao-equipamento { background: var(--panel-alt); border: 2px solid var(--line); padding: 14px; display: grid; gap: 12px; font-variant-numeric: tabular-nums; }
@@ -110,7 +116,9 @@ tr[data-forge="arc"] { --rarity: #ff8de6; }
 .gema-texto { display: grid; gap: 2px; min-width: 0; }
 .gema-nome { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gema-stats { font-size: 0.78rem; color: var(--muted); }
+.gema-fc-bloco { display: grid; justify-items: end; gap: 2px; text-align: right; flex-shrink: 0; }
 .gema-fc { color: var(--gold); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.gema-fc-perda { font-size: 0.72rem; color: #ff9b90; white-space: nowrap; }
 
 .rodape-painel { margin-top: 16px; }
 a { color: var(--cyan); }

@@ -116,6 +116,7 @@ const secaoForjas = document.querySelector("#secao-forjas");
 const secaoEquipamentos = document.querySelector("#secao-equipamentos");
 const containerResumoFc = document.querySelector("#resumo-fc");
 const containerConjuntos = document.querySelector("#conjuntos-ativos");
+const containerAvisoSinergia = document.querySelector("#aviso-sinergia");
 const containerListaEquipamentos = document.querySelector("#lista-equipamentos");
 
 let jogadorAtual;
@@ -491,27 +492,33 @@ function renderizarEquipamentosEGemas(perfil) {
   }
   containerConjuntos.innerHTML = cartoesConjuntos.join("");
 
-  // 3. Lista detalhada de equipamentos e gemas
+  // 3. Aviso explicativo sobre Sinergia Multiplicativa vs Partição do FC
+  if (containerAvisoSinergia) {
+    containerAvisoSinergia.innerHTML = `
+      <strong>Por que a conta fecha exatamente agora?</strong>
+      <p>
+        Os valores principais em dourado (<strong>+X FC</strong>) dividem com precisão absoluta os <strong>+${formatadorInteiro.format(ganhoTotalEquips)} FC</strong> ganhos com equipamentos (somando 100% da sua força de itens).
+      </p>
+      <p>
+        Já a tag em vermelho <strong>"Se desequipar"</strong> mostra a perda marginal imediata: como o jogo calcula FC multiplicando <em>Ataque × Velocidade × Crítico × Vida × Defesa</em> e bônus de conjunto (+40%), remover uma única peça destrói a sinergia com o resto do set, derrubando mais FC do que a fatia individual daquele item.
+      </p>
+    `;
+  }
+
+  // 4. Ordenação e cálculo dos impactos marginais
   const slotsOrdem = ["weapon", "helmet", "armor", "ring", "cosmetic"];
   const itensOrdenados = [...itensEquipados].sort((a, b) => {
     return slotsOrdem.indexOf(a.slot) - slotsOrdem.indexOf(b.slot);
   });
 
-  const elementosEquipamentos = itensOrdenados.map((item) => {
-    const ehCosmetico = item.slot === "cosmetic";
-    const nomeSlot = nomesSlots[item.slot] || item.slot;
-    const nomeRaridade = nomesRaridade[item.rarity] || "Comum";
-    const corRaridade = coresRaridade[item.rarity] || "#c9c5d8";
-
-    // Impacto do slot completo (item + gemas + conjuntos)
+  const slotsDados = itensOrdenados.map((item) => {
     const itensSemEsteSlot = itensEquipados.filter((it) => it.id !== item.id);
     const fcSemEsteSlot = calcularFc(
       classe,
       calcularStatusSimulados(classe, nivel, atributos, itensSemEsteSlot)
     );
-    const deltaSlotTotal = Math.max(0, fcTotal - fcSemEsteSlot);
+    const perdaMarginalSlot = Math.max(0, fcTotal - fcSemEsteSlot);
 
-    // Impacto do item base sozinho (sem suas gemas)
     const itensComItemLimpoDeGemas = itensEquipados.map((it) =>
       it.id === item.id ? { ...it, gems: [] } : it
     );
@@ -519,25 +526,11 @@ function renderizarEquipamentosEGemas(perfil) {
       classe,
       calcularStatusSimulados(classe, nivel, atributos, itensComItemLimpoDeGemas)
     );
-    const deltaGemasItem = Math.max(0, fcTotal - fcItemLimpo);
-    const deltaItemBase = Math.max(0, fcItemLimpo - fcSemEsteSlot);
+    const perdaMarginalGemas = Math.max(0, fcTotal - fcItemLimpo);
+    const perdaMarginalItemBase = Math.max(0, fcItemLimpo - fcSemEsteSlot);
 
-    // Atributos nativos do item
-    const chipsAtributos = [];
-    for (const [st, rotulo] of Object.entries(rotulosStats)) {
-      if (item[st]) {
-        const sufixo = st === "crit" || st === "spd" ? "%" : "";
-        chipsAtributos.push(`<span class="chip-stat">+${item[st]}${sufixo} ${rotulo}</span>`);
-      }
-    }
-
-    // Gemas engastadas
     const gemas = item.gems || [];
-    const maxSockets = item.sockets || gemas.length;
-    const cardsGemas = [];
-
-    gemas.forEach((gema, idx) => {
-      // Simula a remoção apenas desta gema
+    const gemasDados = gemas.map((gema, idx) => {
       const itensSemEstaGema = itensEquipados.map((it) => {
         if (it.id !== item.id) return it;
         return {
@@ -549,7 +542,115 @@ function renderizarEquipamentosEGemas(perfil) {
         classe,
         calcularStatusSimulados(classe, nivel, atributos, itensSemEstaGema)
       );
-      const deltaGemaIndividual = Math.max(0, fcTotal - fcSemEstaGema);
+      const perdaMarginalGema = Math.max(0, fcTotal - fcSemEstaGema);
+      return { gema, idx, perdaMarginalGema };
+    });
+
+    return {
+      item,
+      perdaMarginalSlot,
+      perdaMarginalItemBase,
+      perdaMarginalGemas,
+      gemasDados,
+    };
+  });
+
+  // 5. Partição proporcional do ganho total entre os slots (soma 100% de ganhoTotalEquips)
+  const somaPerdasMarginaisSlots = slotsDados.reduce(
+    (acc, s) => acc + s.perdaMarginalSlot,
+    0
+  );
+
+  let acumuladorFcSlots = 0;
+  let idxMaiorSlot = 0;
+  let maiorPerdaSlot = -1;
+
+  slotsDados.forEach((s, idx) => {
+    if (s.perdaMarginalSlot > maiorPerdaSlot) {
+      maiorPerdaSlot = s.perdaMarginalSlot;
+      idxMaiorSlot = idx;
+    }
+  });
+
+  slotsDados.forEach((s) => {
+    const proporcaoSlot =
+      somaPerdasMarginaisSlots > 0
+        ? s.perdaMarginalSlot / somaPerdasMarginaisSlots
+        : 0;
+    const fcAtribuidoSlot = Math.round(ganhoTotalEquips * proporcaoSlot);
+    s.proporcaoSlot = proporcaoSlot;
+    s.fcAtribuidoSlot = fcAtribuidoSlot;
+    acumuladorFcSlots += fcAtribuidoSlot;
+  });
+
+  if (slotsDados.length > 0 && acumuladorFcSlots !== ganhoTotalEquips) {
+    slotsDados[idxMaiorSlot].fcAtribuidoSlot += (ganhoTotalEquips - acumuladorFcSlots);
+  }
+
+  // 6. Partição interna do slot (Item base vs Gemas) e gemas individuais
+  slotsDados.forEach((s) => {
+    const somaPartesInternas = s.perdaMarginalItemBase + s.perdaMarginalGemas;
+    if (somaPartesInternas > 0) {
+      s.fcAtribuidoItemBase = Math.round(
+        s.fcAtribuidoSlot * (s.perdaMarginalItemBase / somaPartesInternas)
+      );
+      s.fcAtribuidoGemasTotal = s.fcAtribuidoSlot - s.fcAtribuidoItemBase;
+    } else {
+      s.fcAtribuidoItemBase = s.fcAtribuidoSlot;
+      s.fcAtribuidoGemasTotal = 0;
+    }
+
+    const somaPerdasGemas = s.gemasDados.reduce(
+      (acc, g) => acc + g.perdaMarginalGema,
+      0
+    );
+    let acumuladorGemas = 0;
+    let idxMaiorGema = 0;
+    let maiorPerdaGema = -1;
+
+    s.gemasDados.forEach((g, idx) => {
+      if (g.perdaMarginalGema > maiorPerdaGema) {
+        maiorPerdaGema = g.perdaMarginalGema;
+        idxMaiorGema = idx;
+      }
+      const propGema =
+        somaPerdasGemas > 0 ? g.perdaMarginalGema / somaPerdasGemas : 0;
+      const fcAtribuidoGema = Math.round(s.fcAtribuidoGemasTotal * propGema);
+      g.fcAtribuidoGema = fcAtribuidoGema;
+      g.proporcaoGemaNoItem =
+        s.fcAtribuidoSlot > 0 ? fcAtribuidoGema / s.fcAtribuidoSlot : 0;
+      acumuladorGemas += fcAtribuidoGema;
+    });
+
+    if (s.gemasDados.length > 0 && acumuladorGemas !== s.fcAtribuidoGemasTotal) {
+      s.gemasDados[idxMaiorGema].fcAtribuidoGema +=
+        (s.fcAtribuidoGemasTotal - acumuladorGemas);
+    }
+  });
+
+  // 7. Renderização dos cards de equipamentos
+  const elementosEquipamentos = slotsDados.map((s) => {
+    const item = s.item;
+    const ehCosmetico = item.slot === "cosmetic";
+    const nomeSlot = nomesSlots[item.slot] || item.slot;
+    const nomeRaridade = nomesRaridade[item.rarity] || "Comum";
+    const corRaridade = coresRaridade[item.rarity] || "#c9c5d8";
+
+    // Atributos nativos do item
+    const chipsAtributos = [];
+    for (const [st, rotulo] of Object.entries(rotulosStats)) {
+      if (item[st]) {
+        const sufixo = st === "crit" || st === "spd" ? "%" : "";
+        chipsAtributos.push(`<span class="chip-stat">+${item[st]}${sufixo} ${rotulo}</span>`);
+      }
+    }
+
+    // Gemas engastadas
+    const maxSockets = item.sockets || s.gemasDados.length;
+    const cardsGemas = [];
+
+    s.gemasDados.forEach((g) => {
+      const gema = g.gema;
       const corGema = coresGemas[gema.type] || "#8fd0ff";
 
       cardsGemas.push(`
@@ -561,13 +662,16 @@ function renderizarEquipamentosEGemas(perfil) {
               <span class="gema-stats">${formatarGemaTexto(gema)}</span>
             </div>
           </div>
-          <span class="gema-fc">+${formatadorInteiro.format(deltaGemaIndividual)} FC</span>
+          <div class="gema-fc-bloco">
+            <span class="gema-fc">+${formatadorInteiro.format(g.fcAtribuidoGema)} FC</span>
+            <span class="gema-fc-perda">-${formatadorInteiro.format(g.perdaMarginalGema)} se remover</span>
+          </div>
         </div>
       `);
     });
 
     // Slots vazios
-    for (let i = gemas.length; i < maxSockets; i++) {
+    for (let i = s.gemasDados.length; i < maxSockets; i++) {
       cardsGemas.push(`
         <div class="cartao-gema vazio">
           <div class="gema-info">
@@ -594,11 +698,16 @@ function renderizarEquipamentosEGemas(perfil) {
             </div>
           </div>
           <div class="equip-fc-box">
-            <span class="tag-fc">+${formatadorInteiro.format(deltaSlotTotal)} FC total</span>
+            <span class="tag-fc">+${formatadorInteiro.format(s.fcAtribuidoSlot)} FC (${formatadorPercentual.format(s.proporcaoSlot)} do ganho)</span>
             ${
-              !ehCosmetico && gemas.length > 0
-                ? `<span class="tag-fc secundaria">Item: +${formatadorInteiro.format(deltaItemBase)} FC</span>
-                   <span class="tag-fc secundaria">Gemas: +${formatadorInteiro.format(deltaGemasItem)} FC</span>`
+              !ehCosmetico && s.gemasDados.length > 0
+                ? `<span class="tag-fc secundaria">Item: +${formatadorInteiro.format(s.fcAtribuidoItemBase)} FC</span>
+                   <span class="tag-fc secundaria">Gemas: +${formatadorInteiro.format(s.fcAtribuidoGemasTotal)} FC</span>`
+                : ""
+            }
+            ${
+              s.perdaMarginalSlot > 0
+                ? `<span class="tag-fc remover" title="Perda de FC se você desequipar este item agora">Se desequipar: -${formatadorInteiro.format(s.perdaMarginalSlot)} FC</span>`
                 : ""
             }
           </div>
