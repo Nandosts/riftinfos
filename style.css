@@ -1,0 +1,125 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d0b19;
+  --panel: #1b1736;
+  --panel-alt: #141129;
+  --line: #342d63;
+  --text: #ece8ff;
+  --muted: #ada6d2;
+  --gold: #ffd54a;
+  --cyan: #8fd0ff;
+  --green: #6be08a;
+  --pix: "Silkscreen", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+[hidden]:not([hidden="until-found"]) { display: none !important; }
+body { margin: 0; color: var(--text); font: 1rem/1.5 system-ui, sans-serif; background: radial-gradient(circle at 20% 0, #2a2060, transparent 45%), radial-gradient(circle at 90% 10%, #3a1840, transparent 38%), var(--bg); min-height: 100vh; }
+.wrap { width: min(100% - 32px, 920px); margin-inline: auto; }
+.topbar { border-bottom: 2px solid var(--line); background: #100d21; }
+.topbar-inner, .result-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.topbar-inner { min-height: 58px; }
+.brand, .eyebrow, h1, h2, h3, button, th, .fc-valor { font-family: var(--pix); }
+.brand { color: var(--gold); font-size: 18px; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand span { width: 12px; height: 12px; background: #ff6a5a; box-shadow: 3px 3px #6a2a43; }
+.community, .note, #status-consulta { color: var(--muted); }
+.community { font-size: 11px; letter-spacing: .08em; }
+main { padding-block: clamp(32px, 7vw, 72px); }
+.intro { margin-bottom: 28px; }
+.intro p:last-child { color: var(--muted); margin-bottom: 0; }
+.eyebrow { color: var(--cyan); font-size: 12px; margin: 0 0 8px; }
+h1, h2, h3 { margin: 0; line-height: 1.15; font-weight: 400; overflow-wrap: anywhere; }
+h1 { font-size: clamp(26px, 5.5vw, 42px); }
+h2 { color: var(--gold); font-size: clamp(18px, 4vw, 28px); }
+h3 { font-size: 15px; }
+.panel { padding: clamp(14px, 3vw, 24px); background: var(--panel); border: 2px solid var(--line); box-shadow: 0 4px #0a0818, inset 0 0 0 2px #ffffff08; }
+form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, .38fr) auto; gap: 12px; align-items: end; }
+.campo { display: grid; gap: 6px; }
+label { color: var(--muted); font-size: 0.85rem; }
+input, select, button { min-height: 48px; padding: 8px 12px; font-size: 1rem; }
+input, select { width: 100%; min-width: 0; color: var(--text); background: var(--bg); border: 2px solid var(--line); border-radius: 0; }
+button { background: var(--gold); color: #1a1020; border: 0; box-shadow: inset -3px -3px #0004, inset 3px 3px #fff5, 0 3px #8a6a10; cursor: pointer; }
+button:hover { filter: brightness(1.12); }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+#status-consulta { min-height: 1.5em; margin: 16px 0; }
+#status-consulta[data-error="true"] { color: #ff9b90; }
+
+/* Identidade do Jogador */
+.perfil-identidade { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.avatar-jogador {
+  width: 52px;
+  height: 52px;
+  border-radius: 4px;
+  border: 2px solid var(--line);
+  box-shadow: 0 0 0 1px #ffffff0d, 2px 2px #0a0818;
+  object-fit: cover;
+  background: var(--panel-alt);
+  flex-shrink: 0;
+}
+.perfil-titulos { display: grid; gap: 2px; min-width: 0; }
+
+/* Abas */
+.abas { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; border-bottom: 2px solid var(--line); padding-bottom: 12px; }
+.botao-aba { min-height: 42px; padding: 8px 14px; font-size: 13px; background: var(--panel-alt); color: var(--muted); border: 2px solid var(--line); box-shadow: none; }
+.botao-aba[aria-selected="true"] { background: var(--gold); color: #1a1020; border-color: var(--gold); box-shadow: inset -2px -2px #0004, inset 2px 2px #fff5; }
+
+/* Tabela de Forjas */
+.table-wrap { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 12px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child { text-align: left; }
+thead th { color: var(--muted); font-size: clamp(10px, 2vw, 13px); font-weight: 400; }
+tbody th { font-family: inherit; color: var(--rarity); }
+td:nth-child(2) { color: var(--muted); }
+td:last-child { color: var(--gold); font-weight: 700; }
+tr[data-forge="epic"] { --rarity: #c77dff; }
+tr[data-forge="imm"] { --rarity: #ff8073; }
+tr[data-forge="arc"] { --rarity: #ff8de6; }
+
+/* Aba de Equipamentos, Gemas e FC */
+.resumo-fc { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 20px; }
+.bloco-resumo { background: var(--panel-alt); border: 1px solid var(--line); padding: 12px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.bloco-resumo span { color: var(--muted); font-size: 0.8rem; }
+.bloco-resumo strong { color: var(--gold); font-family: var(--pix); font-size: 1.05rem; font-weight: 400; }
+.bloco-resumo small { color: var(--cyan); font-size: 0.78rem; }
+
+.conjuntos-ativos { display: grid; gap: 8px; margin-top: 12px; }
+.cartao-conjunto { background: var(--panel-alt); border: 1px solid var(--line); border-left: 4px solid var(--gold); padding: 10px 12px; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cartao-conjunto b { color: var(--gold); }
+.cartao-conjunto .bonus-lista { color: var(--muted); font-size: 0.82rem; }
+.tag-fc { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #26204b; border: 1px solid var(--line); color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.tag-fc.secundaria { color: var(--cyan); }
+
+.lista-equipamentos { display: grid; gap: 14px; margin-top: 16px; }
+.cartao-equipamento { background: var(--panel-alt); border: 2px solid var(--line); padding: 14px; display: grid; gap: 12px; font-variant-numeric: tabular-nums; }
+.equip-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.equip-titulo { display: grid; gap: 4px; }
+.equip-slot { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.equip-nome { font-size: 1.05rem; font-weight: 700; }
+.equip-meta { color: var(--muted); font-size: 0.84rem; }
+.equip-fc-box { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+
+.atributos-item { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-stat { background: var(--bg); border: 1px solid var(--line); padding: 3px 8px; font-size: 0.82rem; color: var(--text); }
+.efeito-especial { color: var(--muted); font-size: 0.82rem; border-left: 2px solid var(--line); padding-left: 8px; }
+
+.grade-gemas { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 8px; }
+.cartao-gema { background: var(--bg); border: 1px solid var(--line); padding: 9px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cartao-gema.vazio { color: var(--muted); opacity: 0.65; font-size: 0.84rem; }
+.gema-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gema-icone { width: 12px; height: 12px; flex-shrink: 0; background: var(--cor-gema, var(--cyan)); box-shadow: 2px 2px #0008; border: 1px solid #fff6; }
+.gema-texto { display: grid; gap: 2px; min-width: 0; }
+.gema-nome { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gema-stats { font-size: 0.78rem; color: var(--muted); }
+.gema-fc { color: var(--gold); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+
+.rodape-painel { margin-top: 16px; }
+a { color: var(--cyan); }
+.note { margin: 16px 0 4px; font-size: 0.85rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+@media (max-width: 540px) {
+  form { grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); }
+  form button { grid-column: 1 / -1; }
+  th, td { padding-inline: 6px; }
+  .equip-fc-box { justify-content: flex-start; }
+}

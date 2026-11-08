@@ -1,0 +1,2 @@
+/api/profile/*  https://4o9ys9ib13.execute-api.us-east-1.amazonaws.com/api/profile/:splat  200!
+

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registro de Forjas e Gemas · RiftStream</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="https://riftstream.com.br/"><span aria-hidden="true"></span> RiftStream</a>
+      <span class="community">FERRAMENTA DA COMUNIDADE</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="intro">
+      <p class="eyebrow">PERFIL PÚBLICO</p>
+      <h1>Forjas, Equipamentos e Gemas</h1>
+      <p>Consulte a taxa de sucesso em forjas, inspecione gemas engastadas e veja quanto de Força de Combate (FC) cada equipamento e gema concede.</p>
+    </div>
+    <form id="formulario-busca" class="panel" method="GET" action="">
+      <div class="campo">
+        <label for="input-nick">Nick</label>
+        <input id="input-nick" name="nick" required maxlength="64" placeholder="Ex. nando_sts" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+      </div>
+      <div class="campo">
+        <label for="select-plataforma">Plataforma</label>
+        <select id="select-plataforma" name="plataforma">
+          <option value="twitch">Twitch</option>
+          <option value="kick">Kick</option>
+        </select>
+      </div>
+      <button type="submit">Consultar</button>
+    </form>
+    <p id="status-consulta" role="status" aria-live="polite">Digite um nick para consultar o perfil.</p>
+    <section id="painel-resultado" class="panel" aria-labelledby="nome-jogador" hidden>
+      <div class="result-head">
+        <div class="perfil-identidade">
+          <img id="avatar-jogador" class="avatar-jogador" alt="" width="52" height="52" hidden>
+          <div class="perfil-titulos">
+            <p id="plataforma-jogador" class="eyebrow"></p>
+            <h2 id="nome-jogador"></h2>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="select-personagem">Personagem</label>
+          <select id="select-personagem" name="cls"></select>
+        </div>
+      </div>
+
+      <div class="abas" role="tablist" aria-label="Visualizações do perfil">
+        <button type="button" id="aba-forjas" class="botao-aba" role="tab" aria-selected="true" aria-controls="secao-forjas">
+          Registro de Forjas
+        </button>
+        <button type="button" id="aba-equipamentos" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-equipamentos">
+          Equipamentos, Gemas e FC
+        </button>
+      </div>
+
+      <div id="secao-forjas" role="tabpanel" aria-labelledby="aba-forjas">
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="legenda-forjas">
+          <table>
+            <caption id="legenda-forjas" class="sr-only">Estatísticas de forja do personagem</caption>
+            <thead>
+              <tr>
+                <th scope="col">Forja</th>
+                <th scope="col">Chance base</th>
+                <th scope="col">Tentativas</th>
+                <th scope="col">Sucessos</th>
+                <th scope="col">Taxa real</th>
+              </tr>
+            </thead>
+            <tbody id="linhas-forjas"></tbody>
+          </table>
+        </div>
+        <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte.</p>
+      </div>
+
+      <div id="secao-equipamentos" role="tabpanel" aria-labelledby="aba-equipamentos" hidden="until-found">
+        <div id="resumo-fc" class="resumo-fc"></div>
+        <div id="conjuntos-ativos" class="conjuntos-ativos"></div>
+        <div id="lista-equipamentos" class="lista-equipamentos"></div>
+        <p class="note">O impacto em FC mostra quanto de Força de Combate o personagem ganha com cada equipamento, bônus de conjunto e gema engastada (diferença exata entre o FC atual e o FC sem aquele item ou gema).</p>
+      </div>
+
+      <div class="rodape-painel">
+        <a id="link-json" target="_blank" rel="noopener noreferrer">Ver JSON do perfil ↗</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
