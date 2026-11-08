@@ -131,3 +131,167 @@ a { color: var(--cyan); }
   th, td { padding-inline: 6px; }
   .equip-fc-box { justify-content: flex-start; }
 }
+
+/* Comparação de Jogadores */
+.painel-comparacao-form {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 16px;
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1.4fr;
+  align-items: center;
+  gap: 16px;
+}
+.comparar-alvo-p1 { display: grid; gap: 6px; }
+.p1-card-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  min-height: 48px;
+  font-size: 0.9rem;
+}
+.p1-card-preview img {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
+.comparar-vs-divisor {
+  font-family: var(--pix);
+  font-size: 1.1rem;
+  color: var(--gold);
+  background: #26204b;
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  text-align: center;
+}
+.form-comparar {
+  display: grid;
+  grid-template-columns: 1fr minmax(100px, 0.4fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+.botoes-comparar-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-secundario {
+  background: #2a2060;
+  color: var(--cyan);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.btn-secundario:hover {
+  background: #392b80;
+  color: #fff;
+}
+
+#status-comparacao { min-height: 1.5em; margin: 14px 0 6px; color: var(--muted); }
+#status-comparacao[data-error="true"] { color: #ff9b90; }
+
+/* Versus Cards */
+.bloco-versus-topo {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+.card-versus-jogador {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-versus-jogador.vencedor {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px #ffd54a22;
+}
+.card-versus-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  border: 2px solid var(--line);
+  object-fit: cover;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.card-versus-detalhes { display: grid; gap: 3px; min-width: 0; }
+.card-versus-nome {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-versus-meta { color: var(--muted); font-size: 0.82rem; }
+.card-versus-fc {
+  font-family: var(--pix);
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-top: 4px;
+}
+.badge-diferenca-fc {
+  background: #100d21;
+  border: 2px solid var(--line);
+  padding: 12px 14px;
+  text-align: center;
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+  max-width: 210px;
+}
+.badge-diferenca-fc strong { color: var(--green); font-size: 0.95rem; }
+
+/* Tabelas e Cartões Comparativos */
+.secao-comparacao-bloco { margin-top: 24px; display: grid; gap: 12px; }
+.titulo-secao-comp {
+  font-family: var(--pix);
+  font-size: 0.95rem;
+  color: var(--gold);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+  margin: 0;
+}
+.tabela-comp {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  margin-top: 6px;
+}
+.tabela-comp th, .tabela-comp td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.tabela-comp th:first-child, .tabela-comp td:first-child { text-align: left; }
+.tabela-comp td.vencedor {
+  color: var(--green);
+  font-weight: 700;
+  background: #1a332522;
+}
+.tag-diff {
+  display: inline-block;
+  font-size: 0.75rem;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.tag-diff.pos { color: var(--green); background: #13331f; }
+.tag-diff.neg { color: #ff9b90; background: #33151c; }
+
+@media (max-width: 768px) {
+  .painel-comparacao-form { grid-template-columns: 1fr; }
+  .comparar-vs-divisor { justify-self: center; }
+  .form-comparar { grid-template-columns: 1fr; }
+  .bloco-versus-topo { grid-template-columns: 1fr; }
+  .badge-diferenca-fc { max-width: 100%; margin-inline: auto; }
+}

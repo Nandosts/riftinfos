@@ -112,52 +112,73 @@ const corpoTabela = document.querySelector("#linhas-forjas");
 
 const abaForjas = document.querySelector("#aba-forjas");
 const abaEquipamentos = document.querySelector("#aba-equipamentos");
+const abaComparacao = document.querySelector("#aba-comparacao");
 const secaoForjas = document.querySelector("#secao-forjas");
 const secaoEquipamentos = document.querySelector("#secao-equipamentos");
+const secaoComparacao = document.querySelector("#secao-comparacao");
 const containerResumoFc = document.querySelector("#resumo-fc");
 const containerConjuntos = document.querySelector("#conjuntos-ativos");
 const containerAvisoSinergia = document.querySelector("#aviso-sinergia");
 const containerListaEquipamentos = document.querySelector("#lista-equipamentos");
 
+const formComparar = document.querySelector("#form-comparar");
+const inputCompararNick = document.querySelector("#input-comparar-nick");
+const selectCompararPlataforma = document.querySelector("#select-comparar-plataforma");
+const btnCompararTop1 = document.querySelector("#btn-comparar-top1");
+const statusComparacao = document.querySelector("#status-comparacao");
+const resultadoComparacao = document.querySelector("#resultado-comparacao");
+const compararP1Card = document.querySelector("#comparar-p1-card");
+const compararP1Nome = document.querySelector("#comparar-p1-nome");
+
 let jogadorAtual;
+let perfilCarregadoP1;
+let plataformaCarregadaP1;
 let requisicaoAtiva;
 
 function configurarAbas() {
-  function alternarAba(abaAtiva) {
-    const ehForjas = abaAtiva === "forjas";
-    abaForjas.setAttribute("aria-selected", ehForjas ? "true" : "false");
-    abaEquipamentos.setAttribute("aria-selected", ehForjas ? "false" : "true");
+  const abasConfig = [
+    { id: "forjas", btn: abaForjas, sec: secaoForjas },
+    { id: "equipamentos", btn: abaEquipamentos, sec: secaoEquipamentos },
+    { id: "comparacao", btn: abaComparacao, sec: secaoComparacao },
+  ];
 
-    if (ehForjas) {
-      secaoForjas.removeAttribute("hidden");
-      secaoEquipamentos.setAttribute("hidden", "until-found");
-    } else {
-      secaoEquipamentos.removeAttribute("hidden");
-      secaoForjas.setAttribute("hidden", "until-found");
-    }
+  function alternarAba(abaAtiva) {
+    abasConfig.forEach(({ id, btn, sec }) => {
+      const ativa = id === abaAtiva;
+      btn.setAttribute("aria-selected", ativa ? "true" : "false");
+      if (ativa) {
+        sec.removeAttribute("hidden");
+      } else {
+        sec.setAttribute("hidden", "until-found");
+      }
+    });
   }
 
   abaForjas.addEventListener("click", () => alternarAba("forjas"));
   abaEquipamentos.addEventListener("click", () => alternarAba("equipamentos"));
+  if (abaComparacao) {
+    abaComparacao.addEventListener("click", () => alternarAba("comparacao"));
+  }
 
   // Sincronização acessível do evento beforematch (busca nativa na página)
   document.addEventListener("beforematch", (evento) => {
-    if (secaoEquipamentos.contains(evento.target)) {
+    if (secaoEquipamentos && secaoEquipamentos.contains(evento.target)) {
       alternarAba("equipamentos");
-    } else if (secaoForjas.contains(evento.target)) {
+    } else if (secaoForjas && secaoForjas.contains(evento.target)) {
       alternarAba("forjas");
+    } else if (secaoComparacao && secaoComparacao.contains(evento.target)) {
+      alternarAba("comparacao");
     }
   });
 
   // Fallback para navegadores sem suporte a hidden="until-found"
   if (!("onbeforematch" in HTMLElement.prototype)) {
-    abaForjas.addEventListener("click", () => {
-      secaoForjas.hidden = false;
-      secaoEquipamentos.hidden = true;
-    });
-    abaEquipamentos.addEventListener("click", () => {
-      secaoEquipamentos.hidden = false;
-      secaoForjas.hidden = true;
+    abasConfig.forEach(({ id, btn }) => {
+      btn.addEventListener("click", () => {
+        abasConfig.forEach((a) => {
+          a.sec.hidden = a.id !== id;
+        });
+      });
     });
   }
 }
@@ -801,7 +822,350 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
   // 2. Detalhe da aba de Equipamentos, Gemas e FC
   renderizarEquipamentosEGemas(perfil);
 
+  // 3. Estado e atalho da aba de Comparação
+  perfilCarregadoP1 = perfil;
+  plataformaCarregadaP1 = plataforma;
+  atualizarCardP1Comparacao(perfil, plataforma);
+
   painelResultado.hidden = false;
+}
+
+function atualizarCardP1Comparacao(perfil, plataforma) {
+  if (!compararP1Card) return;
+  const nome = perfil.displayName || perfil.login;
+  const avatarHtml = perfil.avatar
+    ? `<img src="${perfil.avatar}" alt="${nome}">`
+    : "";
+  compararP1Card.innerHTML = `
+    ${avatarHtml}
+    <div>
+      <strong>${nome}</strong>
+      <div style="font-size: 0.78rem; color: var(--muted);">
+        ${plataforma.toUpperCase()} · ${nomesClasses[perfil.cls] || perfil.cls} Nv. ${perfil.level} · 
+        <span style="color: var(--gold);">${formatadorInteiro.format(perfil.power || 0)} FC</span>
+      </div>
+    </div>
+  `;
+
+  const top1Classes = {
+    cleric: { nick: "shulalino", plataforma: "twitch", rotulo: "shulalino" },
+    warrior: { nick: "otaldojorginho", plataforma: "twitch", rotulo: "otaldojorginho" },
+    archer: { nick: "isabxf", plataforma: "twitch", rotulo: "isabxf" },
+  };
+  const top1Atual = top1Classes[perfil.cls] || top1Classes.warrior;
+  if (btnCompararTop1) {
+    btnCompararTop1.textContent = `⚡ Top 1 (${top1Atual.rotulo})`;
+    btnCompararTop1.onclick = () => {
+      inputCompararNick.value = top1Atual.nick;
+      selectCompararPlataforma.value = top1Atual.plataforma;
+      void dispararComparacao(top1Atual.nick, top1Atual.plataforma);
+    };
+  }
+}
+
+async function dispararComparacao(nick2, plataforma2) {
+  if (!perfilCarregadoP1) return;
+  if (!/^[a-z0-9_]{1,25}$/i.test(nick2)) {
+    statusComparacao.dataset.error = "true";
+    statusComparacao.textContent = "Informe um nick válido para o Jogador 2.";
+    return;
+  }
+
+  delete statusComparacao.dataset.error;
+  statusComparacao.textContent = `Consultando ${nick2} na ${plataforma2 === "kick" ? "Kick" : "Twitch"}…`;
+  resultadoComparacao.hidden = true;
+
+  try {
+    const loginApi2 = plataforma2 === "kick" ? `kick:${nick2}` : nick2;
+    const { resposta } = await buscarRespostaPerfil(
+      loginApi2,
+      perfilCarregadoP1.cls,
+      AbortSignal.timeout(9000)
+    );
+
+    if (resposta.status === 404) {
+      throw new Error(`Jogador 2 ("${nick2}") não foi encontrado na ${plataforma2.toUpperCase()}.`);
+    }
+    if (!resposta.ok) {
+      throw new Error("Falha ao comunicar com os servidores para consultar o Jogador 2.");
+    }
+
+    const perfilP2 = await resposta.json();
+    renderizarPainelComparacao(perfilCarregadoP1, plataformaCarregadaP1, perfilP2, plataforma2);
+    statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} e ${perfilP2.displayName || perfilP2.login}.`;
+    resultadoComparacao.hidden = false;
+  } catch (erro) {
+    statusComparacao.dataset.error = "true";
+    statusComparacao.textContent = erro.message || "Erro ao comparar jogadores.";
+  }
+}
+
+function renderizarPainelComparacao(p1, plat1, p2, plat2) {
+  const at1 = inferirAtributosBase(p1);
+  const st1 = calcularStatusSimulados(p1.cls, p1.level, at1, p1.equipped || []);
+  const fc1 = calcularFc(p1.cls, st1);
+  const stSemItens1 = calcularStatusSimulados(p1.cls, p1.level, at1, []);
+  const fcSemItens1 = calcularFc(p1.cls, stSemItens1);
+  const ganhoEquips1 = Math.max(0, fc1 - fcSemItens1);
+  const dps1 = st1.atk * st1.aspd * (1 + (st1.crit / 100) * (0.5 + st1.critDmg));
+  const ehp1 = st1.maxHp * (1 + st1.def * 0.04);
+  const agg1 = agregarItens(p1.equipped || []);
+
+  const at2 = inferirAtributosBase(p2);
+  const st2 = calcularStatusSimulados(p2.cls, p2.level, at2, p2.equipped || []);
+  const fc2 = calcularFc(p2.cls, st2);
+  const stSemItens2 = calcularStatusSimulados(p2.cls, p2.level, at2, []);
+  const fcSemItens2 = calcularFc(p2.cls, stSemItens2);
+  const ganhoEquips2 = Math.max(0, fc2 - fcSemItens2);
+  const dps2 = st2.atk * st2.aspd * (1 + (st2.crit / 100) * (0.5 + st2.critDmg));
+  const ehp2 = st2.maxHp * (1 + st2.def * 0.04);
+  const agg2 = agregarItens(p2.equipped || []);
+
+  const nome1 = p1.displayName || p1.login;
+  const nome2 = p2.displayName || p2.login;
+  const p1VenceFc = fc1 >= fc2;
+  const diffFc = Math.abs(fc1 - fc2);
+  const menorFc = Math.min(fc1, fc2);
+  const pctDiffFc = menorFc > 0 ? (diffFc / menorFc) * 100 : 0;
+  const vencedorFc = p1VenceFc ? nome1 : nome2;
+
+  // Versus Card
+  const htmlVersus = `
+    <div class="bloco-versus-topo">
+      <div class="card-versus-jogador ${p1VenceFc ? 'vencedor' : ''}">
+        ${p1.avatar ? `<img class="card-versus-avatar" src="${p1.avatar}" alt="${nome1}">` : '<div class="card-versus-avatar"></div>'}
+        <div class="card-versus-detalhes">
+          <span class="eyebrow">${plat1.toUpperCase()}</span>
+          <div class="card-versus-nome">${nome1}</div>
+          <div class="card-versus-meta">${nomesClasses[p1.cls] || p1.cls} · Nv. ${p1.level}</div>
+          <div class="card-versus-fc">${formatadorInteiro.format(fc1)} FC</div>
+        </div>
+      </div>
+
+      <div class="badge-diferenca-fc">
+        <span class="eyebrow">VANTAGEM DE FORÇA</span>
+        <strong>${vencedorFc}</strong>
+        <span>+${formatadorInteiro.format(diffFc)} FC (+${pctDiffFc.toFixed(1)}%)</span>
+      </div>
+
+      <div class="card-versus-jogador ${!p1VenceFc ? 'vencedor' : ''}">
+        ${p2.avatar ? `<img class="card-versus-avatar" src="${p2.avatar}" alt="${nome2}">` : '<div class="card-versus-avatar"></div>'}
+        <div class="card-versus-detalhes">
+          <span class="eyebrow">${plat2.toUpperCase()}</span>
+          <div class="card-versus-nome">${nome2}</div>
+          <div class="card-versus-meta">${nomesClasses[p2.cls] || p2.cls} · Nv. ${p2.level}</div>
+          <div class="card-versus-fc">${formatadorInteiro.format(fc2)} FC</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  function gerarLinhaStat(rotulo, v1, v2, formatadorFn) {
+    const n1 = Number(v1);
+    const n2 = Number(v2);
+    const p1Ganhou = n1 > n2;
+    const p2Ganhou = n2 > n1;
+    const diff = Math.abs(n1 - n2);
+    const menor = Math.min(n1, n2);
+    const pct = menor > 0 ? (diff / menor) * 100 : 0;
+    const tagDiff = diff > 0 ? `<span class="tag-diff pos">+${formatadorFn(diff)} (+${pct.toFixed(1)}%)</span>` : "";
+
+    return `
+      <tr>
+        <th scope="row">${rotulo}</th>
+        <td class="${p1Ganhou ? 'vencedor' : ''}">
+          ${formatadorFn(n1)} ${p1Ganhou ? tagDiff : ''}
+        </td>
+        <td class="${p2Ganhou ? 'vencedor' : ''}">
+          ${formatadorFn(n2)} ${p2Ganhou ? tagDiff : ''}
+        </td>
+      </tr>
+    `;
+  }
+
+  const fmtInt = (val) => formatadorInteiro.format(Math.round(val));
+  const fmtDec1 = (val) => Number(val).toFixed(1);
+  const fmtDec2 = (val) => Number(val).toFixed(2);
+  const fmtPct1 = (val) => `${Number(val).toFixed(1)}%`;
+
+  // 1. Tabela de Atributos
+  const htmlTabelaStats = `
+    <div class="secao-comparacao-bloco">
+      <h3 class="titulo-secao-comp">Atributos e Estatísticas de Combate</h3>
+      <div class="table-wrap">
+        <table class="tabela-comp">
+          <thead>
+            <tr>
+              <th scope="col">Atributo</th>
+              <th scope="col">${nome1}</th>
+              <th scope="col">${nome2}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${gerarLinhaStat("Força de Combate (FC)", fc1, fc2, fmtInt)}
+            ${gerarLinhaStat("Nível do Personagem", p1.level, p2.level, fmtInt)}
+            ${gerarLinhaStat("Ataque (ATK)", st1.atk, st2.atk, fmtDec1)}
+            ${gerarLinhaStat("Defesa (DEF)", st1.def, st2.def, fmtDec1)}
+            ${gerarLinhaStat("Vida Máxima (HP)", st1.maxHp, st2.maxHp, fmtInt)}
+            ${gerarLinhaStat("Velocidade de Ataque (ASPD)", st1.aspd, st2.aspd, fmtDec2)}
+            ${gerarLinhaStat("Taxa de Crítico", st1.crit, st2.crit, fmtPct1)}
+            ${gerarLinhaStat("Bônus de Dano Crítico", st1.critDmg * 100, st2.critDmg * 100, fmtPct1)}
+            ${gerarLinhaStat("Vida Efetiva (EHP)", ehp1, ehp2, fmtInt)}
+            ${gerarLinhaStat("DPS Estimado", dps1, dps2, fmtInt)}
+            ${gerarLinhaStat("FC Base (sem itens)", fcSemItens1, fcSemItens2, fmtInt)}
+            ${gerarLinhaStat("Ganho com Equipamentos", ganhoEquips1, ganhoEquips2, fmtInt)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // 2. Equipamentos e Conjuntos
+  const slotsComparar = ["weapon", "helmet", "armor", "ring"];
+  const itensP1 = p1.equipped || [];
+  const itensP2 = p2.equipped || [];
+
+  const mediaIlvl1 = itensP1.filter((i) => i.slot !== "cosmetic").reduce((a, b) => a + (b.itemLevel || 0), 0) / Math.max(1, itensP1.filter((i) => i.slot !== "cosmetic").length);
+  const mediaIlvl2 = itensP2.filter((i) => i.slot !== "cosmetic").reduce((a, b) => a + (b.itemLevel || 0), 0) / Math.max(1, itensP2.filter((i) => i.slot !== "cosmetic").length);
+
+  function formatarResumoConjuntos(agg) {
+    const sets = [];
+    for (const [k, count] of Object.entries(agg.contagemConjuntos)) {
+      if (count >= 2 && catalogoConjuntos[k]) {
+        sets.push(`${catalogoConjuntos[k].nome} (${count}/3)`);
+      }
+    }
+    return sets.length > 0 ? sets.join(" · ") : "Nenhum conjunto ativo";
+  }
+
+  const linhasEquipamentos = slotsComparar.map((s) => {
+    const it1 = itensP1.find((i) => i.slot === s);
+    const it2 = itensP2.find((i) => i.slot === s);
+    const nomeSlot = nomesSlots[s] || s;
+
+    const desc1 = it1
+      ? `<span style="color: ${coresRaridade[it1.rarity] || '#fff'}; font-weight: 600;">${it1.name}</span> <small style="color: var(--muted);">(Nv. ${it1.itemLevel || 1})</small>`
+      : '<span style="color: var(--muted);">—</span>';
+    const desc2 = it2
+      ? `<span style="color: ${coresRaridade[it2.rarity] || '#fff'}; font-weight: 600;">${it2.name}</span> <small style="color: var(--muted);">(Nv. ${it2.itemLevel || 1})</small>`
+      : '<span style="color: var(--muted);">—</span>';
+
+    return `
+      <tr>
+        <th scope="row">${nomeSlot}</th>
+        <td>${desc1}</td>
+        <td>${desc2}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const htmlEquipamentos = `
+    <div class="secao-comparacao-bloco">
+      <h3 class="titulo-secao-comp">Equipamentos e Conjuntos</h3>
+      <div class="table-wrap">
+        <table class="tabela-comp">
+          <thead>
+            <tr>
+              <th scope="col">Peça / Métrica</th>
+              <th scope="col">${nome1}</th>
+              <th scope="col">${nome2}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Conjunto Ativo</th>
+              <td style="color: var(--gold); font-weight: 600;">${formatarResumoConjuntos(agg1)}</td>
+              <td style="color: var(--gold); font-weight: 600;">${formatarResumoConjuntos(agg2)}</td>
+            </tr>
+            ${gerarLinhaStat("Média de Item Level", mediaIlvl1, mediaIlvl2, fmtDec1)}
+            ${linhasEquipamentos}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // 3. Gemas
+  const gemas1 = itensP1.flatMap((i) => i.gems || []);
+  const gemas2 = itensP2.flatMap((i) => i.gems || []);
+  const gemasSupremas1 = gemas1.filter((g) => g.tier === 5).length;
+  const gemasSupremas2 = gemas2.filter((g) => g.tier === 5).length;
+
+  const htmlGemas = `
+    <div class="secao-comparacao-bloco">
+      <h3 class="titulo-secao-comp">Gemas Engastadas</h3>
+      <div class="table-wrap">
+        <table class="tabela-comp">
+          <thead>
+            <tr>
+              <th scope="col">Estatística de Gemas</th>
+              <th scope="col">${nome1}</th>
+              <th scope="col">${nome2}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${gerarLinhaStat("Total de Gemas", gemas1.length, gemas2.length, fmtInt)}
+            ${gerarLinhaStat("Gemas Supremas (Tier 5)", gemasSupremas1, gemasSupremas2, fmtInt)}
+            ${gerarLinhaStat("Bônus de % DEF nas Gemas", agg1.gemasPercent.def / 10, agg2.gemasPercent.def / 10, fmtPct1)}
+            ${gerarLinhaStat("Bônus de % HP nas Gemas", agg1.gemasPercent.hp / 10, agg2.gemasPercent.hp / 10, fmtPct1)}
+            ${gerarLinhaStat("Velocidade (SPD) nas Gemas", agg1.gemasFixas.spd, agg2.gemasFixas.spd, fmtInt)}
+            ${gerarLinhaStat("Crítico (CRIT) nas Gemas", agg1.gemasFixas.crit, agg2.gemasFixas.crit, fmtInt)}
+            ${gerarLinhaStat("Ataque (ATK) nas Gemas", agg1.gemasFixas.atk, agg2.gemasFixas.atk, fmtInt)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // 4. Forjas
+  function celulaForja(p, chave) {
+    const tryCnt = p.counters?.[`fuse_${chave}_try`] ?? 0;
+    const okCnt = p.counters?.[`fuse_${chave}_ok`] ?? 0;
+    const taxa = tryCnt > 0 ? ((okCnt / tryCnt) * 100).toFixed(1) + "%" : "—";
+    return `${formatadorInteiro.format(okCnt)}/${formatadorInteiro.format(tryCnt)} (${taxa})`;
+  }
+
+  const htmlForjas = `
+    <div class="secao-comparacao-bloco">
+      <h3 class="titulo-secao-comp">Histórico de Forjas</h3>
+      <div class="table-wrap">
+        <table class="tabela-comp">
+          <thead>
+            <tr>
+              <th scope="col">Raridade</th>
+              <th scope="col">${nome1}</th>
+              <th scope="col">${nome2}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" style="color: #c77dff;">Épico</th>
+              <td>${celulaForja(p1, "epic")}</td>
+              <td>${celulaForja(p2, "epic")}</td>
+            </tr>
+            <tr>
+              <th scope="row" style="color: #ff8073;">Imortal</th>
+              <td>${celulaForja(p1, "imm")}</td>
+              <td>${celulaForja(p2, "imm")}</td>
+            </tr>
+            <tr>
+              <th scope="row" style="color: #ff8de6;">Arcano</th>
+              <td>${celulaForja(p1, "arc")}</td>
+              <td>${celulaForja(p2, "arc")}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  resultadoComparacao.innerHTML = `
+    ${htmlVersus}
+    ${htmlTabelaStats}
+    ${htmlEquipamentos}
+    ${htmlGemas}
+    ${htmlForjas}
+  `;
 }
 
 async function consultarPerfil(jogador, classeDesejada) {
@@ -898,6 +1262,18 @@ formularioBusca.addEventListener("submit", (evento) => {
   selectPlataforma.value = plataforma;
   void consultarPerfil({ nick, plataforma });
 });
+
+if (formComparar) {
+  formComparar.addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    const dados = new FormData(formComparar);
+    const { nick, plataforma } = normalizarEntradaNick(
+      dados.get("nick2"),
+      dados.get("plataforma2")
+    );
+    void dispararComparacao(nick, plataforma);
+  });
+}
 
 selectPersonagem.addEventListener("change", () => {
   if (jogadorAtual) {

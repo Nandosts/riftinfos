@@ -58,6 +58,9 @@
         <button type="button" id="aba-equipamentos" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-equipamentos">
           Equipamentos, Gemas e FC
         </button>
+        <button type="button" id="aba-comparacao" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-comparacao">
+          Comparar Jogadores
+        </button>
       </div>
 
       <div id="secao-forjas" role="tabpanel" aria-labelledby="aba-forjas">
@@ -85,6 +88,37 @@
         <div id="aviso-sinergia" class="aviso-sinergia"></div>
         <div id="lista-equipamentos" class="lista-equipamentos"></div>
         <p class="note">A fatia em FC divide 100% do ganho de equipamentos entre cada peça e gema. O indicador "Se desequipar" mostra a perda marginal imediata caso você remova a peça (pois ataque, crítico, vida e defesa multiplicam entre si).</p>
+      </div>
+
+      <div id="secao-comparacao" role="tabpanel" aria-labelledby="aba-comparacao" hidden="until-found">
+        <div class="painel-comparacao-form">
+          <div class="comparar-alvo-p1">
+            <span class="eyebrow">JOGADOR 1</span>
+            <div id="comparar-p1-card" class="p1-card-preview">
+              <span id="comparar-p1-nome">—</span>
+            </div>
+          </div>
+          <div class="comparar-vs-divisor">VS</div>
+          <form id="form-comparar" class="form-comparar">
+            <div class="campo">
+              <label for="input-comparar-nick">Jogador 2 (Nick)</label>
+              <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. shulalino" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+            </div>
+            <div class="campo">
+              <label for="select-comparar-plataforma">Plataforma</label>
+              <select id="select-comparar-plataforma" name="plataforma2">
+                <option value="twitch">Twitch</option>
+                <option value="kick">Kick</option>
+              </select>
+            </div>
+            <div class="botoes-comparar-wrap">
+              <button type="submit" id="btn-comparar">Comparar</button>
+              <button type="button" id="btn-comparar-top1" class="btn-secundario">⚡ Top 1 da Classe</button>
+            </div>
+          </form>
+        </div>
+        <p id="status-comparacao" role="status" aria-live="polite">Escolha um segundo jogador para comparar os stats lado a lado.</p>
+        <div id="resultado-comparacao" hidden></div>
       </div>
 
       <div class="rodape-painel">
