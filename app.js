@@ -864,7 +864,7 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 
 async function dispararComparacao(nick2, plataforma2) {
   if (!perfilCarregadoP1) return;
-  if (!/^[a-z0-9_]{1,25}$/i.test(nick2)) {
+  if (!/^[a-z0-9_\.\-]{1,40}$/i.test(nick2)) {
     statusComparacao.dataset.error = "true";
     statusComparacao.textContent = "Informe um nick válido para o Jogador 2.";
     return;
@@ -1236,14 +1236,40 @@ async function consultarPerfil(jogador, classeDesejada) {
 }
 
 function normalizarEntradaNick(valorBruto, plataformaSelecionada) {
-  const texto = String(valorBruto ?? "").trim().toLowerCase();
-  const ehPrefixoKick = texto.startsWith("kick:");
-  const nickLimpo = texto.replace(/^kick:/, "").replace(/^@/, "");
-  const plataforma = ehPrefixoKick
-    ? "kick"
-    : plataformaSelecionada === "kick"
-    ? "kick"
-    : "twitch";
+  let texto = String(valorBruto ?? "").trim();
+  let plataforma = plataformaSelecionada === "kick" ? "kick" : "twitch";
+
+  // Suporte a URLs completas ou parciais do RiftStream
+  // Ex: https://riftstream.com.br/perfil/kick/jeck-360 ou https://riftstream.com.br/perfil/xxmarciano
+  const matchRift = texto.match(/riftstream\.com\.br\/perfil\/(?:(kick|twitch)\/)?([a-z0-9_\.\-]+)/i);
+  if (matchRift) {
+    if (matchRift[1]) {
+      plataforma = matchRift[1].toLowerCase();
+    }
+    texto = matchRift[2];
+  } else {
+    // Suporte a URLs diretas de canais do Kick ou Twitch
+    const matchKick = texto.match(/kick\.com\/([a-z0-9_\.\-]+)/i);
+    const matchTwitch = texto.match(/twitch\.tv\/([a-z0-9_\.\-]+)/i);
+    if (matchKick) {
+      plataforma = "kick";
+      texto = matchKick[1];
+    } else if (matchTwitch) {
+      plataforma = "twitch";
+      texto = matchTwitch[1];
+    }
+  }
+
+  // Suporte a prefixos explícitos (kick:nick, kick/nick, etc.)
+  if (/^kick[:/]/i.test(texto)) {
+    plataforma = "kick";
+    texto = texto.replace(/^kick[:/]/i, "");
+  } else if (/^twitch[:/]/i.test(texto)) {
+    plataforma = "twitch";
+    texto = texto.replace(/^twitch[:/]/i, "");
+  }
+
+  const nickLimpo = texto.replace(/^@/, "").trim().toLowerCase();
   return { nick: nickLimpo, plataforma };
 }
 
@@ -1255,12 +1281,12 @@ formularioBusca.addEventListener("submit", (evento) => {
     dados.get("plataforma")
   );
 
-  if (!/^[a-z0-9_]{1,25}$/.test(nick)) {
+  if (!/^[a-z0-9_\.\-]{1,40}$/i.test(nick)) {
     requisicaoAtiva?.abort();
     requisicaoAtiva = undefined;
     painelResultado.hidden = true;
     statusConsulta.dataset.error = "true";
-    statusConsulta.textContent = "Informe um nick válido, sem o link do canal.";
+    statusConsulta.textContent = "Informe um nick válido (ex. jeck-360 ou otaldojorginho).";
     return;
   }
 
@@ -1295,7 +1321,7 @@ if (nickInicial) {
     parametrosIniciais.get("plataforma")
   );
   const classeInicial = parametrosIniciais.get("cls");
-  if (/^[a-z0-9_]{1,25}$/.test(nick)) {
+  if (/^[a-z0-9_\.\-]{1,40}$/i.test(nick)) {
     inputNick.value = nick;
     selectPlataforma.value = plataforma;
     void consultarPerfil(
