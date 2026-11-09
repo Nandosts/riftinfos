@@ -7,7 +7,7 @@ from pathlib import Path
 
 PORTA = 4173
 DIRETORIO_BASE = Path(__file__).resolve().parent
-API_REMOTA = "https://4o9ys9ib13.execute-api.us-east-1.amazonaws.com"
+API_REMOTA = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
 
 
 class ServidorRiftForjas(http.server.SimpleHTTPRequestHandler):

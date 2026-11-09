@@ -1,4 +1,5 @@
-const endpointPerfilRemoto = "https://4o9ys9ib13.execute-api.us-east-1.amazonaws.com/api/profile/";
+const apiRemota = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com";
+const endpointPerfilRemoto = `${apiRemota}/api/profile/`;
 const endpointPerfilProxyLocal = "/api/profile/";
 const proxiesPublicos = [
   (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -221,6 +222,7 @@ async function buscarRespostaPerfil(loginApi, classeDesejada, sinalAborto) {
   }
 
   let ultimoErro;
+  let statusServidor;
   for (const rota of rotasTentativa) {
     if (sinalAborto.aborted) break;
     try {
@@ -237,11 +239,17 @@ async function buscarRespostaPerfil(loginApi, classeDesejada, sinalAborto) {
       if (resposta.ok) {
         return { resposta, urlPublica: new URL(urlAwsDireta) };
       }
+      if (resposta.status >= 500 && (rota === urlAwsDireta || rota === rotasTentativa[0])) {
+        statusServidor = resposta.status;
+      }
     } catch (erro) {
       ultimoErro = erro;
     }
   }
 
+  if (statusServidor) {
+    throw new Error(`A API do RiftStream está indisponível (HTTP ${statusServidor}). Tente novamente em instantes.`);
+  }
   throw ultimoErro || new Error("Falha ao comunicar com os servidores do RiftStream.");
 }
 
@@ -1228,7 +1236,7 @@ async function consultarPerfil(jogador, classeDesejada) {
       statusConsulta.textContent =
         window.location.protocol === "file:"
           ? "Falha de conexão em arquivo local. Abra http://127.0.0.1:4173/ no navegador."
-          : "Falha de conexão com a API do RiftStream. Tentando reconectar…";
+          : "Falha de conexão com a API do RiftStream. Tente novamente em instantes.";
       return;
     }
     statusConsulta.textContent = erro.message;
@@ -1335,7 +1343,7 @@ if (nickInicial) {
 async function atualizarPlaceholderTop1() {
   const rotas = [
     "/api/ranking/characters?page=1&size=1",
-    "https://4o9ys9ib13.execute-api.us-east-1.amazonaws.com/api/ranking/characters?page=1&size=1",
+    `${apiRemota}/api/ranking/characters?page=1&size=1`,
   ];
   for (const rota of rotas) {
     try {
