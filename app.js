@@ -64,6 +64,12 @@ const catalogoConjuntos = {
   fortune: { nome: "Madame Cartomante", b2: { hp: 0.35, def: 0.2 }, b3: { hp: 0.55, atk: 0.35 } },
   trapeze: { nome: "Trapezista", b2: { atk: 0.3, spd: 0.15 }, b3: { atk: 0.5, crit: 12, spd: 0.25 } },
   firework: { nome: "Pirotécnico", b2: { atk: 0.3, crit: 10 }, b3: { atk: 0.6, crit: 15, hp: 0.15 } },
+  obsidian: { nome: "Titã de Obsidiana", b2: { hp: 0.3, def: 0.3 }, b3: { atk: 0.45, hp: 0.45, def: 0.15 } },
+  thunderlord: { nome: "Senhor do Trovão", b2: { atk: 0.35, crit: 10 }, b3: { atk: 0.6, crit: 15, spd: 0.15 } },
+  seraphgold: { nome: "Serafim Dourado", b2: { hp: 0.35, atk: 0.25 }, b3: { hp: 0.55, atk: 0.4, spd: 0.1 } },
+  eclipsepriest: { nome: "Sacerdote do Eclipse", b2: { atk: 0.3, def: 0.2 }, b3: { atk: 0.55, hp: 0.3, spd: 0.2 } },
+  auroraborealis: { nome: "Aurora Boreal", b2: { atk: 0.25, spd: 0.2 }, b3: { atk: 0.45, spd: 0.2, hp: 0.2 } },
+  abysshunter: { nome: "Caçador Abissal", b2: { atk: 0.35, crit: 12 }, b3: { atk: 0.6, crit: 18, hp: 0.1 } },
 };
 
 const nomesRaridade = ["Comum", "Incomum", "Raro", "Épico", "Lendário", "Evento", "Imortal", "Arcano"];
