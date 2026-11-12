@@ -876,7 +876,7 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
   }
 }
 
-async function dispararComparacao(nick2, plataforma2) {
+async function dispararComparacao(nick2, plataforma2, classeDesejadaP2) {
   if (!perfilCarregadoP1) return;
   if (!/^[a-z0-9_\.\-]{1,40}$/i.test(nick2)) {
     statusComparacao.dataset.error = "true";
@@ -892,7 +892,7 @@ async function dispararComparacao(nick2, plataforma2) {
     const loginApi2 = plataforma2 === "kick" ? `kick:${nick2}` : nick2;
     const { resposta } = await buscarRespostaPerfil(
       loginApi2,
-      perfilCarregadoP1.cls,
+      classeDesejadaP2 || undefined,
       AbortSignal.timeout(9000)
     );
 
@@ -904,21 +904,18 @@ async function dispararComparacao(nick2, plataforma2) {
     }
 
     const perfilP2 = await resposta.json();
-    if (perfilP2.cls !== perfilCarregadoP1.cls) {
-      const nomeClasseP1 = nomesClasses[perfilCarregadoP1.cls] || perfilCarregadoP1.cls;
-      const nomeClasseP2 = nomesClasses[perfilP2.cls] || perfilP2.cls;
-      throw new Error(
-        `A comparação só é permitida entre jogadores da mesma classe (${nomeClasseP1}). O Jogador 2 não possui personagem dessa classe (classe ativa: ${nomeClasseP2}).`
-      );
-    }
     renderizarPainelComparacao(perfilCarregadoP1, plataformaCarregadaP1, perfilP2, plataforma2);
-    statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} e ${perfilP2.displayName || perfilP2.login}.`;
+    statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} (${nomesClasses[perfilCarregadoP1.cls] || perfilCarregadoP1.cls}) e ${perfilP2.displayName || perfilP2.login} (${nomesClasses[perfilP2.cls] || perfilP2.cls}).`;
     resultadoComparacao.hidden = false;
   } catch (erro) {
     statusComparacao.dataset.error = "true";
     statusComparacao.textContent = erro.message || "Erro ao comparar jogadores.";
   }
 }
+
+window.trocarClasseComparacaoP2 = function(nick2, plat2, cls2) {
+  void dispararComparacao(nick2, plat2, cls2);
+};
 
 function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const at1 = inferirAtributosBase(p1);
@@ -949,6 +946,25 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const pctDiffFc = menorFc > 0 ? (diffFc / menorFc) * 100 : 0;
   const vencedorFc = p1VenceFc ? nome1 : nome2;
 
+  const k1 = dadosClasses[p1.cls]?.k || 0.6;
+  const k2 = dadosClasses[p2.cls]?.k || 0.6;
+  const aspdCap = 4.6;
+  const cadenciaReal1 = Math.min(st1.aspd, aspdCap);
+  const cadenciaReal2 = Math.min(st2.aspd, aspdCap);
+  const bonusVelExcesso1 = st1.aspd > aspdCap ? (st1.aspd / aspdCap) : 1.0;
+  const bonusVelExcesso2 = st2.aspd > aspdCap ? (st2.aspd / aspdCap) : 1.0;
+
+  const classesP2 = p2.classes || [];
+  const seletorClassesP2 = (classesP2.length > 1)
+    ? `<div class="p2-switch-classes" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
+        ${classesP2.map(c => `
+          <button type="button" class="tag-fc ${c.cls === p2.cls ? '' : 'secundaria'}" style="cursor:pointer;font-size:0.75rem;padding:2px 6px;" onclick="window.trocarClasseComparacaoP2('${p2.login.replace(/^kick:/, '')}', '${plat2}', '${c.cls}')">
+            ${nomesClasses[c.cls] || c.cls}
+          </button>
+        `).join("")}
+      </div>`
+    : "";
+
   // Versus Card
   const htmlVersus = `
     <div class="bloco-versus-topo">
@@ -975,6 +991,7 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
           <div class="card-versus-nome">${nome2}</div>
           <div class="card-versus-meta">${nomesClasses[p2.cls] || p2.cls} · Nv. ${p2.level}</div>
           <div class="card-versus-fc">${formatadorInteiro.format(fc2)} FC</div>
+          ${seletorClassesP2}
         </div>
       </div>
     </div>
@@ -1023,11 +1040,14 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
           </thead>
           <tbody>
             ${gerarLinhaStat("Força de Combate (FC)", fc1, fc2, fmtInt)}
+            ${gerarLinhaStat("Multiplicador da Classe (k)", k1, k2, fmtDec2)}
             ${gerarLinhaStat("Nível do Personagem", p1.level, p2.level, fmtInt)}
             ${gerarLinhaStat("Ataque (ATK)", st1.atk, st2.atk, fmtDec1)}
             ${gerarLinhaStat("Defesa (DEF)", st1.def, st2.def, fmtDec1)}
             ${gerarLinhaStat("Vida Máxima (HP)", st1.maxHp, st2.maxHp, fmtInt)}
-            ${gerarLinhaStat("Velocidade de Ataque (ASPD)", st1.aspd, st2.aspd, fmtDec2)}
+            ${gerarLinhaStat("Velocidade da Ficha (ASPD)", st1.aspd, st2.aspd, fmtDec2)}
+            ${gerarLinhaStat("Cadência Real no Combate (Cap 4,6/s)", cadenciaReal1, cadenciaReal2, (v) => `${Number(v).toFixed(2)} golpes/s`)}
+            ${gerarLinhaStat("Bônus Dano por Velocidade (>4,6)", bonusVelExcesso1, bonusVelExcesso2, (v) => `${Number(v).toFixed(2)}x`)}
             ${gerarLinhaStat("Taxa de Crítico", st1.crit, st2.crit, fmtPct1)}
             ${gerarLinhaStat("Bônus de Dano Crítico", st1.critDmg * 100, st2.critDmg * 100, fmtPct1)}
             ${gerarLinhaStat("Vida Efetiva (EHP)", ehp1, ehp2, fmtInt)}
