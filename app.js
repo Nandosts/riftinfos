@@ -1156,52 +1156,169 @@ function formatarGemaTexto(gema) {
    Panorama Global + Lives Online (Topo e Dropdowns)
    ========================================================================== */
 
-let ultimosDadosPanorama = null;
+let ultimosDadosPanorama = {
+  melhorZonaLive: { canal: "belky", nome: "BELKY", zone: 17, wave: 5, playersNow: 60 },
+  maiorLive: { canal: "belky", nome: "BELKY", playersNow: 297, totalLives: 50 },
+  liveMaisNova: { canal: "glhrmzera", nome: "GlhrMzera", createdAt: "2026-11-13T16:12:22", zone: 10, wave: 8, playersNow: 4 },
+  patch: { id: "2026-11-09", title: "Novos conjuntos Arcanos" },
+};
+
+function formatarTempoRelativoCriacao(isoString) {
+  if (!isoString) return "Recente";
+  try {
+    const data = new Date(isoString);
+    const agora = new Date();
+    const diffMs = Math.max(0, agora - data);
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 60) return `Entrou há ${Math.max(1, diffMin)}min`;
+    const diffHoras = Math.floor(diffMin / 60);
+    if (diffHoras < 24) return `Criada hoje (${diffHoras}h atrás)`;
+    const diffDias = Math.floor(diffHoras / 24);
+    return `Criada há ${diffDias}d`;
+  } catch {
+    return "Recente";
+  }
+}
+
+function vincularEventosGradePanorama() {
+  if (!gradeRecordesGlobais) return;
+  gradeRecordesGlobais.querySelectorAll("[data-panorama-acao]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const acao = el.dataset.panoramaAcao;
+      if (acao === "live-melhor-zona") {
+        const live = ultimosDadosPanorama.melhorZonaLive;
+        if (live && live.canal) {
+          if (selectMonstroLiveSync) selectMonstroLiveSync.value = live.canal;
+          if (inputMonstroZona) inputMonstroZona.value = live.zone || 1;
+          if (inputMonstroOnda) inputMonstroOnda.value = live.wave || 1;
+          if (inputMonstroJogadores) inputMonstroJogadores.value = live.playersNow || 1;
+          renderizarSimuladorMonstros();
+          alternarVisibilidadeAba("monstros");
+        }
+      } else if (acao === "live-maior") {
+        const live = ultimosDadosPanorama.maiorLive;
+        if (live && live.canal) {
+          if (selectRadarLives) selectRadarLives.value = live.canal;
+          alternarVisibilidadeAba("radar-live");
+          void inspecionarLiveRadar(live.canal);
+        }
+      } else if (acao === "live-mais-nova") {
+        const live = ultimosDadosPanorama.liveMaisNova;
+        if (live && live.canal) {
+          if (selectRadarLives) selectRadarLives.value = live.canal;
+          alternarVisibilidadeAba("radar-live");
+          void inspecionarLiveRadar(live.canal);
+        }
+      } else if (acao === "consultar-top1") {
+        if (top1GeralDinamico?.nick) {
+          if (inputNick) inputNick.value = top1GeralDinamico.nick;
+          if (selectPlataforma) selectPlataforma.value = "twitch";
+          void consultarPerfil(top1GeralDinamico.nick, top1GeralDinamico.cls);
+        }
+      }
+    });
+  });
+}
 
 function renderizarGradePanorama() {
-  if (!gradeRecordesGlobais || !ultimosDadosPanorama) return;
-  const { records, changelog, livesOnline } = ultimosDadosPanorama;
-  const melhorLive = livesOnline[0];
-  const ultimoPatch = changelog?.entries?.[0];
-  const dataPatch = ultimoPatch?.id || changelog?.latest || "—";
+  if (!gradeRecordesGlobais) return;
+  const { melhorZonaLive, maiorLive, liveMaisNova, patch } = ultimosDadosPanorama;
+  const tempoCriacao = formatarTempoRelativoCriacao(liveMaisNova?.createdAt);
 
   gradeRecordesGlobais.innerHTML = `
-    <div class="tile-panorama">
-      <span>Jogadores Online</span>
-      <strong>${formatadorInteiro.format(records.playersNow || 0)}</strong>
-      <small>${formatadorInteiro.format(records.totalPlayers || 0)} registrados · ${livesOnline.length} lives</small>
+    <div class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona ${melhorZonaLive.zone ?? 1} da live ${escaparHtml(melhorZonaLive.nome)}">
+      <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
+      <strong>Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}</strong>
+      <small>${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)</small>
     </div>
-    <div class="tile-panorama">
-      <span>Melhor Zona-Onda</span>
-      <strong>Z${records.bestRun?.zone ?? "?"}-W${records.bestRun?.wave ?? "?"}</strong>
-      <small>${escaparHtml(records.bestRun?.channel || "—")}</small>
+    <div class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar ${escaparHtml(maiorLive.nome)} no Radar de Lives">
+      <span>👥 Maior Live Agora</span>
+      <strong>${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores</strong>
+      <small>${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais ao vivo</small>
     </div>
-    <div class="tile-panorama">
-      <span>Maior Live Agora</span>
-      <strong>${melhorLive ? formatadorInteiro.format(melhorLive.playersNow || 0) : formatadorInteiro.format(records.peakPlayers?.players || 0)}</strong>
-      <small>${melhorLive ? `${escaparHtml(melhorLive.name)} (Z${melhorLive.bestZone}-W${melhorLive.bestWave})` : `Pico: ${escaparHtml(records.peakPlayers?.channel || "—")}`}</small>
+    <div class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar o canal novato ${escaparHtml(liveMaisNova.nome)} no Radar de Lives">
+      <span>✨ Live Mais Nova Online</span>
+      <strong>${escaparHtml(liveMaisNova.nome)}</strong>
+      <small>${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}</small>
     </div>
-    <div class="tile-panorama" style="border-color: rgba(240, 180, 41, 0.45);">
+    <div class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas de ${escaparHtml(top1GeralDinamico.rotulo)}">
       <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
       <strong style="color:var(--gold);">${formatarNumeroCompacto(top1GeralDinamico.power)} FC</strong>
       <small>${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})</small>
     </div>
-    <div class="tile-panorama">
-      <span>⭐ Maior Nível</span>
-      <strong>Nv. ${formatadorInteiro.format(records.topCharacter?.level || topLevelDinamico.level)}</strong>
-      <small>${escaparHtml(records.topCharacter?.name || topLevelDinamico.rotulo)} (${nomesClasses[records.topCharacter?.cls] || records.topCharacter?.cls || "—"})</small>
-    </div>
-    <div class="tile-panorama">
-      <span>Ouro no Jogo</span>
-      <strong>${formatarNumeroCompacto(records.totalGoldInGame || 0)}</strong>
-      <small>${formatadorInteiro.format(records.totalChannels || 0)} canais totais</small>
-    </div>
-    <div class="tile-panorama">
-      <span>Último Patch</span>
-      <strong>${escaparHtml(dataPatch)}</strong>
-      <small title="${escaparHtml(ultimoPatch?.title || "")}">${escaparHtml(ultimoPatch?.title || "Atualizado")}</small>
-    </div>
   `;
+
+  vincularEventosGradePanorama();
+
+  if (panoramaAtualizacao) {
+    const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const infoPatch = patch?.id ? `Último Patch: ${patch.id} · ` : "";
+    panoramaAtualizacao.textContent = `${infoPatch}Atualizado às ${agora}`;
+  }
+}
+
+async function refinarDetalhesLivesPanorama(livesOnline) {
+  try {
+    const alvosMap = new Map();
+    [...livesOnline.slice(0, 5), ...livesOnline.slice(-6)].forEach((it) => {
+      if (it && it.login) alvosMap.set(it.login, it);
+    });
+    const alvos = [...alvosMap.values()];
+
+    const resultados = await Promise.allSettled(
+      alvos.map(async (it) => {
+        const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(it.login)}`, undefined, 5000);
+        return {
+          name: it.name,
+          login: it.login,
+          zone: Number(ch.zone) || 1,
+          wave: Number(ch.wave) || 1,
+          playersNow: Number(ch.playersNow) || Number(it.playersNow) || 0,
+          createdAt: ch.createdAt || "",
+        };
+      })
+    );
+
+    const detalhes = resultados
+      .filter((r) => r.status === "fulfilled" && r.value)
+      .map((r) => r.value);
+
+    if (detalhes.length > 0) {
+      const melhorZona = detalhes.reduce((melhor, item) => {
+        const scoreItem = (item.zone || 1) * 100 + (item.wave || 1);
+        const scoreMelhor = (melhor.zone || 1) * 100 + (melhor.wave || 1);
+        return scoreItem > scoreMelhor ? item : melhor;
+      }, detalhes[0]);
+
+      if (melhorZona) {
+        ultimosDadosPanorama.melhorZonaLive = {
+          canal: melhorZona.login,
+          nome: melhorZona.name,
+          zone: melhorZona.zone,
+          wave: melhorZona.wave,
+          playersNow: melhorZona.playersNow,
+        };
+      }
+
+      const comCriacao = detalhes.filter((d) => d.createdAt);
+      if (comCriacao.length > 0) {
+        comCriacao.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const maisNova = comCriacao[0];
+        ultimosDadosPanorama.liveMaisNova = {
+          canal: maisNova.login,
+          nome: maisNova.name,
+          createdAt: maisNova.createdAt,
+          zone: maisNova.zone,
+          wave: maisNova.wave,
+          playersNow: maisNova.playersNow,
+        };
+      }
+
+      renderizarGradePanorama();
+    }
+  } catch {
+    // Falha silenciosa mantendo dados prévios
+  }
 }
 
 async function carregarPanoramaGlobal() {
@@ -1219,14 +1336,37 @@ async function carregarPanoramaGlobal() {
     livesOnline.sort((a, b) => (b.playersNow || 0) - (a.playersNow || 0));
     preencherSelectsLivesOnline(livesOnline);
 
-    if (records) {
-      ultimosDadosPanorama = { records, changelog, livesOnline };
-      renderizarGradePanorama();
+    if (changelog?.entries?.[0]) {
+      ultimosDadosPanorama.patch = {
+        id: changelog.entries[0].id || changelog.latest || "—",
+        title: changelog.entries[0].title || "Atualizado",
+      };
+    }
 
-      if (panoramaAtualizacao) {
-        const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-        panoramaAtualizacao.textContent = `Atualizado às ${agora}`;
+    if (livesOnline.length > 0) {
+      const topLive = livesOnline[0];
+      ultimosDadosPanorama.maiorLive = {
+        canal: topLive.login || topLive.name.toLowerCase(),
+        nome: topLive.name,
+        playersNow: topLive.playersNow || 0,
+        totalLives: livesOnline.length,
+      };
+
+      if (!ultimosDadosPanorama.melhorZonaLive.canal) {
+        ultimosDadosPanorama.melhorZonaLive = {
+          canal: topLive.login || topLive.name.toLowerCase(),
+          nome: topLive.name,
+          zone: topLive.bestZone || 1,
+          wave: topLive.bestWave || 1,
+          playersNow: topLive.playersNow || 0,
+        };
       }
+    }
+
+    renderizarGradePanorama();
+
+    if (livesOnline.length > 0) {
+      void refinarDetalhesLivesPanorama(livesOnline);
     }
 
     // Buscar Top 1 atual de cada classe em paralelo (sem bloquear UI)
@@ -1242,6 +1382,8 @@ function sincronizarTextosTopsUI() {
   if (topPillValCleric) topPillValCleric.textContent = `${top1DinamicoPorClasse.cleric.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.cleric.power)} FC)`;
   if (topPillValArcher) topPillValArcher.textContent = `${top1DinamicoPorClasse.archer.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.archer.power)} FC)`;
   if (topPillValLevel) topPillValLevel.textContent = `${topLevelDinamico.rotulo} (Nv. ${topLevelDinamico.level})`;
+
+  renderizarGradePanorama();
 
   if (btnCarregarExemplo) {
     btnCarregarExemplo.textContent = `👑 Carregar Top 1 Geral (${top1GeralDinamico.rotulo})`;
@@ -4064,6 +4206,7 @@ atualizarEstadoVazioOuPerfil(false);
 popularSeletorItensRadar();
 renderizarSimulador();
 renderizarSimuladorMonstros();
+vincularEventosGradePanorama();
 sincronizarTextosTopsUI();
 void carregarPanoramaGlobal();
 

@@ -480,16 +480,27 @@ a { color: var(--cyan); }
 .panorama-cabecalho .eyebrow { margin: 0; }
 .grade-panorama {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
 }
 .tile-panorama {
   background: var(--bg);
   border: 1px solid var(--line);
-  padding: 10px;
+  padding: 12px 14px;
   display: grid;
-  gap: 3px;
+  gap: 4px;
   font-variant-numeric: tabular-nums;
+  border-radius: 4px;
+}
+.tile-panorama.clicavel {
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.tile-panorama.clicavel:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan);
+  background: #1c1736;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 .tile-panorama span {
   font-size: 0.72rem;

@@ -24,25 +24,30 @@
 
     <section id="painel-recordes-globais" class="panel painel-panorama" aria-label="Panorama global do servidor">
       <div class="panorama-cabecalho">
-        <span class="eyebrow">SERVIDOR AGORA</span>
-        <span id="panorama-atualizacao" class="muted small">Sincronizando dados globais…</span>
+        <span class="eyebrow">SERVIDOR AGORA · RADAR AO VIVO</span>
+        <span id="panorama-atualizacao" class="muted small">Último Patch: 2026-11-09 · Sincronizando lives…</span>
       </div>
       <div id="grade-recordes-globais" class="grade-panorama">
-        <div class="tile-panorama"><span>Jogadores online</span><strong>—</strong><small>Sincronizando…</small></div>
-        <div class="tile-panorama"><span>Melhor zona-onda</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Maior live</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama" style="border-color: rgba(240, 180, 41, 0.45);">
+        <div class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
+          <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
+          <strong>Z17 · Onda 5</strong>
+          <small>BELKY (ao vivo agora)</small>
+        </div>
+        <div class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar no Radar de Lives">
+          <span>👥 Maior Live Agora</span>
+          <strong>297 jogadores</strong>
+          <small>BELKY · 50 canais ao vivo</small>
+        </div>
+        <div class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar canal recente no Radar">
+          <span>✨ Live Mais Nova Online</span>
+          <strong>GlhrMzera</strong>
+          <small>Criada hoje · Z10-W8</small>
+        </div>
+        <div class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas do Top 1 FC Geral">
           <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
-          <strong style="color:var(--gold);">49,8M FC</strong>
-          <small>halscriolo (Guerreiro Nv. 691)</small>
+          <strong style="color:var(--gold);">49,9M FC</strong>
+          <small>halscriolo (Guerreiro Nv. 693)</small>
         </div>
-        <div class="tile-panorama">
-          <span>⭐ Maior nível</span>
-          <strong>Nv. 798</strong>
-          <small>boingzeraa (Guerreiro)</small>
-        </div>
-        <div class="tile-panorama"><span>Ouro em circulação</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Último patch</span><strong>—</strong><small>—</small></div>
       </div>
     </section>
 
