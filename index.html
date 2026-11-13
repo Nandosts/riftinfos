@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Registro de Forjas e Gemas · RiftStream</title>
+  <title>RiftInfos · Forjas, Dano, Monstros e Radar de Lives · RiftStream</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
@@ -11,19 +11,35 @@
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <a class="brand" href="https://riftstream.com.br/"><span aria-hidden="true"></span> RiftStream</a>
-      <span class="community">FERRAMENTA DA COMUNIDADE</span>
+      <a class="brand" href="https://riftstream.com.br/"><span aria-hidden="true"></span> RiftStream · RiftInfos</a>
+      <span class="community">CENTRAL DE ANÁLISE DA COMUNIDADE</span>
     </div>
   </header>
   <main class="wrap">
     <div class="intro">
-      <p class="eyebrow">PERFIL PÚBLICO</p>
-      <h1>Forjas, Equipamentos e Gemas</h1>
-      <p>Consulte a taxa de sucesso em forjas, inspecione gemas engastadas e veja quanto de Força de Combate (FC) cada equipamento e gema concede.</p>
+      <p class="eyebrow">ANÁLISE COMPLETA VIA APIS PÚBLICAS</p>
+      <h1>RiftInfos: Forjas, Dano, Monstros &amp; Radar de Lives</h1>
+      <p>Inspecione forjas (Gelo e Fogo por peça), calcule seu dano real e DPS contra chefes, simule builds e FC ou escaneie lives ao vivo para ver quem está usando cada item agora.</p>
     </div>
+
+    <section id="painel-recordes-globais" class="panel painel-panorama" aria-label="Panorama global do servidor">
+      <div class="panorama-cabecalho">
+        <span class="eyebrow">SERVIDOR AGORA</span>
+        <span id="panorama-atualizacao" class="muted small">Sincronizando dados globais…</span>
+      </div>
+      <div id="grade-recordes-globais" class="grade-panorama">
+        <div class="tile-panorama"><span>Jogadores online</span><strong>—</strong><small>Carregando…</small></div>
+        <div class="tile-panorama"><span>Melhor zona-onda</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Maior live</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Top nível</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Ouro em circulação</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Última atualização</span><strong>—</strong><small>—</small></div>
+      </div>
+    </section>
+
     <form id="formulario-busca" class="panel" method="GET" action="">
       <div class="campo">
-        <label for="input-nick">Nick</label>
+        <label for="input-nick">Nick ou link do perfil</label>
         <input id="input-nick" name="nick" required maxlength="64" placeholder="Ex. otaldojorginho" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
       </div>
       <div class="campo">
@@ -33,11 +49,12 @@
           <option value="kick">Kick</option>
         </select>
       </div>
-      <button type="submit">Consultar</button>
+      <button type="submit">Consultar Jogador</button>
     </form>
-    <p id="status-consulta" role="status" aria-live="polite">Digite um nick para consultar o perfil.</p>
-    <section id="painel-resultado" class="panel" aria-labelledby="nome-jogador" hidden>
-      <div class="result-head">
+    <p id="status-consulta" role="status" aria-live="polite">Digite um nick para analisar o perfil, ou use diretamente as ferramentas globais abaixo.</p>
+
+    <section id="painel-resultado" class="panel" aria-labelledby="nome-jogador">
+      <div id="cabecalho-perfil" class="result-head" hidden>
         <div class="perfil-identidade">
           <img id="avatar-jogador" class="avatar-jogador" alt="" width="52" height="52" hidden>
           <div class="perfil-titulos">
@@ -51,91 +68,234 @@
         </div>
       </div>
 
-      <div class="abas" role="tablist" aria-label="Visualizações do perfil">
+      <div id="aviso-sem-perfil" class="aviso-vazio-perfil">
+        <span>Nenhum jogador carregado no momento. Pesquise um nick acima para ver <strong>Forjas, Gelo, Dano e Equipamentos</strong>, ou navegue livremente pelo <strong>Simulador</strong>, <strong>Monstros &amp; Boss</strong> e <strong>Radar de Lives</strong>.</span>
+        <button type="button" id="btn-carregar-exemplo" class="btn-secundario btn-compacto">Carregar Top 1 Geral</button>
+      </div>
+
+      <div class="abas" role="tablist" aria-label="Ferramentas do RiftInfos">
         <button type="button" id="aba-forjas" class="botao-aba" role="tab" aria-selected="true" aria-controls="secao-forjas">
-          Registro de Forjas
+          Forjas, Gelo &amp; Eventos
         </button>
         <button type="button" id="aba-equipamentos" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-equipamentos">
-          Equipamentos, Gemas e FC
+          Equipamentos, Dano &amp; FC
+        </button>
+        <button type="button" id="aba-simulador" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-simulador">
+          Simulador de FC &amp; Build
+        </button>
+        <button type="button" id="aba-monstros" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-monstros">
+          Monstros &amp; Boss
+        </button>
+        <button type="button" id="aba-radar-live" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-radar-live">
+          Radar de Live &amp; Itens
         </button>
         <button type="button" id="aba-comparacao" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-comparacao">
           Comparar Jogadores
         </button>
       </div>
 
+      <!-- ABA 1: FORJAS, GELO, EVENTOS E CONQUISTAS -->
       <div id="secao-forjas" role="tabpanel" aria-labelledby="aba-forjas">
-        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="legenda-forjas">
-          <table>
-            <caption id="legenda-forjas" class="sr-only">Estatísticas de forja do personagem</caption>
-            <thead>
-              <tr>
-                <th scope="col">Forja</th>
-                <th scope="col">Chance base</th>
-                <th scope="col">Tentativas</th>
-                <th scope="col">Sucessos</th>
-                <th scope="col">Taxa real</th>
-              </tr>
-            </thead>
-            <tbody id="linhas-forjas"></tbody>
-          </table>
+        <div id="conteudo-forjas-vazio" class="aviso-aba-vazia">
+          Consulte um jogador acima para ver o histórico de forjas, matriz de Gelo (Pity) e Fogo atual por peça, estatísticas de eventos e canais frequentados.
         </div>
-        <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte.</p>
-      </div>
-
-      <div id="secao-equipamentos" role="tabpanel" aria-labelledby="aba-equipamentos" hidden="until-found">
-        <div id="resumo-fc" class="resumo-fc"></div>
-        <div id="conjuntos-ativos" class="conjuntos-ativos"></div>
-        <div id="aviso-sinergia" class="aviso-sinergia"></div>
-        <div id="lista-equipamentos" class="lista-equipamentos"></div>
-        <p class="note">A fatia em FC divide 100% do ganho de equipamentos entre cada peça e gema. O indicador "Se desequipar" mostra a perda marginal imediata caso você remova a peça (pois ataque, crítico, vida e defesa multiplicam entre si).</p>
-      </div>
-
-      <div id="secao-comparacao" role="tabpanel" aria-labelledby="aba-comparacao" hidden="until-found">
-        <form id="form-comparar" class="painel-comparacao-bloco">
-          <div class="comparar-versus-grid">
-            <div class="comparar-coluna-card">
-              <span class="eyebrow">JOGADOR 1 (ATUAL)</span>
-              <div id="comparar-p1-card" class="p1-card-preview">
-                <span id="comparar-p1-nome">—</span>
-              </div>
-            </div>
-
-            <div class="comparar-vs-badge" aria-hidden="true">VS</div>
-
-            <div class="comparar-coluna-card">
-              <span class="eyebrow">JOGADOR 2</span>
-              <div class="p2-card-inputs">
-                <div class="campo">
-                  <label for="input-comparar-nick">Nick</label>
-                  <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. otaldojorginho" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
-                </div>
-                <div class="campo">
-                  <label for="select-comparar-plataforma">Plataforma</label>
-                  <select id="select-comparar-plataforma" name="plataforma2">
-                    <option value="twitch">Twitch</option>
-                    <option value="kick">Kick</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+        <div id="conteudo-forjas-perfil" hidden>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="legenda-forjas">
+            <table>
+              <caption id="legenda-forjas" class="sr-only">Estatísticas de forja do personagem</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Forja</th>
+                  <th scope="col">Chance base</th>
+                  <th scope="col">Tentativas</th>
+                  <th scope="col">Sucessos</th>
+                  <th scope="col">Taxa real</th>
+                </tr>
+              </thead>
+              <tbody id="linhas-forjas"></tbody>
+            </table>
           </div>
+          <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte.</p>
 
-          <div class="comparar-acoes-barra">
-            <button type="submit" id="btn-comparar" class="btn-acao-comparar">Comparar Jogadores</button>
-            <button type="button" id="btn-comparar-top1" class="btn-secundario btn-acao-top1">⚡ Top 1 da Classe</button>
+          <div id="matriz-gelo-fogo" class="bloco-subsecao"></div>
+          <div id="resumo-eventos-conquistas" class="bloco-subsecao"></div>
+        </div>
+      </div>
+
+      <!-- ABA 2: EQUIPAMENTOS, DANO REAL, CURA E FC -->
+      <div id="secao-equipamentos" role="tabpanel" aria-labelledby="aba-equipamentos" hidden="until-found">
+        <div id="conteudo-equipamentos-vazio" class="aviso-aba-vazia">
+          Consulte um jogador acima para inspecionar o dano real em combate, poder de cura, mitigação de defesa, conjuntos, gemas e partição de FC.
+        </div>
+        <div id="conteudo-equipamentos-perfil" hidden>
+          <div id="resumo-fc" class="resumo-fc"></div>
+          <div id="analise-combate-jogador" class="bloco-subsecao"></div>
+          <div id="conjuntos-ativos" class="conjuntos-ativos"></div>
+          <div id="aviso-sinergia" class="aviso-sinergia"></div>
+          <div id="lista-equipamentos" class="lista-equipamentos"></div>
+          <p class="note">A fatia em FC divide 100% do ganho de equipamentos entre cada peça e gema. O indicador "Se desequipar" mostra a perda marginal imediata caso você remova a peça (pois ataque, crítico, vida e defesa multiplicam entre si).</p>
+        </div>
+      </div>
+
+      <!-- ABA 3: SIMULADOR INTERATIVO DE FC & BUILD -->
+      <div id="secao-simulador" role="tabpanel" aria-labelledby="aba-simulador" hidden="until-found">
+        <div class="subpainel-topo">
+          <div>
+            <h3 class="titulo-secao-comp">Simulador Interativo de FC, Build e Dano ("E se eu mudar...?")</h3>
+            <p class="note-compacto">Edite classe, nível, pontos de ouro, equipamentos, raridades e gemas (incluindo Supremas) para comparar instantaneamente FC, DPS e Cura.</p>
+          </div>
+          <div class="acoes-inline">
+            <button type="button" id="btn-sim-importar" class="btn-secundario btn-compacto">Importar Jogador Atual</button>
+            <button type="button" id="btn-sim-resetar" class="btn-secundario btn-compacto">Resetar Simulação</button>
+          </div>
+        </div>
+        <div id="simulador-container" class="simulador-container"></div>
+      </div>
+
+      <!-- ABA 4: MONSTROS, BOSS & SIMULADOR PvE -->
+      <div id="secao-monstros" role="tabpanel" aria-labelledby="aba-monstros" hidden="until-found">
+        <div class="subpainel-topo">
+          <div>
+            <h3 class="titulo-secao-comp">Calculadora de Monstros, Chefes &amp; Simulador PvE</h3>
+            <p class="note-compacto">Fórmulas reais do jogo com escala de Zona/Onda, penalidade de jogadores na live (+2,5% HP por jogador), Fúria do Boss (Rage 15s) e Tempo para Matar (TTK) com o personagem atual ou simulado.</p>
+          </div>
+        </div>
+
+        <form id="form-monstros" class="painel-controle-grid">
+          <div class="campo">
+            <label for="input-monstro-zona">Zona</label>
+            <input id="input-monstro-zona" type="number" min="1" max="100" value="16">
+          </div>
+          <div class="campo">
+            <label for="input-monstro-onda">Onda (1 a 10)</label>
+            <input id="input-monstro-onda" type="number" min="1" max="10" value="10">
+          </div>
+          <div class="campo">
+            <label for="input-monstro-jogadores">Jogadores na Live</label>
+            <input id="input-monstro-jogadores" type="number" min="1" max="500" value="25">
+          </div>
+          <div class="campo">
+            <label for="select-monstro-origem">Base do Herói no Duelo</label>
+            <select id="select-monstro-origem">
+              <option value="perfil">Jogador Consultado</option>
+              <option value="simulador">Build do Simulador</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="select-monstro-live-sync">Puxar de Live Online</label>
+            <select id="select-monstro-live-sync">
+              <option value="">Selecionar live online…</option>
+            </select>
           </div>
         </form>
 
-        <div class="aviso-comparacao-classe">
-          <span class="icone-aviso" aria-hidden="true">💡</span>
-          <span><strong>Dica:</strong> Compare jogadores de <strong>qualquer classe</strong> lado a lado! Veja como os multiplicadores de classe (k), cadência com cap de 4,6/s, atributos e sets impactam a Força de Combate (FC) e o DPS.</span>
-        </div>
-
-        <p id="status-comparacao" role="status" aria-live="polite">Escolha um segundo jogador para comparar os stats lado a lado.</p>
-        <div id="resultado-comparacao" hidden></div>
+        <div id="resultado-monstros" class="bloco-subsecao"></div>
       </div>
 
-      <div class="rodape-painel">
+      <!-- ABA 5: RADAR DE LIVE & SCANNER DE ITENS -->
+      <div id="secao-radar-live" role="tabpanel" aria-labelledby="aba-radar-live" hidden="until-found">
+        <div class="subpainel-topo">
+          <div>
+            <h3 class="titulo-secao-comp">Radar de Lives &amp; Scanner de Itens Usados ao Vivo</h3>
+            <p class="note-compacto">Escolha uma live online agora (ou digite o canal) para varrer os jogadores ativos em tempo real e descobrir exatamente quantos estão usando determinado item, conjunto ou anel.</p>
+          </div>
+          <button type="button" id="btn-atualizar-lives-online" class="btn-secundario btn-compacto">↻ Atualizar Lives Online</button>
+        </div>
+
+        <form id="form-radar-live" class="painel-controle-radar">
+          <div class="campo">
+            <label for="select-radar-lives">Lives Online Agora</label>
+            <select id="select-radar-lives">
+              <option value="">Carregando lives online…</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="input-radar-canal">Ou digite o canal</label>
+            <input id="input-radar-canal" maxlength="64" placeholder="Ex. belky ou kick:canal" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="campo">
+            <label for="select-radar-item">Item / Arma / Anel para filtrar</label>
+            <select id="select-radar-item">
+              <option value="">Todos os itens (visão geral da live)</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="select-radar-classe">Classe</label>
+            <select id="select-radar-classe">
+              <option value="">Todas as classes</option>
+              <option value="warrior">Guerreiro</option>
+              <option value="cleric">Clérigo</option>
+              <option value="archer">Arqueiro</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="input-radar-busca">Busca livre (item, conjunto ou gema)</label>
+            <input id="input-radar-busca" maxlength="64" placeholder="Ex. Singularidade, Ilusionista, Eclipse..." spellcheck="false" autocomplete="off">
+          </div>
+          <button type="submit" id="btn-escanear-live">Escanear Live</button>
+        </form>
+
+        <div id="progresso-radar" class="progresso-radar" hidden>
+          <div class="barra-progresso"><i id="progresso-radar-barra"></i></div>
+          <span id="progresso-radar-texto" class="small">Preparando varredura…</span>
+        </div>
+
+        <p id="status-radar" class="status-bloco" role="status" aria-live="polite">Selecione uma live acima e clique em "Escanear Live".</p>
+        <div id="resultado-radar-live" class="bloco-subsecao"></div>
+      </div>
+
+      <!-- ABA 6: COMPARAÇÃO DE JOGADORES -->
+      <div id="secao-comparacao" role="tabpanel" aria-labelledby="aba-comparacao" hidden="until-found">
+        <div id="conteudo-comparacao-vazio" class="aviso-aba-vazia">
+          Consulte o Jogador 1 na barra superior para liberar a comparação lado a lado com qualquer outro jogador ou Top 1 da classe.
+        </div>
+        <div id="conteudo-comparacao-perfil" hidden>
+          <form id="form-comparar" class="painel-comparacao-bloco">
+            <div class="comparar-versus-grid">
+              <div class="comparar-coluna-card">
+                <span class="eyebrow">JOGADOR 1 (ATUAL)</span>
+                <div id="comparar-p1-card" class="p1-card-preview">
+                  <span id="comparar-p1-nome">—</span>
+                </div>
+              </div>
+
+              <div class="comparar-vs-badge" aria-hidden="true">VS</div>
+
+              <div class="comparar-coluna-card">
+                <span class="eyebrow">JOGADOR 2</span>
+                <div class="p2-card-inputs">
+                  <div class="campo">
+                    <label for="input-comparar-nick">Nick</label>
+                    <input id="input-comparar-nick" name="nick2" required maxlength="64" placeholder="Ex. otaldojorginho" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+                  </div>
+                  <div class="campo">
+                    <label for="select-comparar-plataforma">Plataforma</label>
+                    <select id="select-comparar-plataforma" name="plataforma2">
+                      <option value="twitch">Twitch</option>
+                      <option value="kick">Kick</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="comparar-acoes-barra">
+              <button type="submit" id="btn-comparar" class="btn-acao-comparar">Comparar Jogadores</button>
+              <button type="button" id="btn-comparar-top1" class="btn-secundario btn-acao-top1">⚡ Top 1 da Classe</button>
+            </div>
+          </form>
+
+          <div class="aviso-comparacao-classe">
+            <span class="icone-aviso" aria-hidden="true">💡</span>
+            <span><strong>Dica:</strong> Compare jogadores de <strong>qualquer classe</strong> lado a lado! Veja como os multiplicadores de classe (k), cadência com cap de 4,6/s, Dano Real, atributos e sets impactam a Força de Combate (FC) e o DPS.</span>
+          </div>
+
+          <p id="status-comparacao" role="status" aria-live="polite">Escolha um segundo jogador para comparar os stats lado a lado.</p>
+          <div id="resultado-comparacao" hidden></div>
+        </div>
+      </div>
+
+      <div id="rodape-painel" class="rodape-painel" hidden>
         <a id="link-json" target="_blank" rel="noopener noreferrer">Ver dados originais do perfil ↗</a>
       </div>
     </section>
