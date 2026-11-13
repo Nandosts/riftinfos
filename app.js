@@ -976,13 +976,18 @@ function agregarItens(listaItens) {
 }
 
 function inferirAtributosBase(perfil) {
-  const classe = perfil.cls;
+  if (!perfil) return { str: 0, vit: 0, def: 0, agi: 0, luk: 0 };
+  const classe = perfil.cls || "warrior";
   const dados = dadosClasses[classe] || dadosClasses.cleric;
-  const nivel = perfil.level;
+  const nivel = Number(perfil.level) || 1;
   const r = Math.max(0, nivel - 1);
-  const st = perfil.stats;
+  const st = perfil.stats || {};
   const { fixos, gemasFixas, gemasPercent, multConjuntos, critConjunto } =
-    agregarItens(perfil.equipped);
+    agregarItens(perfil.equipped || []);
+
+  if (st.atk == null || st.maxHp == null || st.def == null || st.aspd == null || st.crit == null) {
+    return { str: 0, vit: 0, def: 0, agi: 0, luk: 0 };
+  }
 
   function resolverQuad(base, ganho, mult, alvo) {
     const a = 0.015 * ganho;
@@ -1395,13 +1400,14 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
     const resultados = await Promise.allSettled(
       alvos.map(async (it) => {
         const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(it.login)}`, undefined, 5000);
+        const playersEfetivos = Math.max(Number(it.playersNow) || 0, Number(ch?.playersNow) || 0);
         return {
           name: it.name,
           login: it.login,
-          zone: Number(ch.zone) || 1,
-          wave: Number(ch.wave) || 1,
-          playersNow: Number(ch.playersNow) || Number(it.playersNow) || 0,
-          createdAt: ch.createdAt || "",
+          zone: Number(ch?.zone) || Number(it.bestZone) || 1,
+          wave: Number(ch?.wave) || Number(it.bestWave) || 1,
+          playersNow: playersEfetivos,
+          createdAt: ch?.createdAt || "",
         };
       })
     );
@@ -1418,12 +1424,14 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
       }, detalhes[0]);
 
       if (melhorZona) {
+        const liveOriginal = alvosMap.get(melhorZona.login);
+        const playersEfetivos = Math.max(Number(liveOriginal?.playersNow) || 0, Number(melhorZona.playersNow) || 0);
         ultimosDadosPanorama.melhorZonaLive = {
           canal: melhorZona.login,
           nome: melhorZona.name,
           zone: melhorZona.zone,
           wave: melhorZona.wave,
-          playersNow: melhorZona.playersNow,
+          playersNow: playersEfetivos,
         };
       }
 
@@ -1431,13 +1439,15 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
       if (comCriacao.length > 0) {
         comCriacao.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const maisNova = comCriacao[0];
+        const liveOriginal = alvosMap.get(maisNova.login);
+        const playersEfetivos = Math.max(Number(liveOriginal?.playersNow) || 0, Number(maisNova.playersNow) || 0);
         ultimosDadosPanorama.liveMaisNova = {
           canal: maisNova.login,
           nome: maisNova.name,
           createdAt: maisNova.createdAt,
           zone: maisNova.zone,
           wave: maisNova.wave,
-          playersNow: maisNova.playersNow,
+          playersNow: playersEfetivos,
         };
       }
 
@@ -1479,13 +1489,14 @@ async function carregarPanoramaGlobal() {
         totalLives: livesOnline.length,
       };
 
-      if (!ultimosDadosPanorama.melhorZonaLive.canal) {
+      if (!ultimosDadosPanorama.melhorZonaLive?.canal) {
+        const liveComMelhorBestZone = [...livesOnline].sort((a, b) => ((b.bestZone || 1) * 100 + (b.bestWave || 1)) - ((a.bestZone || 1) * 100 + (a.bestWave || 1)))[0] || topLive;
         ultimosDadosPanorama.melhorZonaLive = {
-          canal: topLive.login || topLive.name.toLowerCase(),
-          nome: topLive.name,
-          zone: topLive.bestZone || 1,
-          wave: topLive.bestWave || 1,
-          playersNow: topLive.playersNow || 0,
+          canal: liveComMelhorBestZone.login || liveComMelhorBestZone.name.toLowerCase(),
+          nome: liveComMelhorBestZone.name,
+          zone: liveComMelhorBestZone.bestZone || 1,
+          wave: liveComMelhorBestZone.bestWave || 1,
+          playersNow: liveComMelhorBestZone.playersNow || 0,
         };
       }
     }
@@ -1661,12 +1672,15 @@ function renderizarResumoPersonagem(perfil, statusCalculados, metricasCombate, c
       .map((ind) => {
         const badgeHtml = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml(ind.origem) : "";
         const botaoAjuda = Explicacoes.criarBotaoAjudaHtml ? Explicacoes.criarBotaoAjudaHtml(ind.id, `Entenda ${ind.titulo}`) : "";
-        const valorFormatado =
-          typeof ind.valor === "number"
-            ? ind.valor > 999999
-              ? formatarNumeroCompacto(ind.valor) + " " + ind.unidade
-              : formatadorInteiro.format(Math.round(ind.valor)) + " " + ind.unidade
-            : `${ind.valor} ${ind.unidade || ""}`;
+        let valorFormatado = "—";
+        if (typeof ind.valor === "number") {
+          valorFormatado =
+            ind.valor > 999999
+              ? `${formatarNumeroCompacto(ind.valor)} ${ind.unidade || ""}`
+              : `${formatadorInteiro.format(Math.round(ind.valor))} ${ind.unidade || ""}`;
+        } else if (ind.valor != null) {
+          valorFormatado = `${ind.valor} ${ind.unidade || ""}`.trim();
+        }
 
         return `
           <article class="card-indicador" data-indicador-id="${escaparHtml(ind.id)}">
@@ -2965,9 +2979,9 @@ function renderizarCompararMelhorias() {
         tipo: "atributo",
         descricao: `+${incremento} em ${attr.nome}`,
         deltaFc: fcTeste - fcSim,
-        deltaDps: (metTeste?.dpsTotal || 0) - (metSim?.dpsTotal || 0),
-        deltaHp: (stTeste?.hp || 0) - (stSim?.hp || 0),
-        deltaCura: (metTeste?.curaPorSkill || 0) - (metSim?.curaPorSkill || 0),
+        deltaDps: (metTeste?.dpsCombateMedio ?? metTeste?.dpsTotal ?? 0) - (metSim?.dpsCombateMedio ?? metSim?.dpsTotal ?? 0),
+        deltaHp: (stTeste?.maxHp ?? stTeste?.hp ?? 0) - (stSim?.maxHp ?? stSim?.hp ?? 0),
+        deltaCura: (metTeste?.curaSkillLuzDivina ?? metTeste?.curaPorSkill ?? 0) - (metSim?.curaSkillLuzDivina ?? metSim?.curaPorSkill ?? 0),
         aplicar: () => {
           estadoSimulador.atributos[attr.chave] = (estadoSimulador.atributos[attr.chave] || 0) + incremento;
         }
@@ -2993,9 +3007,9 @@ function renderizarCompararMelhorias() {
         tipo: "gema",
         descricao: `Engastar Gema Rubi T5 em ${nomesSlots[item.slot] || item.slot}`,
         deltaFc: fcTeste - fcSim,
-        deltaDps: (metTeste?.dpsTotal || 0) - (metSim?.dpsTotal || 0),
-        deltaHp: (stTeste?.hp || 0) - (stSim?.hp || 0),
-        deltaCura: (metTeste?.curaPorSkill || 0) - (metSim?.curaPorSkill || 0),
+        deltaDps: (metTeste?.dpsCombateMedio ?? metTeste?.dpsTotal ?? 0) - (metSim?.dpsCombateMedio ?? metSim?.dpsTotal ?? 0),
+        deltaHp: (stTeste?.maxHp ?? stTeste?.hp ?? 0) - (stSim?.maxHp ?? stSim?.hp ?? 0),
+        deltaCura: (metTeste?.curaSkillLuzDivina ?? metTeste?.curaPorSkill ?? 0) - (metSim?.curaSkillLuzDivina ?? metSim?.curaPorSkill ?? 0),
         aplicar: () => {
           if (!estadoSimulador.itens[idxSlot].gems) estadoSimulador.itens[idxSlot].gems = [];
           estadoSimulador.itens[idxSlot].gems[primeiroVazio] = gemaT5Atk;
@@ -4557,6 +4571,7 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
   const atBase = inferirAtributosBase(perfil);
   const { itensPuros } = agregarItens(perfil.equipped ?? []);
   const statusCalculados = calcularStatusSimulados(perfil.cls, perfil.level, atBase, itensPuros);
+  statusCalculados.fc = calcularFc(perfil.cls, statusCalculados);
   const metricasCombate = calcularMetricasCombate(perfil.cls, perfil.level, statusCalculados, itensPuros);
 
   // 1. Aba Resumo

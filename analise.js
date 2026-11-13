@@ -48,7 +48,11 @@
     if (!perfil) return null;
 
     const fcInformadoBruto = normalizarNumero(perfil.power, null, 0);
-    const fcReconstruido = normalizarNumero(statusCalculados?.fc, null, 0);
+    const fcReconstruido = normalizarNumero(
+      statusCalculados?.fc ?? (typeof calcularFc === "function" ? calcularFc(classe || perfil.cls, statusCalculados) : null),
+      null,
+      0
+    );
 
     // Comparação entre FC informado e reconstruído
     let comparacaoFc = {
@@ -98,7 +102,12 @@
     });
 
     // 2. DPS estimado
-    const dpsValor = normalizarNumero(metricasCombate?.dpsTotal, null, 0);
+    const dpsValor = normalizarNumero(metricasCombate?.dpsCombateMedio ?? metricasCombate?.dpsTotal, null, 0);
+    const aspdReal = normalizarNumero(metricasCombate?.cadenciaReal ?? metricasCombate?.aspdReal, 1, 0);
+    const critChance = normalizarNumero(statusCalculados?.crit ?? statusCalculados?.critChance, 0, 0, 100);
+    const danoSkill = normalizarNumero(metricasCombate?.skillDanoPorAlvo ?? metricasCombate?.danoPorSkill, 0, 0);
+    const cdSkill = normalizarNumero(metricasCombate?.cdSkillReal ?? metricasCombate?.cdRealSkill, 10, 0);
+
     indicadores.push({
       id: "dps",
       titulo: "DPS Estimado",
@@ -107,13 +116,21 @@
       unidade: "/s",
       origem: "estimado",
       resumo: "Dano médio por segundo contra alvo de teste (0 DEF, sem redução).",
-      detalhes: `Considera cadência real de ${(metricasCombate?.aspdReal || 1).toFixed(2)} golpes/s, crítico de ${(statusCalculados?.critChance || 0).toFixed(1)}% e dano de skill de ${(metricasCombate?.danoPorSkill || 0).toLocaleString("pt-BR")} a cada ${(metricasCombate?.cdRealSkill || 10).toFixed(1)}s.`
+      detalhes: `Considera cadência real de ${aspdReal.toFixed(2)} golpes/s, crítico de ${critChance.toFixed(1)}% e dano de skill de ${Math.round(danoSkill).toLocaleString("pt-BR")} a cada ${cdSkill.toFixed(1)}s.`
     });
 
     // 3. Vida e Sobrevivência
-    const hpMax = normalizarNumero(statusCalculados?.hp, null, 0);
-    const ehp = normalizarNumero(metricasCombate?.ehpFisico, hpMax, 0);
-    const redDefPct = normalizarNumero(metricasCombate?.reducaoDefPct, 0, 0, 100);
+    const hpMax = normalizarNumero(statusCalculados?.maxHp ?? statusCalculados?.hp, null, 0);
+    const ehp = normalizarNumero(metricasCombate?.ehp ?? metricasCombate?.ehpFisico, hpMax, 0);
+    const redDefPct = normalizarNumero(
+      typeof metricasCombate?.reducaoDefesa === "number"
+        ? metricasCombate.reducaoDefesa * 100
+        : metricasCombate?.reducaoDefPct,
+      0,
+      0,
+      100
+    );
+
     indicadores.push({
       id: "sobrevivencia",
       titulo: "Vida Máxima & Defesa",
@@ -122,13 +139,14 @@
       unidade: "HP",
       origem: "calculado",
       resumo: `Vida total com ${redDefPct.toFixed(1)}% de redução física pela defesa.`,
-      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: sangramento, veneno e chefes com 'Singularidade' ignoram defesa e atingem a vida pura (${Math.round(hpMax).toLocaleString("pt-BR")}).`
+      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp || 0).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: sangramento, veneno e chefes com 'Singularidade' ignoram defesa e atingem a vida pura (${Math.round(hpMax || 0).toLocaleString("pt-BR")}).`
     });
 
     // 4. Indicador de classe
     if (classe === "cleric") {
-      const curaSkill = normalizarNumero(metricasCombate?.curaPorSkill, null, 0);
-      const hps = normalizarNumero(metricasCombate?.hpsTotal, null, 0);
+      const curaSkill = normalizarNumero(metricasCombate?.curaSkillLuzDivina ?? metricasCombate?.curaPorSkill, null, 0);
+      const cd = normalizarNumero(metricasCombate?.cdSkillReal ?? metricasCombate?.cdRealSkill, 10, 0.1);
+      const hps = curaSkill && cd ? curaSkill / cd : normalizarNumero(metricasCombate?.hpsTotal, 0, 0);
       indicadores.push({
         id: "cura",
         titulo: "Poder de Cura",
@@ -140,8 +158,6 @@
         detalhes: "Calculado a partir de INT, ATK e bônus específicos do cetro/cajado equipado."
       });
     } else if (classe === "archer") {
-      const aspdReal = normalizarNumero(metricasCombate?.aspdReal, 1, 0, 10);
-      const critChance = normalizarNumero(statusCalculados?.critChance, 0, 0, 100);
       indicadores.push({
         id: "cadencia",
         titulo: "Cadência & Crítico",
@@ -173,12 +189,13 @@
     // Regra 1: Espaços de gemas vazios
     let slotsVazios = 0;
     if (Array.isArray(perfil.equipped)) {
-      for (const item of perfil.equipped) {
-        if (!item || !item.item) continue;
-        const slotsMax = item.item.rarity === "arcane" ? 3 : item.item.rarity === "immortal" ? 2 : 1;
-        const gemasQtd = Array.isArray(item.gems) ? item.gems.length : 0;
-        if (slotsMax > gemasQtd) {
-          slotsVazios += slotsMax - gemasQtd;
+      for (const rawItem of perfil.equipped) {
+        if (!rawItem) continue;
+        const it = rawItem.item || rawItem;
+        const maxGemas = Math.max(0, Math.min(6, Number(it.sockets ?? (it.rarity === 7 ? 6 : it.rarity >= 5 ? 4 : 2))));
+        const gemasQtd = Array.isArray(it.gems) ? it.gems.filter(Boolean).length : 0;
+        if (maxGemas > gemasQtd) {
+          slotsVazios += maxGemas - gemasQtd;
         }
       }
     }
@@ -199,8 +216,10 @@
     // Regra 2: Conjuntos quase completos (ex: 2 de 3 peças)
     if (catalogoConjuntos && Array.isArray(perfil.equipped)) {
       const contagemSets = {};
-      for (const item of perfil.equipped) {
-        const setName = item?.item?.set;
+      for (const rawItem of perfil.equipped) {
+        if (!rawItem) continue;
+        const it = rawItem.item || rawItem;
+        const setName = it?.set;
         if (setName) {
           contagemSets[setName] = (contagemSets[setName] || 0) + 1;
         }
