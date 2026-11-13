@@ -414,15 +414,103 @@ const indicesPecaPity = [
   { idx: 0, slot: "ring", rotulo: "Anel" },
 ];
 
-const temasZona = [
-  "Planícies Iniciais",
-  "Floresta Sombria",
-  "Ruínas Antigas",
-  "Cripta dos Ossos",
-  "Picos Gelados",
-  "Fornalha Demoníaca",
-  "Galáxia Hostil",
-  "Circo dos Horrores",
+const catalogoTemasZona = [
+  {
+    nome: "Ruínas Esquecidas",
+    melee: "Esqueleto / Golem das Ruínas",
+    ranged: "Goblin Arqueiro / Espectro",
+    boss: "Rei Esqueleto / Colosso das Ruínas",
+    skillBossMult: 1.5,
+    cdSkillBoss: 6.5,
+    temBleedBoss: false,
+    fatorDotVerdadeiroPorSeg: 0,
+    resumoSkillBoss: "50% Rei Esqueleto: Pisão Sísmico (1,25× ATK em área a cada 6,5s) · 50% Colosso (+30% HP, +40% DEF, CD 8s): Desmoronamento em 3 heróis (1,5× ATK + Stun 0,5s).",
+    resumoLacaios: "A cada 3 esqueletos nasce 1 Golem (+40% HP, +80% DEF); Espectros voam se houver arqueiro/clérigo vivo.",
+  },
+  {
+    nome: "Cavernas Goblin",
+    melee: "Orc Brutamontes / Assassino Furtivo",
+    ranged: "Goblin Xamã",
+    boss: "Chefe Orc",
+    skillBossMult: 1.25,
+    cdSkillBoss: 6.5,
+    temBleedBoss: false,
+    fatorDotVerdadeiroPorSeg: 0,
+    resumoSkillBoss: "Arremesso Brutal (até 2x): 0,85× ATK em área + joga todos os heróis para trás (0,75s) com Stun de 0,52s; depois usa Pisão (1,25× ATK a cada 6,5s).",
+    resumoLacaios: "⚠️ PERIGO REAL: Assassinos Furtivos nascem invisíveis ATRÁS dos Clérigos/Arqueiros dando 3,2× ATK + Sangramento Forte (50% ATK/s por 5,5s = 275% ATK em DANO VERDADEIRO que ignora 100% da DEF)!",
+  },
+  {
+    nome: "Cripta Gélida",
+    melee: "Cavaleiro Gélido / Lobo Sombrio",
+    ranged: "Mago do Gelo",
+    boss: "Rei Gélido",
+    skillBossMult: 1.25,
+    cdSkillBoss: 6.5,
+    temBleedBoss: false,
+    fatorDotVerdadeiroPorSeg: 0,
+    resumoSkillBoss: "Pisão Glacial a cada 6,5s: 1,25× ATK em todos os heróis num raio de 80.",
+    resumoLacaios: "⚠️ Lobos Sombrios nascem pelas costas focando Clérigos e Arqueiros (1,15× a 1,45× ATK, furtivos e muito rápidos).",
+  },
+  {
+    nome: "Fornalha Infernal",
+    melee: "Demônio / Puxador de Corrente",
+    ranged: "Bruxo das Chamas (Silêncio)",
+    boss: "Senhor Demônio / Ferreiro Demoníaco",
+    skillBossMult: 1.3,
+    cdSkillBoss: 6.5,
+    temBleedBoss: true,
+    fatorDotVerdadeiroPorSeg: 0.333, // Aura 20% ATK a cada 0.6s + Sangramento 30% ATK/s por 4s
+    resumoSkillBoss: "50% Senhor Demônio: Aura Escaldante (33,3% ATK/s de DANO VERDADEIRO contínuo) + Chuva de Brasas (1,1× ATK + Sangramento de 30% ATK/s por 4s ignorando DEF) + Mergulho na Backline (1,3× ATK + Stun 0,6s no Clérigo/Arqueiro). 50% Ferreiro (+20% HP, +15% DEF): Bigorna (1,0× ATK + Sangramento Verdadeiro) e Têmpera (70% redução de dano por 5s; exige 10% do HP máx para quebrar ou explode na sala).",
+    resumoLacaios: "⚠️ Bruxo das Chamas aplica SILÊNCIO DE 5s no Clérigo (impede curas); Demônio de Corrente puxa Arqueiro/Clérigo para a linha de frente (Stun 1,2s).",
+  },
+  {
+    nome: "Pântano Sombrio",
+    melee: "Homem-Lagarto",
+    ranged: "Bruxa do Pântano (Poça Ácida)",
+    boss: "Rei Lagarto / Bruxa Chefe",
+    skillBossMult: 1.5,
+    cdSkillBoss: 6.5,
+    temBleedBoss: true,
+    fatorDotVerdadeiroPorSeg: 0.8, // Poça de 40% ATK a cada 0.5s (80% ATK/s Dano Verdadeiro) + Caldeirão Bleed 30% ATK/s
+    resumoSkillBoss: "50% Bruxa Chefe (+10% HP/DEF): Poções Ácidas (0,8× ATK + poças de 80% ATK/s em DANO VERDADEIRO por 6s ignorando DEF), Sapo (Stun 2,2s) e Caldeirão (cura 5% do HP do Boss + 0,5× ATK e Sangramento de 30% ATK/s na sala toda). 50% Rei Lagarto: Fica invisível 1,8s e puxa Clérigo/Arqueiro com a língua (1,5× ATK + Stun 1,3s) + Rabada (1,0× ATK + empurrão).",
+    resumoLacaios: "⚠️ Goblins cospem poças de ácido (70% ATK/s de Dano Verdadeiro por 5s); Homens-Lagarto deixam nuvem de esporos (45% slow por 5s ao morrer).",
+  },
+  {
+    nome: "Recife Abissal",
+    melee: "Caranguejo Brutamonte",
+    ranged: "Sereia das Profundezas",
+    boss: "Kraken",
+    skillBossMult: 1.25,
+    cdSkillBoss: 6.5,
+    temBleedBoss: false,
+    fatorDotVerdadeiroPorSeg: 0,
+    resumoSkillBoss: "Tentáculo Abissal (Stomp) a cada 6,5s: 1,25× ATK em área num raio de 80.",
+    resumoLacaios: "Pressão constante de linha de frente e projéteis aquáticos.",
+  },
+  {
+    nome: "Galáxia Hostil",
+    melee: "Alienígena / Abdutor / Assassino",
+    ranged: "Atirador Zorg (EMP)",
+    boss: "Imperador Cósmico",
+    skillBossMult: 0.9,
+    cdSkillBoss: 6.5,
+    temBleedBoss: false,
+    fatorDotVerdadeiroPorSeg: 0,
+    resumoSkillBoss: "Pulso Eletromagnético (EMP) a cada 6,5s: Atinge TODA A SALA com 0,9× ATK + Stun Global de 0,55s (interrompe animações de ataque e cura).",
+    resumoLacaios: "⚠️ Drop garantido de Épico Espacial no Boss! Alienígenas Abdutores levantam heróis por 1,25s (+0,9× ATK na queda); Assassinos Espaciais nascem furtivos atrás da backline (1,7× ATK); Goblins Zorg também soltam EMP global (0,6× ATK + Stun 0,55s).",
+  },
+  {
+    nome: "Circo dos Horrores",
+    melee: "Acrobata / Caixa Explosiva / Leão",
+    ranged: "Mágico Cartola / Pula-Pula",
+    boss: "Mestre de Cerimônias",
+    skillBossMult: 1.1,
+    cdSkillBoss: 6.5,
+    temBleedBoss: true,
+    fatorDotVerdadeiroPorSeg: 0.3, // Sangramento de 30% ATK/s por 4s (120% ATK True Damage)
+    resumoSkillBoss: "Roleta do Circo a cada 6,5s (6 efeitos): (1) Facas em 3 alvos: 1,1× ATK + Sangramento (30% ATK/s por 4s = 120% ATK de DANO VERDADEIRO ignorando DEF); (2) Medo (Fear 3s em 2 heróis); (3) Chuva de Facas na SALA TODA: 0,7× ATK + Sangramento Verdadeiro (120% ATK); (4) Cartola: Stun 1,4s + 0,5× ATK; (5) Cura: Boss recupera 7% do HP máximo; (6) Frenesi: Lacaios ganham +35% Move Speed e +25% ASPD.",
+    resumoLacaios: "⚠️ Único Boss que dropa conjuntos Arcanos do Circo (Z16+)! Mágicos trocam a posição do Guerreiro com o Clérigo/Arqueiro; Caixas explodem ao morrer (0,9× ATK); Domadores invocam Leões (+90% HP) ao morrer.",
+  },
 ];
 
 const formatadorInteiro = new Intl.NumberFormat("pt-BR");
@@ -2325,7 +2413,7 @@ function calcularEscalaOnda(zona, onda, numJogadores) {
   const fatorHorda = 0.55 + 0.45 * Math.pow(party, 0.72);
   const qtdBase = Math.min(40, Math.max(2, Math.round((1.6 + n * 0.5) * fatorHorda)));
   const qtdMinions = w === 10 ? Math.max(2, Math.round(qtdBase * 0.5)) : qtdBase;
-  const temaNome = temasZona[Math.min(temasZona.length - 1, Math.floor((z - 1) / 3))];
+  const infoTema = catalogoTemasZona[(z - 1) % catalogoTemasZona.length];
 
   return {
     zona: z,
@@ -2333,7 +2421,8 @@ function calcularEscalaOnda(zona, onda, numJogadores) {
     waveAbsoluta: n,
     party,
     multParty,
-    temaNome,
+    temaNome: infoTema.nome,
+    infoTema,
     temBoss: w === 10,
     qtdMinions,
     skeleton: statsInimigo("skeleton"),
@@ -2374,63 +2463,114 @@ function renderizarSimuladorMonstros() {
 
   const esc = calcularEscalaOnda(zona, onda, jogadores);
   const heroi = obterHeroiBaseParaDuelo();
+  const tema = esc.infoTema;
+  const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
 
-  function calcularDueloInimigo(inimigo) {
+  function calcularDueloInimigo(inimigo, multSkill = 1.25) {
     const fatorDefInimigo = 100 / (100 + inimigo.def * 4);
     const hitNormal = Math.max(1, Math.round(heroi.metricas.golpeNormalBruto * fatorDefInimigo));
     const hitCrit = Math.max(1, Math.round(heroi.metricas.golpeCritBruto * fatorDefInimigo));
     const dpsRealContraAlvo = Math.max(1, heroi.metricas.dpsCombateMedio * fatorDefInimigo);
     const ttk = inimigo.hp / dpsRealContraAlvo;
 
-    const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
     const danoRecebido = Math.max(1, Math.round(inimigo.atk * fatorDefHeroi));
+    const danoSkillFisica = Math.max(1, Math.round(inimigo.atk * multSkill * fatorDefHeroi));
     const golpesParaMorrer = Math.ceil(heroi.status.maxHp / danoRecebido);
 
-    return { hitNormal, hitCrit, dpsRealContraAlvo, ttk, danoRecebido, golpesParaMorrer, fatorDefInimigo };
+    // No código oficial: hit(..., "bleed") IGNORA 100% da DEF (Math.max(1, Math.round(s)))!
+    // applyBleed normal = 30% ATK/s por 4s (120% ATK total); forte (Assassino) = 50% ATK/s por 5.5s (275% ATK total)
+    const bleedDpsNormal = Math.max(1, Math.round(inimigo.atk * 0.3));
+    const bleedTotal4s = Math.max(1, Math.round(inimigo.atk * 1.2));
+
+    return {
+      hitNormal,
+      hitCrit,
+      dpsRealContraAlvo,
+      ttk,
+      danoRecebido,
+      danoSkillFisica,
+      golpesParaMorrer,
+      fatorDefInimigo,
+      bleedDpsNormal,
+      bleedTotal4s,
+    };
   }
 
-  const dBoss = calcularDueloInimigo(esc.boss);
-  const dSkel = calcularDueloInimigo(esc.skeleton);
-  const dGob = calcularDueloInimigo(esc.goblin);
+  const dBoss = calcularDueloInimigo(esc.boss, tema.skillBossMult);
+  const dSkel = calcularDueloInimigo(esc.skeleton, 3.2);
+  const dGob = calcularDueloInimigo(esc.goblin, 1.25);
 
   const danoSingBoss = heroi.metricas.arma?.kind === "singblade"
     ? Math.round(esc.boss.hp * (heroi.metricas.analiseEfeitoArma?.pctBossEfetivo || 0.04))
     : 0;
 
-  // Tabela de Fúria (Rage a cada 15s)
+  // Cálculo do Dano Verdadeiro real da Zona (Sangramento / Poça / Aura que IGNORA DEF no código do jogo)
+  const dotBossPorSeg = tema.fatorDotVerdadeiroPorSeg > 0
+    ? Math.round(esc.boss.atk * tema.fatorDotVerdadeiroPorSeg)
+    : dBoss.bleedDpsNormal;
+  const dotBoss4s = dotBossPorSeg * 4;
+  const bleedAssassinoSkel5s = Math.round(esc.skeleton.atk * 0.5 * 5.5); // 275% ATK do Esqueleto ignorando DEF
+
+  // Tabela de Fúria (Rage a cada 15s: +10% ATK, +8% ASPD, -7% DEF, -5% HP máx, -8% CD da Skill)
   const ticksRage = [0, 15, 30, 45, 60, 75].map((seg) => {
     const nivelRage = seg / 15;
     const bossAtk = esc.boss.atk * Math.pow(1.1, nivelRage);
     const bossAspd = esc.boss.aspd * Math.pow(1.08, nivelRage);
     const bossDef = esc.boss.def * Math.pow(0.93, nivelRage);
-    const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
-    const danoPorHitBoss = Math.max(1, Math.round(bossAtk * fatorDefHeroi));
-    const sobrevive = danoPorHitBoss < heroi.status.maxHp
-      ? `Aguenta ${Math.floor(heroi.status.maxHp / danoPorHitBoss)} golpes`
-      : "Hit-Kill (1 golpe)";
+    const cdSkillRage = tema.cdSkillBoss * Math.pow(0.92, nivelRage);
+    const danoHitBasico = Math.max(1, Math.round(bossAtk * fatorDefHeroi));
+    const danoHitSkill = Math.max(1, Math.round(bossAtk * tema.skillBossMult * fatorDefHeroi));
+    const danoBleed4sRage = Math.max(1, Math.round(bossAtk * 1.2)); // 30% ATK/s por 4s (Dano Verdadeiro sem DEF!)
+    const pctHpBleed = (danoBleed4sRage / Math.max(1, heroi.status.maxHp)) * 100;
+
+    let sobreviveTxt;
+    if (danoHitSkill >= heroi.status.maxHp) {
+      sobreviveTxt = "Hit-Kill Físico na Skill";
+    } else if (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp) {
+      const segsParaMorrerNoBleed = (heroi.status.maxHp / (bossAtk * 0.3)).toFixed(1);
+      sobreviveTxt = `Letal no Sangramento (${segsParaMorrerNoBleed}s s/ cura)`;
+    } else if (tema.temBleedBoss) {
+      sobreviveTxt = `Bleed tira ${pctHpBleed.toFixed(0)}% HP (Físico: ${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
+    } else {
+      sobreviveTxt = `Aguenta ${Math.floor(heroi.status.maxHp / danoHitSkill)} skills (${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
+    }
+
+    const corSobrevive =
+      danoHitSkill >= heroi.status.maxHp || (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp)
+        ? "#ff8a9b"
+        : tema.temBleedBoss && pctHpBleed >= 50
+          ? "var(--gold)"
+          : "var(--green)";
+
     return `
       <tr>
         <th scope="row">${seg}s (Fúria ${nivelRage})</th>
         <td>${formatarNumeroCompacto(bossAtk)}</td>
-        <td>${bossAspd.toFixed(2)}/s</td>
+        <td>${bossAspd.toFixed(2)}/s · Skill ${cdSkillRage.toFixed(1)}s</td>
         <td>${formatadorDecimal1.format(bossDef)}</td>
-        <td>${formatarNumeroCompacto(danoPorHitBoss)}</td>
-        <td style="color:${danoPorHitBoss >= heroi.status.maxHp ? "#ff8a9b" : "var(--green)"};">${sobrevive}</td>
+        <td>${formatarNumeroCompacto(danoHitBasico)} (Skill: ${formatarNumeroCompacto(danoHitSkill)})</td>
+        <td style="color:#ff9aa8;font-weight:700;">${tema.temBleedBoss ? `${formatarNumeroCompacto(danoBleed4sRage)} (${formatarNumeroCompacto(bossAtk * 0.3)}/s)` : "Sem Bleed no Boss"}</td>
+        <td style="color:${corSobrevive};">${sobreviveTxt}</td>
       </tr>
     `;
   }).join("");
 
+  const bleedLetalNoBoss = tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp;
   const classeVeredito =
-    dBoss.golpesParaMorrer <= 1 || dBoss.ttk > 60
+    dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss
       ? "perigo"
-      : dBoss.golpesParaMorrer <= 3 || dBoss.ttk > 30
+      : dBoss.golpesParaMorrer <= 5 || (tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp * 0.5)
         ? "alerta"
         : "";
 
-  const textoVeredito =
-    dBoss.golpesParaMorrer <= 1
-      ? `⚠️ Perigo: O Chefe da Zona ${esc.zona} aplica Hit-Kill em você no segundo 0 (${formatarNumeroCompacto(dBoss.danoRecebido)} de dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`
-      : `✅ Veredito Solo: Você aguenta ${dBoss.golpesParaMorrer} golpes iniciais do Chefe (${formatarNumeroCompacto(dBoss.danoRecebido)} dano/hit) e leva ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s sozinho para derrubá-lo (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS líquido).`;
+  let textoVeredito;
+  if (dBoss.golpesParaMorrer <= 1) {
+    textoVeredito = `⚠️ Perigo Físico: O Chefe da Zona ${esc.zona} (${tema.boss}) aplica Hit-Kill físico no segundo 0 (${formatarNumeroCompacto(dBoss.danoRecebido)} dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`;
+  } else if (tema.temBleedBoss) {
+    textoVeredito = `⚠️ Atenção às Skills (${tema.boss}): Sua DEF reduz o golpe físico básico para ${formatarNumeroCompacto(dBoss.danoRecebido)} (skill física: ${formatarNumeroCompacto(dBoss.danoSkillFisica)}), MAS o Sangramento/DoT da skill do Chefe IGNORA 100% DA DEFESA e causa ${formatarNumeroCompacto(dotBossPorSeg)}/s de Dano Verdadeiro (${formatarNumeroCompacto(dotBoss4s)} em 4s vs seus ${formatarNumeroCompacto(heroi.status.maxHp)} HP)!`;
+  } else {
+    textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Golpe básico físico causa ${formatarNumeroCompacto(dBoss.danoRecebido)} e a Skill (${tema.skillBossMult}×) causa ${formatarNumeroCompacto(dBoss.danoSkillFisica)} a cada ${tema.cdSkillBoss}s. Seu TTK solo no Chefe é ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS líquido).`;
+  }
 
   const zonasAtalho = [10, 13, 16, 18, 20, 22, 25];
 
@@ -2456,6 +2596,14 @@ function renderizarSimuladorMonstros() {
       <span class="small" style="color:var(--cyan);">Herói: <strong>${escaparHtml(heroi.origemLabel)}</strong></span>
     </div>
 
+    <div class="card-info" style="border-color: rgba(240, 180, 41, 0.35);">
+      <h4>🔥 Habilidades Reais do Chefe &amp; Mecânicas Letais — Zona ${esc.zona}: ${escaparHtml(tema.nome)}</h4>
+      <div class="card-info-linha"><span>Chefe (${escaparHtml(tema.boss)})</span><strong>CD Base: ${tema.cdSkillBoss}s (-8% CD a cada 15s de Fúria)</strong></div>
+      <p class="small" style="margin:2px 0 6px;color:var(--text);">${escaparHtml(tema.resumoSkillBoss)}</p>
+      <div class="card-info-linha"><span>Por que morremos mesmo com DEF alta?</span><strong style="color:#ff8a9b;">Sangramento / Poça / Aura = DANO VERDADEIRO (Ignora 100% da DEF)</strong></div>
+      <p class="small muted" style="margin:2px 0 0;">${escaparHtml(tema.resumoLacaios)}</p>
+    </div>
+
     <div class="aviso-vazio-perfil" style="border-left-color: var(--gold);">
       <span>
         <strong>Zona ${esc.zona} · Onda ${esc.onda}</strong> (Onda global #${esc.waveAbsoluta} · ${escaparHtml(esc.temaNome)}) ·
@@ -2466,31 +2614,33 @@ function renderizarSimuladorMonstros() {
     <div class="grade-monstros">
       <article class="card-monstro">
         <div class="card-monstro-topo">
-          <h4>Esqueleto (Linha de Frente)</h4>
+          <h4>${escaparHtml(tema.melee)}</h4>
           <span class="small muted">${formatadorInteiro.format(esc.skeleton.gold)}g · ${formatadorInteiro.format(esc.skeleton.exp)} XP</span>
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
-        <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}s</strong></div>
+        <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}/s</strong></div>
         <div class="card-info-linha"><span>Seu Golpe (Normal → Crít)</span><strong>${formatarNumeroCompacto(dSkel.hitNormal)} → ${formatarNumeroCompacto(dSkel.hitCrit)}</strong></div>
         <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dSkel.ttk < 1 ? "<1s" : `${dSkel.ttk.toFixed(1)}s`}</strong></div>
-        <div class="card-info-linha"><span>Dano do Monstro em Você</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits)</strong></div>
+        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits)</strong></div>
+        <div class="card-info-linha"><span>Se aplicar Bleed (Ignora DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(dSkel.bleedDpsNormal)}/s (Ladino: ${formatarNumeroCompacto(bleedAssassinoSkel5s)} em 5,5s)</strong></div>
       </article>
 
       <article class="card-monstro">
         <div class="card-monstro-topo">
-          <h4>Goblin (Ataque à Distância)</h4>
+          <h4>${escaparHtml(tema.ranged)}</h4>
           <span class="small muted">${formatadorInteiro.format(esc.goblin.gold)}g · ${formatadorInteiro.format(esc.goblin.exp)} XP</span>
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
-        <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}s</strong></div>
+        <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}/s</strong></div>
         <div class="card-info-linha"><span>Seu Golpe (Normal → Crít)</span><strong>${formatarNumeroCompacto(dGob.hitNormal)} → ${formatarNumeroCompacto(dGob.hitCrit)}</strong></div>
         <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dGob.ttk < 1 ? "<1s" : `${dGob.ttk.toFixed(1)}s`}</strong></div>
-        <div class="card-info-linha"><span>Dano do Monstro em Você</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits)</strong></div>
+        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits)</strong></div>
+        <div class="card-info-linha"><span>Poça Ácida (Z5/Z13/Z21 s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(esc.goblin.atk * 0.7)}/s (35% ATK a cada 0,5s)</strong></div>
       </article>
 
       <article class="card-monstro boss">
         <div class="card-monstro-topo">
-          <h4>CHEFE DA ZONA ${esc.zona}</h4>
+          <h4>${escaparHtml(tema.boss.toUpperCase())} (Z${esc.zona})</h4>
           <span class="small" style="color:var(--gold);">${formatadorInteiro.format(esc.boss.gold)}g · ${formatadorInteiro.format(esc.boss.exp)} XP</span>
         </div>
         <div class="card-info-linha"><span>HP Total (+${((esc.multParty - 1) * 100).toFixed(0)}%)</span><strong>${formatarNumeroCompacto(esc.boss.hp)}</strong></div>
@@ -2498,21 +2648,23 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>Seu Hit no Chefe</span><strong style="color:var(--gold);">${formatarNumeroCompacto(dBoss.hitNormal)} → ${formatarNumeroCompacto(dBoss.hitCrit)}</strong></div>
         <div class="card-info-linha"><span>DPS Real / TTK Solo</span><strong>${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s · ${dBoss.ttk.toFixed(1)}s</strong></div>
         ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Proc da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
-        <div class="card-info-linha"><span>Hit do Chefe em Você (0s)</span><strong style="color:${dBoss.golpesParaMorrer <= 2 ? "#ff7a90" : "var(--green)"};">${formatarNumeroCompacto(dBoss.danoRecebido)} (${dBoss.golpesParaMorrer} hits)</strong></div>
+        <div class="card-info-linha"><span>Hit Básico → Skill (${tema.skillBossMult}× c/ DEF)</span><strong>${formatarNumeroCompacto(dBoss.danoRecebido)} → ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
+        <div class="card-info-linha"><span>Sangramento / DoT (Ignora DEF!)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s)` : "N/A nesta zona"}</strong></div>
       </article>
     </div>
 
-    <h4 class="titulo-secao-comp" style="margin-top:6px;">Escala de Fúria do Chefe (Rage a cada 15 segundos)</h4>
+    <h4 class="titulo-secao-comp" style="margin-top:6px;">Escala de Fúria do Chefe (Rage a cada 15s: +10% ATK, +8% Vel, -8% CD Skill, -7% DEF)</h4>
     <div class="table-wrap">
       <table class="tabela-comp">
         <thead>
           <tr>
             <th scope="col">Tempo de Luta</th>
-            <th scope="col">ATK do Chefe (+10%)</th>
-            <th scope="col">Vel. (+8%)</th>
+            <th scope="col">ATK (+10%)</th>
+            <th scope="col">Vel. / CD Skill</th>
             <th scope="col">DEF (-7%)</th>
-            <th scope="col">Dano em Você</th>
-            <th scope="col">Sobrevivência</th>
+            <th scope="col">Hit Físico / Skill (c/ DEF)</th>
+            <th scope="col">Sangramento 4s (Ignora DEF)</th>
+            <th scope="col">Impacto Real em Você</th>
           </tr>
         </thead>
         <tbody>${ticksRage}</tbody>
