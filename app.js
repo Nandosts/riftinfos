@@ -1141,12 +1141,12 @@ function formatarGemaTexto(gema) {
   const partes = [];
   if (gema.stat && gema.value) {
     const sufixo = gema.pct ? "%" : "";
-    const valor = gema.pct ? (gema.value / 10).toFixed(1) : gema.value;
+    const valor = gema.pct ? (gema.value / 10).toFixed(1).replace(".", ",") : gema.value;
     partes.push(`+${valor}${sufixo} ${rotulosStats[gema.stat] || gema.stat.toUpperCase()}`);
   }
   if (gema.stat2 && gema.value2) {
     const sufixo = gema.pct2 ? "%" : "";
-    const valor = gema.pct2 ? (gema.value2 / 10).toFixed(1) : gema.value2;
+    const valor = gema.pct2 ? (gema.value2 / 10).toFixed(1).replace(".", ",") : gema.value2;
     partes.push(`+${valor}${sufixo} ${rotulosStats[gema.stat2] || gema.stat2.toUpperCase()}`);
   }
   return partes.join(" · ") || "Atributo";
@@ -1913,12 +1913,17 @@ const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5];
 const escalaGemasXz = [1, 2, 3.5, 6, 9];
 const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
 
-function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, roll = 0.90) {
+function sortearRolagemGema() {
+  // Intervalo oficial do jogo: 0.85 a 1.15
+  return 0.85 + Math.random() * 0.30;
+}
+
+function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, roll = 1.0) {
   const o = Math.min(5, Math.max(1, Number(tier) || 5)) - 1;
   if (ehPct || stat === "hp" || stat === "def") {
     // hp e def percentuais: 10 * Uz[o] (em decimos de %, ex: 10 * 5 = 50 -> 5.0%)
     const basePct = 10 * escalaGemasUz[o];
-    return Math.max(1, Math.round(basePct * 1.0));
+    return Math.max(1, Math.round(basePct * roll));
   }
   // stats planos: Hz[stat] * Xz[o] * (1 + itemLevel / 60)
   const fatorStat = fatoresGemasHz[stat] || 1.0;
@@ -1927,27 +1932,15 @@ function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, ro
   return Math.max(1, Math.round(basePlana * roll));
 }
 
-function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, gemaReferencia = null) {
+function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, rollFixo = null) {
   if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return null;
   const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
   const t = Math.min(5, Math.max(1, Number(tier) || 5));
 
-  // Se já temos uma gema do mesmo tipo e tier da peça original, mantemos exatamente os valores reais dela
-  if (gemaReferencia && gemaReferencia.type === tipo && (gemaReferencia.tier || 5) === t && gemaReferencia.value) {
-    return {
-      type: tipo,
-      tier: t,
-      name: gemaReferencia.name || `${catalogoGemas[tipo].nome} T${t}${t === 5 ? " Suprema" : ""}`,
-      stat: gemaReferencia.stat || spec.stat,
-      value: gemaReferencia.value,
-      pct: gemaReferencia.pct ?? spec.pct,
-      stat2: gemaReferencia.stat2 || (t >= 5 ? spec.stat2 : undefined),
-      value2: gemaReferencia.value2,
-      pct2: gemaReferencia.pct2 ?? spec.pct2,
-    };
-  }
+  const roll1 = typeof rollFixo === "number" ? rollFixo : sortearRolagemGema();
+  const roll2 = typeof rollFixo === "number" ? rollFixo : sortearRolagemGema();
 
-  const val1 = calcularValorGemaOficial(spec.stat, t, itemLevel, spec.pct, 0.90);
+  const val1 = calcularValorGemaOficial(spec.stat, t, itemLevel, spec.pct, roll1);
   const gema = {
     type: tipo,
     tier: t,
@@ -1955,27 +1948,36 @@ function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, gemaReferencia =
     stat: spec.stat,
     value: val1,
     pct: spec.pct,
+    roll1: Math.round(roll1 * 100),
   };
 
   if (t >= 5 && spec.stat2) {
     gema.stat2 = spec.stat2;
-    gema.value2 = calcularValorGemaOficial(spec.stat2, t, itemLevel, spec.pct2, 0.90);
+    gema.value2 = calcularValorGemaOficial(spec.stat2, t, itemLevel, spec.pct2, roll2);
     gema.pct2 = spec.pct2;
+    gema.roll2 = Math.round(roll2 * 100);
   }
   return gema;
 }
 
-function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300, gemaReferencia = null) {
-  const gema = criarGemaPreset(tipo, slot, tier, itemLevel, gemaReferencia);
-  if (!gema) return "";
-  const fmt = (st, val, pct) => {
+function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300) {
+  if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return "";
+  const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
+  const t = Math.min(5, Math.max(1, Number(tier) || 5));
+
+  const fmtRange = (st, pct) => {
     const rot = rotulosStats[st] || st.toUpperCase();
-    if (pct) return `+${(val / 10).toFixed(1).replace(".", ",")}% ${rot}`;
-    return `+${val} ${rot}`;
+    const min = calcularValorGemaOficial(st, t, itemLevel, pct, 0.85);
+    const max = calcularValorGemaOficial(st, t, itemLevel, pct, 1.15);
+    if (pct) {
+      return `+${(min / 10).toFixed(1).replace(".", ",")}% a +${(max / 10).toFixed(1).replace(".", ",")}% ${rot}`;
+    }
+    return `+${min} a +${max} ${rot}`;
   };
-  let txt = fmt(gema.stat, gema.value, gema.pct);
-  if (gema.stat2 && gema.value2) {
-    txt += ` · ${fmt(gema.stat2, gema.value2, gema.pct2)}`;
+
+  let txt = fmtRange(spec.stat, spec.pct);
+  if (t >= 5 && spec.stat2) {
+    txt += ` · ${fmtRange(spec.stat2, spec.pct2)}`;
   }
   return txt;
 }
@@ -2183,17 +2185,16 @@ function renderizarSimulador() {
         .map(([tk, tv]) => {
           const estaSelecionada = tipoAtual === tk;
           const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlot : tierSlot;
-          const gemaRefMesmoTipo = item.gems?.find((g) => g && g.type === tk && g.value);
           const subtexto = estaSelecionada
             ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
-            : resumoCurtoGemaBotao(tk, item.slot, tierExibicao, item.itemLevel, gemaRefMesmoTipo);
+            : resumoCurtoGemaBotao(tk, item.slot, tierExibicao, item.itemLevel);
           return `
             <button
               type="button"
               class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
               data-sim-gem-btn="${idxSlot}:${idxGema}:${tk}"
               aria-pressed="${estaSelecionada ? "true" : "false"}"
-              title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Selecionar ${tv.nome} T${tierSlot}`}"
+              title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Engastar ${tv.nome} T${tierSlot} (sorteia nova rolagem oficial)`}"
             >
               <strong class="gema-titulo-btn"><span class="gema-ponto-cor" style="background:${tv.cor};"></span>${tv.nome}</strong>
               <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
@@ -2241,9 +2242,10 @@ function renderizarSimulador() {
         </div>
         <div class="sim-gemas-bloco">
           <div class="sim-gemas-topo">
-            <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) — clique na gema para ativar/desativar</span>
+            <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) — clique para engastar/desengastar (rolagem sorteada na hora)</span>
             <div class="sim-tier-bar">
               ${botoesTierHtml}
+              <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Sorteia novas rolagens na hora (85% a 115%) para todas as gemas engastadas nesta peça">🎲 Re-rolar</button>
               <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
               <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
             </div>
@@ -2442,12 +2444,24 @@ function vincularEventosSimulador() {
       const gemaAtual = item.gems[idxGema];
 
       if (gemaAtual && gemaAtual.type === tipoClicado) {
-        // Desseleciona se já estava selecionada
+        // Desseleciona se já estava selecionada (ao clicar novamente, o espaço fica vazio)
         item.gems[idxGema] = null;
       } else {
-        const gemaRef = item.gems?.find((g) => g && g.type === tipoClicado && g.value);
-        item.gems[idxGema] = criarGemaPreset(tipoClicado, item.slot, tierSlot, item.itemLevel, gemaRef);
+        // Engasta uma nova gema sorteando rolagem dinâmica oficial na hora (85% a 115%)
+        item.gems[idxGema] = criarGemaPreset(tipoClicado, item.slot, tierSlot, item.itemLevel);
       }
+      renderizarSimulador();
+    });
+  });
+
+  // Botão "Re-rolar" todas as gemas engastadas na peça (sorteia novas rolagens oficiais entre 85% e 115%)
+  containerSimulador.querySelectorAll("[data-sim-gem-reroll]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const idxSlot = Number(e.currentTarget.dataset.simGemReroll);
+      const item = estadoSimulador.itens[idxSlot];
+      if (!item || !Array.isArray(item.gems)) return;
+      item.gems = item.gems.map((g) => (g && g.type ? criarGemaPreset(g.type, item.slot, g.tier || item.gemTierPadrao || 5, item.itemLevel) : null));
       renderizarSimulador();
     });
   });
@@ -2463,7 +2477,7 @@ function vincularEventosSimulador() {
       if (!item) return;
       item.gemTierPadrao = novoTier;
       if (Array.isArray(item.gems)) {
-        item.gems = item.gems.map((g) => (g && g.type ? criarGemaPreset(g.type, item.slot, novoTier, item.itemLevel, g) : null));
+        item.gems = item.gems.map((g) => (g && g.type ? criarGemaPreset(g.type, item.slot, novoTier, item.itemLevel) : null));
       }
       renderizarSimulador();
     });
@@ -2478,7 +2492,7 @@ function vincularEventosSimulador() {
       if (!item) return;
       const tierSlot = Number(item.gemTierPadrao || 5);
       const primeira = item.gems?.find(Boolean) || criarGemaPreset("ruby", item.slot, tierSlot, item.itemLevel);
-      item.gems = Array.from({ length: 6 }, () => criarGemaPreset(primeira.type, item.slot, primeira.tier || tierSlot, item.itemLevel, primeira));
+      item.gems = Array.from({ length: 6 }, () => criarGemaPreset(primeira.type, item.slot, primeira.tier || tierSlot, item.itemLevel));
       renderizarSimulador();
     });
   });
