@@ -84,27 +84,10 @@
     if (!perfil) return null;
     const equippedCompacto = Array.isArray(perfil.equipped)
       ? perfil.equipped.map((it) => ({
-          slot: it?.slot || null,
-          item: it?.item
-            ? {
-                kind: it.item.kind || null,
-                rarity: it.item.rarity || null,
-                tier: it.item.tier != null ? it.item.tier : null,
-                level: it.item.level != null ? it.item.level : null,
-                set: it.item.set || null,
-                stats: it.item.stats || null
-              }
-            : null,
-          gems: Array.isArray(it?.gems)
-            ? it.gems.map((g) => ({
-                kind: g?.kind || null,
-                tier: g?.tier != null ? g.tier : null,
-                roll: g?.roll != null ? g.roll : null,
-                stats: g?.stats || null
-              }))
-            : []
-        }))
-      : [];
+          slot: it.slot, item: { kind: it.kind, rarity: it.rarity, level: it.itemLevel,
+            id: it.id, set: it.set, atk: it.atk, def: it.def, hp: it.hp, crit: it.crit, spd: it.spd },
+          gems: JSON.parse(JSON.stringify(it.gems || []))
+        })) : [];
 
     return {
       level: perfil.level != null ? perfil.level : null,
@@ -134,7 +117,7 @@
       const mesmoPower = ultimo?.profile?.power === perfilCompacto.power;
       const mesmoLevel = ultimo?.profile?.level === perfilCompacto.level;
       const mesmosCounters = JSON.stringify(ultimo?.profile?.counters) === JSON.stringify(perfilCompacto.counters);
-      if (mesmoPower && mesmoLevel && mesmosCounters) {
+      if (mesmoPower && mesmoLevel && mesmosCounters && JSON.stringify(ultimo?.profile?.equipped) === JSON.stringify(perfilCompacto.equipped)) {
         return { sucesso: true, duplicado: true, total: lista.length };
       }
     }
@@ -246,7 +229,7 @@
         const mudouRarity = pAntiga?.item?.rarity !== pNova?.item?.rarity;
         const mudouTier = pAntiga?.item?.tier !== pNova?.item?.tier;
         const mudouLevel = pAntiga?.item?.level !== pNova?.item?.level;
-        if (mudouKind || mudouRarity || mudouTier || mudouLevel) {
+        if (mudouKind || mudouRarity || mudouTier || mudouLevel || JSON.stringify(pAntiga) !== JSON.stringify(pNova)) {
           alteracoesItens.push({
             slot,
             tipo: "substituicao",

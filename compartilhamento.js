@@ -66,8 +66,7 @@
     };
 
     lista.push(novaBuild);
-    persistirBuilds(lista);
-    return novaBuild;
+    return persistirBuilds(lista) ? novaBuild : null;
   }
 
   /**
@@ -88,8 +87,7 @@
     };
 
     lista.push(copia);
-    persistirBuilds(lista);
-    return copia;
+    return persistirBuilds(lista) ? copia : null;
   }
 
   /**
@@ -112,8 +110,7 @@
     const idx = lista.findIndex((b) => b.id === id);
     if (idx === -1) return null;
     const [removida] = lista.splice(idx, 1);
-    persistirBuilds(lista);
-    return removida;
+    return persistirBuilds(lista) ? removida : null;
   }
 
   /**
@@ -130,46 +127,48 @@
    * Clona e valida profundamente o objeto da build para evitar referências cruzadas ou injeção.
    */
   function clonarBuildSeguro(b) {
-    if (!b) return null;
-    return {
-      classe: ["warrior", "cleric", "archer"].includes(b.classe) ? b.classe : "warrior",
-      nivel: Math.max(1, Math.min(1000, Number(b.nivel) || 1)),
-      goldStats: {
-        atk: Math.max(0, Math.min(500, Number(b.goldStats?.atk) || 0)),
-        hp: Math.max(0, Math.min(500, Number(b.goldStats?.hp) || 0)),
-        def: Math.max(0, Math.min(500, Number(b.goldStats?.def) || 0)),
-        spd: Math.max(0, Math.min(500, Number(b.goldStats?.spd) || 0)),
-        crit: Math.max(0, Math.min(500, Number(b.goldStats?.crit) || 0))
-      },
-      atributosBase: {
-        for: Math.max(0, Number(b.atributosBase?.for) || 0),
-        agi: Math.max(0, Number(b.atributosBase?.agi) || 0),
-        int: Math.max(0, Number(b.atributosBase?.int) || 0),
-        vit: Math.max(0, Number(b.atributosBase?.vit) || 0),
-        sor: Math.max(0, Number(b.atributosBase?.sor) || 0)
-      },
-      itens: Array.isArray(b.itens)
-        ? b.itens.slice(0, 10).map((it) => ({
-            slot: sanitizarTexto(it?.slot, 16),
-            kind: sanitizarTexto(it?.kind, 32),
-            rarity: ["epic", "immortal", "arcane"].includes(it?.rarity) ? it.rarity : "arcane",
-            tier: Math.max(1, Math.min(10, Number(it?.tier) || 1)),
-            level: Math.max(1, Math.min(500, Number(it?.level) || 300)),
-            set: sanitizarTexto(it?.set, 32) || null,
-            gems: Array.isArray(it?.gems)
-              ? it.gems.slice(0, 3).map((g) => ({
-                  tipo: sanitizarTexto(g?.tipo, 32),
-                  tier: Math.max(1, Math.min(10, Number(g?.tier) || 5)),
-                  itemLevel: Math.max(1, Math.min(500, Number(g?.itemLevel) || 300)),
-                  roll: Math.max(0.7, Math.min(1.3, Number(g?.roll) || 1.0)),
-                  rollSecundario: g?.rollSecundario != null ? Math.max(0.7, Math.min(1.3, Number(g.rollSecundario))) : null,
-                  valorCalculado: Number(g?.valorCalculado) || 0
-                }))
-              : []
-          }))
-        : [],
-      politicaRolagem: ["media", "minima", "maxima", "manual"].includes(b.politicaRolagem) ? b.politicaRolagem : "media"
+    if (!b || !["warrior", "cleric", "archer"].includes(b.cls) || !Array.isArray(b.itens))
+      throw new Error("Build incompatível ou inválida. Exporte novamente pelo simulador.");
+    const numero = (value, min, max) => {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max)
+        throw new Error("A build contém um valor numérico inválido.");
+      return value;
     };
+    const atributos = Object.fromEntries(["str", "vit", "def", "agi", "luk"].map((key) => [key, numero(b.atributos?.[key], 0, 5000)]));
+    const slots = ["weapon", "helmet", "armor", "ring"];
+    if (b.itens.length !== 4 || new Set(b.itens.map((it) => it?.slot)).size !== 4)
+      throw new Error("A build precisa conter as quatro peças de equipamento.");
+    const itens = b.itens.map((it) => {
+      if (!slots.includes(it?.slot) || !Array.isArray(it.gems) || it.gems.length > 6)
+        throw new Error("Equipamento inválido na build.");
+      const item = Object.fromEntries(["id", "slot", "name", "kind", "set"].map((key) => [key, sanitizarTexto(it[key], 120)]));
+      for (const key of ["atk", "def", "hp", "crit", "spd"]) item[key] = numero(it[key], 0, 1e9);
+      item.rarity = numero(it.rarity, 0, 7);
+      item.itemLevel = numero(it.itemLevel, 1, 10000);
+      item.look = numero(it.look ?? 0, 0, 10000);
+      item.sockets = numero(it.sockets ?? 6, 0, 6);
+      item.gemTierPadrao = numero(it.gemTierPadrao ?? 5, 1, 5);
+      item.gems = Array.from({ length: 6 }, (_, index) => {
+        const g = it.gems[index];
+        if (g == null) return null;
+        const gem = {};
+        for (const suffix of ["", "2"]) {
+          if (!suffix || g.stat2 != null) {
+            if (!["atk", "hp", "def", "spd", "crit"].includes(g["stat" + suffix]))
+              throw new Error("Atributo de gema inválido.");
+            gem["stat" + suffix] = g["stat" + suffix];
+            gem["value" + suffix] = numero(g["value" + suffix], 0, 1e9);
+            gem["pct" + suffix] = g["pct" + suffix] === true;
+          }
+        }
+        for (const key of ["kind", "type", "tipo"]) if (g[key] != null) gem[key] = sanitizarTexto(g[key], 32);
+        for (const key of ["tier", "roll", "roll2"]) if (g[key] != null) gem[key] = numero(g[key], 0, 1000);
+        return gem;
+      });
+      return item;
+    });
+    return { cls: b.cls, level: numero(b.level, 1, 10000), atributos, itens,
+      politicaRolagem: ["media", "minima", "maxima", "manual"].includes(b.politicaRolagem) ? b.politicaRolagem : "media" };
   }
 
   /**
@@ -185,7 +184,7 @@
     };
 
     const jsonStr = JSON.stringify(payload);
-    if (jsonStr.length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
+    if (new TextEncoder().encode(jsonStr).length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
       throw new Error("Payload da build excede o limite seguro de 64 KiB.");
     }
 
@@ -197,7 +196,7 @@
    * Decodifica um payload de hash #build=... de forma estrita e segura.
    */
   function decodificarBuildDeHash(hashString) {
-    if (!hashString) return null;
+    if (!hashString || hashString.length > 200000) return null;
     let hash = hashString.startsWith("#") ? hashString.slice(1) : hashString;
     const match = hash.match(/(?:^|&)build=([^&]+)/);
     if (!match) return null;
@@ -206,15 +205,13 @@
       const decB64 = atob(decodeURIComponent(match[1]));
       const jsonStr = decodeURIComponent(escape(decB64));
 
-      if (jsonStr.length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
+      if (new TextEncoder().encode(jsonStr).length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
         throw new Error("Payload da build excedeu 64 KiB.");
       }
 
       const obj = JSON.parse(jsonStr);
       if (!obj || typeof obj !== "object") return null;
-      if (obj.v !== SCHEMA_VERSION) {
-        console.warn(`Versão do esquema da build compartilhada (${obj.v}) diferente da atual (${SCHEMA_VERSION}).`);
-      }
+      if (obj.v !== SCHEMA_VERSION) throw new Error("Versão de build incompatível.");
 
       return {
         schemaVersion: obj.v,
@@ -265,7 +262,7 @@
    * Copia texto para a área de transferência com suporte a fallback manual.
    */
   async function copiarTextoComFallback(texto) {
-    if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
       try {
         await navigator.clipboard.writeText(texto);
         return { sucesso: true, manual: false };
@@ -275,6 +272,7 @@
   }
 
   return {
+    clonarBuildSeguro,
     listarBuildsSalvas,
     salvarBuildLocal,
     duplicarBuild,

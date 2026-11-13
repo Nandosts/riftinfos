@@ -2473,10 +2473,10 @@ function renderizarEquipamentosEGemas(perfil) {
     containerAvisoSinergia.innerHTML = `
       <strong>Por que a conta fecha exatamente agora?</strong>
       <p>
-        Os valores principais em dourado (<strong>+X FC</strong>) dividem com precisão absoluta os <strong>+${formatadorInteiro.format(ganhoTotalEquips)} FC</strong> ganhos com equipamentos (somando 100% da sua força de itens).
+        Os valores principais em dourado (<strong>+X FC</strong>) distribuem os <strong>+${formatadorInteiro.format(ganhoTotalEquips)} FC</strong> ganhos com equipamentos (somando 100% da sua força de itens).
       </p>
       <p>
-        Já a tag em vermelho <strong>"Se desequipar"</strong> mostra a perda marginal imediata: como o jogo calcula FC multiplicando <em>Ataque × Velocidade × Crítico × Vida × Defesa</em> e bônus de conjunto, remover uma única peça derruba a sinergia com o resto do set.
+        Já a tag em vermelho <strong>"Se desequipar"</strong> mostra a perda marginal imediata: como o modelo de FC combina dano por segundo, vida efetiva e coeficiente de classe, incluindo os efeitos de atributos e conjuntos, remover uma única peça derruba a sinergia com o resto do set.
       </p>
     `;
   }
@@ -2864,7 +2864,10 @@ function renderizarPainelGerenciadorBuilds() {
     btnSalvar.addEventListener("click", () => {
       const nome = inputNome.value.trim() || `Build ${nomesClasses[estadoSimulador.cls]} Nv.${estadoSimulador.level}`;
       const perfilOrig = perfilCarregadoP1 ? { nick: perfilCarregadoP1.login, plataforma: plataformaCarregadaP1 } : null;
-      Compartilhamento.salvarBuildLocal(nome, estadoSimulador, perfilOrig);
+      if (!Compartilhamento.salvarBuildLocal(nome, estadoSimulador, perfilOrig)) {
+        alert("Não foi possível salvar a build neste navegador.");
+        return;
+      }
       inputNome.value = "";
       renderizarPainelGerenciadorBuilds();
     });
@@ -2903,12 +2906,13 @@ function renderizarPainelGerenciadorBuilds() {
     inputImportar.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > 65536) { alert("O arquivo excede 64 KiB."); return; }
       const reader = new FileReader();
       reader.onload = (evt) => {
         try {
           const dados = JSON.parse(evt.target?.result);
           if (dados && dados.itens) {
-            estadoSimulador = dados;
+            estadoSimulador = Compartilhamento.clonarBuildSeguro(dados);
             simuladorEditadoManual = true;
             renderizarSimulador();
           } else {
@@ -2929,7 +2933,8 @@ function renderizarPainelGerenciadorBuilds() {
       const b = builds.find((it) => it.id === id);
       if (b && b.dados) {
         if (simuladorEditadoManual && !confirm("Deseja substituir a simulação atual pela build selecionada?")) return;
-        estadoSimulador = JSON.parse(JSON.stringify(b.dados));
+        try { estadoSimulador = Compartilhamento.clonarBuildSeguro(b.dados); }
+        catch (error) { alert(error.message); return; }
         simuladorEditadoManual = true;
         renderizarSimulador();
       }
@@ -5360,13 +5365,8 @@ void carregarPanoramaGlobal();
 if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.decodificarBuildDeHash) {
   try {
     const buildDecodificada = Compartilhamento.decodificarBuildDeHash(window.location.hash);
-    if (buildDecodificada?.dados) {
-      estadoSimulador = {
-        cls: buildDecodificada.dados.classe || "warrior",
-        level: buildDecodificada.dados.nivel || 300,
-        atributos: { ...buildDecodificada.dados.atributos },
-        itens: buildDecodificada.dados.itens.map((it) => ({ ...it })),
-      };
+    if (buildDecodificada?.buildA) {
+      estadoSimulador = buildDecodificada.buildA;
       simuladorEditadoManual = true;
       renderizarSimulador();
       alternarVisibilidadeAba("simulador");

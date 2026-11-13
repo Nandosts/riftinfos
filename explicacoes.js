@@ -16,7 +16,7 @@
     fc: {
       termo: "FC (Força de Combate)",
       curto: "Força de Combate: indicador geral do personagem. Um FC maior não garante mais dano ou sobrevivência em todo cenário.",
-      detalhes: "O FC agrega vida, ataque, defesa, crítico, velocidade e coeficientes de classe. A variação entre o FC oficial e o reconstruído deve-se principalmente à sorte nas rolagens das gemas (85% a 115%) e arredondamentos de conjuntos.",
+      detalhes: "O FC agrega vida, ataque, defesa, crítico, velocidade e coeficientes de classe. Diferenças entre o FC informado e o reconstruído podem envolver inferência, arredondamento ou regras não modeladas; a causa não é determinada apenas pela diferença.",
       categoria: "combate"
     },
     fc_informado: {
@@ -28,7 +28,7 @@
     fc_reconstruido: {
       termo: "FC reconstruído",
       curto: "Força de Combate recalculada matematicamente a partir dos equipamentos, gemas e atributos.",
-      detalhes: "Calculado pela fórmula oficial: FC = (HP×k_hp + ATK×k_atk + DEF×k_def) × multiplicadores de classe e conjuntos. Permite simular mudanças de build sob o mesmo padrão.",
+      detalhes: "Neste modelo: FC = coeficiente de classe × raiz quadrada de (DPS para FC × vida efetiva física). Permite simular mudanças de build sob o mesmo padrão.",
       categoria: "origem"
     },
     dps: {
@@ -64,13 +64,13 @@
     armadura: {
       termo: "Redução de Dano Físico",
       curto: "Percentual de mitigação física derivado da defesa total do personagem. Não protege contra sangramento ou dano puro.",
-      detalhes: "Calculado pela fórmula de mitigação oficial: Defesa / (Defesa + K_defesa). Mitiga exclusivamente golpes físicos convencionais.",
+      detalhes: "Calculado pela fórmula de mitigação usada pelo simulador: (Defesa × 4) / (100 + Defesa × 4). Mitiga exclusivamente golpes físicos convencionais.",
       categoria: "combate"
     },
     crit_chance: {
       termo: "Chance de crítico",
       curto: "Probabilidade de um golpe causar dano crítico. É diferente do dano causado quando o crítico acontece.",
-      detalhes: "Valores acima de 100% garantem acerto crítico em todos os ataques normais, mas não geram acertos adicionais a menos que habilidades específicas determinem.",
+      detalhes: "Neste modelo, a chance de crítico é limitada a 60%. O excesso contribui para o dano crítico.",
       categoria: "combate"
     },
     crit_dano: {
@@ -88,7 +88,7 @@
     cura_estimada: {
       termo: "Poder de cura estimado",
       curto: "Capacidade de restauração de vida em habilidades sagradas (exclusivo para Clérigo).",
-      detalhes: "Calculado a partir de INT, ATK e bônus específicos de cetros/cajados. Dividido entre cura por habilidade (Luz Divina) e pulsos contínuos.",
+      detalhes: "Neste modelo, usa ATK, nível, bônus de velocidade e multiplicador de cura da arma. Cura por habilidade e cura por pulso são medidas diferentes.",
       categoria: "combate"
     },
     sucesso_historico: {

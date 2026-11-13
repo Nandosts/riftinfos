@@ -71,9 +71,9 @@
 
       let textoExplicacao = "";
       if (concordancia) {
-        textoExplicacao = "Fidelidade matemática excelente: diferença de poucas unidades causada unicamente por arredondamentos de ponto flutuante.";
+        textoExplicacao = "Os valores estão próximos. A diferença, por si só, não identifica sua causa.";
       } else {
-        textoExplicacao = "Divergência detectada entre o valor gravado no jogo e a reconstrução. Ocorre principalmente pela variação de sorte nas rolagens das gemas (85% a 115%) e arredondamentos de multiplicadores de conjunto.";
+        textoExplicacao = "Há diferença entre o FC informado e o reconstruído. Atributos inferidos, arredondamentos ou regras não modeladas podem contribuir; a causa não foi determinada.";
       }
 
       comparacaoFc = {
@@ -139,7 +139,7 @@
       unidade: "HP",
       origem: "calculado",
       resumo: `Vida total com ${redDefPct.toFixed(1)}% de redução física pela defesa.`,
-      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp || 0).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: sangramento, veneno e chefes com 'Singularidade' ignoram defesa e atingem a vida pura (${Math.round(hpMax || 0).toLocaleString("pt-BR")}).`
+      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp || 0).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: dano que ignora defesa não recebe essa redução e atingem a vida pura (${Math.round(hpMax || 0).toLocaleString("pt-BR")}).`
     });
 
     // 4. Indicador de classe
@@ -154,8 +154,8 @@
         valor: curaSkill,
         unidade: "por skill",
         origem: "estimado",
-        resumo: `Cura estimada da Luz Divina (${Math.round(hps || 0).toLocaleString("pt-BR")} HPS contínuo).`,
-        detalhes: "Calculado a partir de INT, ATK e bônus específicos do cetro/cajado equipado."
+        resumo: `Cura estimada da Luz Divina (${Math.round(hps || 0).toLocaleString("pt-BR")} por segundo em média, considerando o intervalo da habilidade).`,
+        detalhes: "Neste modelo: (ATK × 2,4 + nível × 1,5 + 6) × bônus de velocidade × multiplicador de cura da arma."
       });
     } else if (classe === "archer") {
       indicadores.push({
@@ -179,7 +179,7 @@
         unidade: "mitigação",
         origem: "calculado",
         resumo: `Defesa total de ${Math.round(defTotal).toLocaleString("pt-BR")} pontos.`,
-        detalhes: "Fórmula oficial de mitigação: Redução = DEF ÷ (DEF + 300). Dano puro de chefes ignora este valor."
+        detalhes: "Neste modelo, redução física = (DEF × 4) ÷ (100 + DEF × 4). Não se aplica a dano que ignora defesa."
       });
     }
 
