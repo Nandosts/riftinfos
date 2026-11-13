@@ -529,10 +529,11 @@ let estadoSimulador = criarModeloSimuladorPadrao();
 let ultimosDadosRadar = null;
 const cachePerfisApi = new Map();
 const top1DinamicoPorClasse = {
-  cleric: { nick: "shulalino", plataforma: "twitch", rotulo: "shulalino" },
-  warrior: { nick: "otaldojorginho", plataforma: "twitch", rotulo: "otaldojorginho" },
-  archer: { nick: "isabxf", plataforma: "twitch", rotulo: "isabxf" },
+  cleric: { nick: "nando_sts", plataforma: "twitch", rotulo: "nando_sts", power: 0, cls: "cleric" },
+  warrior: { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", power: 0, cls: "warrior" },
+  archer: { nick: "philippato", plataforma: "twitch", rotulo: "philippato", power: 0, cls: "archer" },
 };
+let top1GeralDinamico = { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", cls: "warrior" };
 
 /* ==========================================================================
    Utilitários e Rede
@@ -1123,22 +1124,43 @@ async function carregarPanoramaGlobal() {
 }
 
 async function atualizarTop1Dinamicos() {
-  for (const cls of ["warrior", "cleric", "archer"]) {
-    try {
-      const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 6000);
-      const top = res?.items?.[0];
-      if (top?.login) {
-        const ehKick = /^kick:/i.test(top.login);
-        top1DinamicoPorClasse[cls] = {
-          nick: top.login.replace(/^kick:/i, ""),
-          plataforma: ehKick ? "kick" : "twitch",
-          rotulo: top.name || top.login,
-        };
+  await Promise.all(
+    ["warrior", "cleric", "archer"].map(async (cls) => {
+      try {
+        const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 6000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          top1DinamicoPorClasse[cls] = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            power: top.power || 0,
+            cls,
+          };
+        }
+      } catch {
+        // Mantém fallback atualizado
       }
-    } catch {
-      // Mantém fallback estático
+    })
+  );
+
+  // Define o Top 1 Geral pelo maior FC entre as classes
+  const listaTops = Object.values(top1DinamicoPorClasse);
+  listaTops.sort((a, b) => (b.power || 0) - (a.power || 0));
+  if (listaTops[0]?.nick) {
+    top1GeralDinamico = listaTops[0];
+    if (btnCarregarExemplo) {
+      btnCarregarExemplo.textContent = `Carregar Top 1 Geral (${top1GeralDinamico.rotulo})`;
+    }
+    if (inputNick && !inputNick.value) {
+      inputNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
+    }
+    if (inputCompararNick && !inputCompararNick.value) {
+      inputCompararNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
     }
   }
+
   if (perfilCarregadoP1) {
     atualizarCardP1Comparacao(perfilCarregadoP1, plataformaCarregadaP1);
   }
@@ -3534,7 +3556,7 @@ formularioBusca.addEventListener("submit", (evento) => {
     requisicaoAtiva?.abort();
     requisicaoAtiva = undefined;
     statusConsulta.dataset.error = "true";
-    statusConsulta.textContent = "Informe um nick válido (ex. jeck-360 ou otaldojorginho).";
+    statusConsulta.textContent = `Informe um nick válido (ex. ${top1GeralDinamico.nick} ou nando_sts).`;
     return;
   }
 
@@ -3545,7 +3567,11 @@ formularioBusca.addEventListener("submit", (evento) => {
 
 if (btnCarregarExemplo) {
   btnCarregarExemplo.addEventListener("click", async () => {
-    let alvo = { nick: "boingzeraa", plataforma: "twitch", cls: undefined };
+    let alvo = {
+      nick: top1GeralDinamico.nick,
+      plataforma: top1GeralDinamico.plataforma,
+      cls: top1GeralDinamico.cls,
+    };
     try {
       const rank = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 5000);
       const top = rank?.items?.[0];
@@ -3558,7 +3584,7 @@ if (btnCarregarExemplo) {
         };
       }
     } catch {
-      // Usa fallback conhecido
+      // Usa top1GeralDinamico
     }
     inputNick.value = alvo.nick;
     selectPlataforma.value = alvo.plataforma;
