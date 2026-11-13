@@ -1,3 +1,22 @@
+const Explicacoes =
+  (typeof window !== "undefined" && window.RiftExplicacoes) ||
+  (typeof require !== "undefined" ? require("./explicacoes.js") : null) ||
+  {};
+const Analise =
+  (typeof window !== "undefined" && window.RiftAnalise) ||
+  (typeof require !== "undefined" ? require("./analise.js") : null) ||
+  {};
+const Historico =
+  (typeof window !== "undefined" && window.RiftHistorico) ||
+  (typeof require !== "undefined" ? require("./historico.js") : null) ||
+  {};
+const Compartilhamento =
+  (typeof window !== "undefined" && window.RiftCompartilhamento) ||
+  (typeof require !== "undefined" ? require("./compartilhamento.js") : null) ||
+  {};
+
+const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.1";
+
 const apiRemota = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com";
 const proxiesPublicos = [
   (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -539,6 +558,7 @@ const gradeRecordesGlobais = document.querySelector("#grade-recordes-globais");
 const panoramaAtualizacao = document.querySelector("#panorama-atualizacao");
 
 const botoesAbas = {
+  resumo: document.querySelector("#aba-resumo"),
   forjas: document.querySelector("#aba-forjas"),
   equipamentos: document.querySelector("#aba-equipamentos"),
   simulador: document.querySelector("#aba-simulador"),
@@ -548,6 +568,7 @@ const botoesAbas = {
 };
 
 const secoesAbas = {
+  resumo: document.querySelector("#secao-resumo"),
   forjas: document.querySelector("#secao-forjas"),
   equipamentos: document.querySelector("#secao-equipamentos"),
   simulador: document.querySelector("#secao-simulador"),
@@ -555,6 +576,21 @@ const secoesAbas = {
   "radar-live": document.querySelector("#secao-radar-live"),
   comparacao: document.querySelector("#secao-comparacao"),
 };
+
+const conteudoResumoVazio = document.querySelector("#conteudo-resumo-vazio");
+const conteudoResumoPerfil = document.querySelector("#conteudo-resumo-perfil");
+const gradeIndicadoresPrincipais = document.querySelector("#grade-indicadores-principais");
+const blocoFcDetalhado = document.querySelector("#bloco-fc-detalhado");
+const blocoPontosAtencao = document.querySelector("#bloco-pontos-atencao");
+const secaoEvolucaoHistorico = document.querySelector("#secao-evolucao-historico");
+const conteudoGlossarioBusca = document.querySelector("#conteudo-glossario-busca");
+const inputBuscaGlossario = document.querySelector("#input-busca-glossario");
+const detalhesRankings = document.querySelector("#detalhes-rankings");
+const resumoGeloFogoTopo = document.querySelector("#resumo-gelo-fogo-topo");
+const planejadorProximaForja = document.querySelector("#planejador-proxima-forja");
+const painelGerenciadorBuilds = document.querySelector("#painel-gerenciador-builds");
+const blocoCompararMelhorias = document.querySelector("#bloco-comparar-melhorias");
+const btnRadarLimparFiltros = document.querySelector("#btn-radar-limpar-filtros");
 
 const conteudoForjasVazio = document.querySelector("#conteudo-forjas-vazio");
 const conteudoForjasPerfil = document.querySelector("#conteudo-forjas-perfil");
@@ -614,15 +650,31 @@ const topPillValCleric = document.querySelector("#top-pill-val-cleric");
 const topPillValArcher = document.querySelector("#top-pill-val-archer");
 const topPillValLevel = document.querySelector("#top-pill-val-level");
 
-// Estado da aplicação
+// Estado da aplicação com envelopes de consulta
+const estadoPerfil = Analise.criarEnvelopeConsulta
+  ? Analise.criarEnvelopeConsulta()
+  : {
+      data: null,
+      status: "idle",
+      receivedAt: null,
+      sourceUpdatedAt: null,
+      fromCache: false,
+      error: null,
+      completeness: null,
+    };
+const estadoRankings = { ...estadoPerfil };
+const estadoPanorama = { ...estadoPerfil };
+const estadoRadar = { ...estadoPerfil };
+
 let jogadorAtual;
 let perfilCarregadoP1;
 let plataformaCarregadaP1;
 let requisicaoAtiva;
 let requisicaoRadarAtiva;
-let abaAtualAtiva = "forjas";
+let abaAtualAtiva = "resumo";
 let simuladorEditadoManual = false;
 let estadoSimulador = criarModeloSimuladorPadrao();
+let historicoDesfazerSimulador = [];
 let ultimosDadosRadar = null;
 const cachePerfisApi = new Map();
 const top1DinamicoPorClasse = {
@@ -646,13 +698,14 @@ function escaparHtml(valor) {
     .replace(/'/g, "&#39;");
 }
 
-function alternarVisibilidadeAba(abaAlvo) {
-  abaAtualAtiva = Object.hasOwn(secoesAbas, abaAlvo) ? abaAlvo : "forjas";
+function alternarVisibilidadeAba(abaAlvo, atualizarUrl = true) {
+  abaAtualAtiva = Object.hasOwn(secoesAbas, abaAlvo) ? abaAlvo : "resumo";
   for (const [id, sec] of Object.entries(secoesAbas)) {
     const btn = botoesAbas[id];
     if (!sec || !btn) continue;
     const ativa = id === abaAtualAtiva;
     btn.setAttribute("aria-selected", ativa ? "true" : "false");
+    btn.tabIndex = ativa ? 0 : -1;
     if (ativa) {
       sec.removeAttribute("hidden");
       sec.hidden = false;
@@ -663,17 +716,53 @@ function alternarVisibilidadeAba(abaAlvo) {
       }
     }
   }
+
+  if (atualizarUrl && typeof window !== "undefined" && window.location.protocol !== "file:") {
+    try {
+      const urlPagina = new URL(window.location.href);
+      urlPagina.searchParams.set("aba", abaAtualAtiva);
+      window.history.replaceState(null, "", urlPagina);
+    } catch {}
+  }
 }
 
 function configurarAbas() {
-  for (const [id, btn] of Object.entries(botoesAbas)) {
+  const listaChaves = Object.keys(botoesAbas);
+  for (let i = 0; i < listaChaves.length; i++) {
+    const id = listaChaves[i];
+    const btn = botoesAbas[id];
     if (!btn) continue;
+
     btn.addEventListener("click", () => {
       alternarVisibilidadeAba(id);
       if (id === "monstros") {
         renderizarSimuladorMonstros();
       } else if (id === "simulador") {
         renderizarSimulador();
+      }
+    });
+
+    btn.addEventListener("keydown", (e) => {
+      let novoIdx = -1;
+      if (e.key === "ArrowRight") {
+        novoIdx = (i + 1) % listaChaves.length;
+      } else if (e.key === "ArrowLeft") {
+        novoIdx = (i - 1 + listaChaves.length) % listaChaves.length;
+      } else if (e.key === "Home") {
+        novoIdx = 0;
+      } else if (e.key === "End") {
+        novoIdx = listaChaves.length - 1;
+      }
+      if (novoIdx !== -1) {
+        e.preventDefault();
+        const proxId = listaChaves[novoIdx];
+        const proxBtn = botoesAbas[proxId];
+        if (proxBtn) {
+          proxBtn.focus();
+          alternarVisibilidadeAba(proxId);
+          if (proxId === "monstros") renderizarSimuladorMonstros();
+          else if (proxId === "simulador") renderizarSimulador();
+        }
       }
     });
   }
@@ -686,12 +775,35 @@ function configurarAbas() {
       }
     }
   });
+
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("popstate", () => {
+      if (window.location.protocol === "file:") return;
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const abaUrl = urlParams.get("aba");
+        if (abaUrl && Object.hasOwn(secoesAbas, abaUrl)) {
+          alternarVisibilidadeAba(abaUrl, false);
+        }
+        const nickUrl = urlParams.get("nick");
+        const platUrl = urlParams.get("plataforma") || "twitch";
+        const clsUrl = urlParams.get("cls");
+        if (nickUrl && (!jogadorAtual || jogadorAtual.nick !== nickUrl || jogadorAtual.plataforma !== platUrl)) {
+          void consultarPerfil({ nick: nickUrl, plataforma: platUrl }, clsUrl);
+        }
+      } catch {}
+    });
+  }
 }
 
 function atualizarEstadoVazioOuPerfil(temPerfil) {
   if (cabecalhoPerfil) cabecalhoPerfil.hidden = !temPerfil;
   if (avisoSemPerfil) avisoSemPerfil.hidden = temPerfil;
   if (rodapePainel) rodapePainel.hidden = !temPerfil;
+
+  if (conteudoResumoVazio) conteudoResumoVazio.hidden = temPerfil;
+  if (conteudoResumoPerfil) conteudoResumoPerfil.hidden = !temPerfil;
+
   if (conteudoForjasVazio) conteudoForjasVazio.hidden = temPerfil;
   if (conteudoForjasPerfil) conteudoForjasPerfil.hidden = !temPerfil;
   if (conteudoEquipamentosVazio) conteudoEquipamentosVazio.hidden = temPerfil;
@@ -710,6 +822,9 @@ function atualizarParametrosUrl(jogador, classeSelecionada) {
       urlPagina.searchParams.set("cls", classeSelecionada);
     } else {
       urlPagina.searchParams.delete("cls");
+    }
+    if (abaAtualAtiva) {
+      urlPagina.searchParams.set("aba", abaAtualAtiva);
     }
     window.history.replaceState(null, "", urlPagina);
   } catch {
@@ -1157,10 +1272,10 @@ function formatarGemaTexto(gema) {
    ========================================================================== */
 
 let ultimosDadosPanorama = {
-  melhorZonaLive: { canal: "belky", nome: "BELKY", zone: 17, wave: 5, playersNow: 60 },
-  maiorLive: { canal: "belky", nome: "BELKY", playersNow: 297, totalLives: 50 },
-  liveMaisNova: { canal: "glhrmzera", nome: "GlhrMzera", createdAt: "2026-11-13T16:12:22", zone: 10, wave: 8, playersNow: 4 },
-  patch: { id: "2026-11-09", title: "Novos conjuntos Arcanos" },
+  melhorZonaLive: null,
+  maiorLive: null,
+  liveMaisNova: null,
+  patch: null,
 };
 
 function formatarTempoRelativoCriacao(isoString) {
@@ -1225,27 +1340,39 @@ function renderizarGradePanorama() {
   const { melhorZonaLive, maiorLive, liveMaisNova, patch } = ultimosDadosPanorama;
   const tempoCriacao = formatarTempoRelativoCriacao(liveMaisNova?.createdAt);
 
+  const labelZona = melhorZonaLive ? `Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}` : "Carregando…";
+  const descZona = melhorZonaLive ? `${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)` : "Sincronizando lives…";
+
+  const labelMaior = maiorLive ? `${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores` : "Carregando…";
+  const descMaior = maiorLive ? `${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais listados` : "Sincronizando canais…";
+
+  const labelNova = liveMaisNova ? escaparHtml(liveMaisNova.nome) : "Carregando…";
+  const descNova = liveMaisNova ? `${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}` : "Sincronizando…";
+
+  const labelTop1 = top1GeralDinamico?.power ? `${formatarNumeroCompacto(top1GeralDinamico.power)} FC` : "Carregando…";
+  const descTop1 = top1GeralDinamico?.rotulo ? `${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})` : "Sincronizando rankings…";
+
   gradeRecordesGlobais.innerHTML = `
-    <div class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona ${melhorZonaLive.zone ?? 1} da live ${escaparHtml(melhorZonaLive.nome)}">
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
       <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
-      <strong>Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}</strong>
-      <small>${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)</small>
-    </div>
-    <div class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar ${escaparHtml(maiorLive.nome)} no Radar de Lives">
+      <strong>${labelZona}</strong>
+      <small>${descZona}</small>
+    </button>
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar no Radar de Lives">
       <span>👥 Maior Live Agora</span>
-      <strong>${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores</strong>
-      <small>${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais ao vivo</small>
-    </div>
-    <div class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar o canal novato ${escaparHtml(liveMaisNova.nome)} no Radar de Lives">
+      <strong>${labelMaior}</strong>
+      <small>${descMaior}</small>
+    </button>
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar canal recente no Radar">
       <span>✨ Live Mais Nova Online</span>
-      <strong>${escaparHtml(liveMaisNova.nome)}</strong>
-      <small>${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}</small>
-    </div>
-    <div class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas de ${escaparHtml(top1GeralDinamico.rotulo)}">
+      <strong>${labelNova}</strong>
+      <small>${descNova}</small>
+    </button>
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas do Top 1 FC Geral">
       <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
-      <strong style="color:var(--gold);">${formatarNumeroCompacto(top1GeralDinamico.power)} FC</strong>
-      <small>${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})</small>
-    </div>
+      <strong style="color:var(--gold);">${labelTop1}</strong>
+      <small>${descTop1}</small>
+    </button>
   `;
 
   vincularEventosGradePanorama();
@@ -1517,7 +1644,491 @@ function preencherSelectsLivesOnline(lives) {
 }
 
 /* ==========================================================================
-   Aba 1: Matriz de Gelo (Pity) e Fogo + Eventos & Conquistas
+   Aba 1: Resumo do Personagem, Evolução e Glossário
+   ========================================================================== */
+
+function renderizarResumoPersonagem(perfil, statusCalculados, metricasCombate, classe, plataforma) {
+  if (!perfil) return;
+
+  const analiseObj = Analise.analisarPerfilParaResumo
+    ? Analise.analisarPerfilParaResumo(perfil, statusCalculados, metricasCombate, classe, catalogoConjuntos)
+    : null;
+  if (!analiseObj) return;
+
+  // 1. Grade de Indicadores Principais (máx 4 por linha)
+  if (gradeIndicadoresPrincipais) {
+    const cardsHtml = analiseObj.indicadores
+      .map((ind) => {
+        const badgeHtml = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml(ind.origem) : "";
+        const botaoAjuda = Explicacoes.criarBotaoAjudaHtml ? Explicacoes.criarBotaoAjudaHtml(ind.id, `Entenda ${ind.titulo}`) : "";
+        const valorFormatado =
+          typeof ind.valor === "number"
+            ? ind.valor > 999999
+              ? formatarNumeroCompacto(ind.valor) + " " + ind.unidade
+              : formatadorInteiro.format(Math.round(ind.valor)) + " " + ind.unidade
+            : `${ind.valor} ${ind.unidade || ""}`;
+
+        return `
+          <article class="card-indicador" data-indicador-id="${escaparHtml(ind.id)}">
+            <header class="card-indicador-topo">
+              <span class="card-indicador-titulo">${escaparHtml(ind.titulo)}</span>
+              ${badgeHtml}
+            </header>
+            <div class="card-indicador-valor">
+              ${escaparHtml(valorFormatado)}
+              ${botaoAjuda}
+            </div>
+            <p class="card-indicador-resumo">${escaparHtml(ind.resumo)}</p>
+            <details class="card-indicador-detalhes">
+              <summary class="sumario-card-detalhes">Ver detalhes</summary>
+              <p class="note" style="margin:4px 0 0;">${escaparHtml(ind.detalhes)}</p>
+            </details>
+          </article>
+        `;
+      })
+      .join("");
+    gradeIndicadoresPrincipais.innerHTML = cardsHtml;
+  }
+
+  // 2. Bloco FC Detalhado (FC Oficial vs Reconstruído)
+  if (blocoFcDetalhado) {
+    const fcComp = analiseObj.comparacaoFc;
+    const diffTexto =
+      fcComp.diferencaAbsoluta != null
+        ? `${fcComp.diferencaAbsoluta >= 0 ? "+" : ""}${formatadorInteiro.format(fcComp.diferencaAbsoluta)} FC` +
+          (fcComp.diferencaPercentual != null
+            ? ` (${fcComp.diferencaPercentual >= 0 ? "+" : ""}${fcComp.diferencaPercentual.toFixed(3)}%)`
+            : "")
+        : "—";
+
+    const badgeJogo = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml("jogo") : "";
+    const badgeCalc = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml("calculado") : "";
+
+    blocoFcDetalhado.innerHTML = `
+      <h3 class="titulo-bloco-secao">FC Oficial vs Reconstruído</h3>
+      <div class="grade-comparacao-fc">
+        <div class="item-comparacao-fc">
+          <span class="muted small">Informado pelo Jogo ${badgeJogo}</span>
+          <strong>${fcComp.informado != null ? formatadorInteiro.format(fcComp.informado) + " FC" : "—"}</strong>
+        </div>
+        <div class="item-comparacao-fc">
+          <span class="muted small">Reconstruído pelo Motor ${badgeCalc}</span>
+          <strong>${fcComp.reconstruido != null ? formatadorInteiro.format(fcComp.reconstruido) + " FC" : "—"}</strong>
+        </div>
+        <div class="item-comparacao-fc">
+          <span class="muted small">Diferença</span>
+          <strong style="color:${fcComp.concordanciaPerfeita ? "var(--green)" : "var(--gold)"};">${escaparHtml(diffTexto)}</strong>
+        </div>
+      </div>
+      <p class="note" style="margin-top:8px;">${escaparHtml(fcComp.explicacao)}</p>
+    `;
+  }
+
+  // 3. Pontos de Atenção Determinísticos (Até 3)
+  if (blocoPontosAtencao) {
+    const pontos = analiseObj.pontosAtencao || [];
+    if (pontos.length === 0) {
+      blocoPontosAtencao.innerHTML = `
+        <h3 class="titulo-bloco-secao">Pontos de Atenção</h3>
+        <p class="note">Nenhum ponto de atenção crítico detectado na build atual.</p>
+      `;
+    } else {
+      const pontosHtml = pontos
+        .map((p) => `
+          <article class="card-ponto-atencao ${escaparHtml(p.tipo)}">
+            <div class="ponto-atencao-conteudo">
+              <span class="ponto-atencao-titulo">${p.icone || "•"} ${escaparHtml(p.titulo)}</span>
+              <p class="ponto-atencao-texto">${escaparHtml(p.texto)}</p>
+              <small class="muted">${escaparHtml(p.explicacao)}</small>
+            </div>
+            <button type="button" class="btn-secundario ponto-atencao-acao-btn" data-acao-aba="${escaparHtml(p.acaoAba)}">${escaparHtml(p.acaoTexto)} ↗</button>
+          </article>
+        `)
+        .join("");
+
+      blocoPontosAtencao.innerHTML = `
+        <h3 class="titulo-bloco-secao">Pontos de Atenção</h3>
+        <div class="grade-pontos-atencao">${pontosHtml}</div>
+      `;
+
+      blocoPontosAtencao.querySelectorAll(".ponto-atencao-acao-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const abaAlvo = btn.dataset.acaoAba;
+          if (abaAlvo) {
+            alternarVisibilidadeAba(abaAlvo);
+          }
+        });
+      });
+    }
+  }
+
+  // 4. Seção de Evolução (Histórico, Seção 10)
+  renderizarSecaoEvolucaoHistorico(perfil, classe, plataforma);
+
+  // 5. Glossário Interativo
+  renderizarSecaoGlossario();
+}
+
+function renderizarSecaoEvolucaoHistorico(perfil, classe, plataforma) {
+  if (!secaoEvolucaoHistorico || !perfil || !Historico.obterHistoricoPersonagem) return;
+
+  const nick = perfil.login || perfil.displayName;
+  const snapshots = Historico.obterHistoricoPersonagem(plataforma, nick, classe);
+  const autoSaveAtivo = Historico.obterConfigAutoSave ? Historico.obterConfigAutoSave() : false;
+
+  let htmlSnapshots = "";
+  if (snapshots.length === 0) {
+    htmlSnapshots = `
+      <p class="note">O histórico começa quando você salva uma consulta neste navegador. Ele não acompanha o jogo com a página fechada e não sincroniza entre dispositivos.</p>
+    `;
+  } else {
+    const opcoesSnapshots = snapshots
+      .map((s, idx) => {
+        const d = new Date(s.capturedAt);
+        const dataFmt = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        const fcFmt = s.profile?.power ? formatarNumeroCompacto(s.profile.power) + " FC" : "—";
+        return `<option value="${idx}">Consulta #${idx + 1} · ${dataFmt} (${fcFmt})</option>`;
+      })
+      .reverse()
+      .join("");
+
+    htmlSnapshots = `
+      <div class="comparador-snapshots-painel">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-weight:600; font-size:0.84rem; color:var(--gold);">Comparar consultas salvas:</span>
+          <span class="muted small">${snapshots.length} consulta(s) gravada(s) (máx. 100)</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-top:8px;">
+          <div class="campo">
+            <label for="select-snap-a">Consulta Base</label>
+            <select id="select-snap-a">${opcoesSnapshots}</select>
+          </div>
+          <div class="campo">
+            <label for="select-snap-b">Consulta Comparada</label>
+            <select id="select-snap-b">${opcoesSnapshots}</select>
+          </div>
+          <button type="button" id="btn-comparar-snapshots" class="btn-secundario" style="min-height:48px;">Comparar</button>
+        </div>
+        <div id="resultado-comparacao-snapshots" style="margin-top:10px;"></div>
+      </div>
+    `;
+  }
+
+  secaoEvolucaoHistorico.innerHTML = `
+    <div class="historico-topo-acoes">
+      <h3 class="titulo-bloco-secao">Sua Evolução no Rift</h3>
+      <div class="acoes-inline">
+        <button type="button" id="btn-salvar-snapshot" class="btn-secundario btn-compacto">💾 Salvar consulta agora</button>
+        <button type="button" id="btn-limpar-historico" class="btn-secundario btn-compacto" title="Limpar histórico deste personagem" ${snapshots.length === 0 ? "disabled" : ""}>🗑 Limpar</button>
+        <label class="historico-autosave-label">
+          <input type="checkbox" id="check-autosave-historico" ${autoSaveAtivo ? "checked" : ""}>
+          <span>Salvar consultas automaticamente neste navegador</span>
+        </label>
+      </div>
+    </div>
+    <div class="secao-historico-evolucao">${htmlSnapshots}</div>
+  `;
+
+  const btnSalvar = document.querySelector("#btn-salvar-snapshot");
+  if (btnSalvar) {
+    btnSalvar.addEventListener("click", () => {
+      const res = Historico.salvarSnapshotConsulta(plataforma, nick, classe, perfil, estadoPerfil.sourceUpdatedAt, CALCULATION_VERSION);
+      if (res.duplicado) {
+        btnSalvar.textContent = "✓ Já salvo recentemente!";
+      } else if (res.sucesso) {
+        btnSalvar.textContent = "✓ Consulta salva!";
+        renderizarSecaoEvolucaoHistorico(perfil, classe, plataforma);
+      } else {
+        btnSalvar.textContent = "Erro ao salvar";
+      }
+      setTimeout(() => {
+        if (btnSalvar) btnSalvar.textContent = "💾 Salvar consulta agora";
+      }, 2500);
+    });
+  }
+
+  const checkAuto = document.querySelector("#check-autosave-historico");
+  if (checkAuto) {
+    checkAuto.addEventListener("change", (e) => {
+      Historico.definirConfigAutoSave(e.target.checked);
+    });
+  }
+
+  const btnLimpar = document.querySelector("#btn-limpar-historico");
+  if (btnLimpar) {
+    btnLimpar.addEventListener("click", () => {
+      if (confirm(`Deseja limpar todo o histórico salvo de ${nick} (${nomesClasses[classe] || classe})?`)) {
+        Historico.limparHistoricoPersonagem(plataforma, nick, classe);
+        renderizarSecaoEvolucaoHistorico(perfil, classe, plataforma);
+      }
+    });
+  }
+
+  const btnComp = document.querySelector("#btn-comparar-snapshots");
+  if (btnComp) {
+    btnComp.addEventListener("click", () => {
+      const selA = document.querySelector("#select-snap-a");
+      const selB = document.querySelector("#select-snap-b");
+      const resDiv = document.querySelector("#resultado-comparacao-snapshots");
+      if (!selA || !selB || !resDiv) return;
+
+      const idxA = parseInt(selA.value, 10);
+      const idxB = parseInt(selB.value, 10);
+      const snapA = snapshots[idxA];
+      const snapB = snapshots[idxB];
+      if (!snapA || !snapB) return;
+
+      const comp = Historico.compararSnapshots(snapA, snapB);
+      if (!comp) return;
+
+      const deltaFcSinal = comp.fc.delta >= 0 ? "+" : "";
+      const deltaFcPctTexto = comp.fc.deltaPct != null ? ` (${deltaFcSinal}${comp.fc.deltaPct.toFixed(2)}%)` : "";
+      const deltaLvlSinal = comp.nivel.delta >= 0 ? "+" : "";
+
+      let itensHtml = "";
+      if (comp.alteracoesItens.length > 0) {
+        itensHtml = `<ul style="margin:4px 0; padding-left:18px; font-size:0.8rem;">${comp.alteracoesItens.map((it) => `<li>${escaparHtml(it.descricao)}</li>`).join("")}</ul>`;
+      } else {
+        itensHtml = `<p class="note" style="margin:4px 0;">Nenhum equipamento trocado entre estas consultas.</p>`;
+      }
+
+      let forjasHtml = "";
+      if (comp.evolucaoForjas.length > 0) {
+        forjasHtml = `<ul style="margin:4px 0; padding-left:18px; font-size:0.8rem;">${comp.evolucaoForjas.map((f) => `<li>${escaparHtml(f.contador)}: ${f.antigo} → ${f.novo} (${f.delta >= 0 ? "+" : ""}${f.delta})${f.possivelReset ? " ⚠️ (Possível reset de contador registrado)" : ""}</li>`).join("")}</ul>`;
+      } else {
+        forjasHtml = `<p class="note" style="margin:4px 0;">Nenhuma tentativa de forja adicional registrada no período.</p>`;
+      }
+
+      resDiv.innerHTML = `
+        <div style="background:#100d22; padding:10px; border:1px solid var(--line); font-size:0.82rem; margin-top:8px;">
+          <p style="margin:0 0 6px; font-weight:700; color:var(--cyan);">${escaparHtml(comp.periodo.textoJanela)}</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+            <div><strong>Variação de FC:</strong> <span style="color:${comp.fc.delta >= 0 ? "var(--green)" : "#ff6b5a"};">${deltaFcSinal}${formatadorInteiro.format(comp.fc.delta)} FC${deltaFcPctTexto}</span></div>
+            <div><strong>Variação de Nível:</strong> ${deltaLvlSinal}${comp.nivel.delta} níveis</div>
+          </div>
+          <div><strong>Mudanças de Equipamento:</strong>${itensHtml}</div>
+          <div style="margin-top:6px;"><strong>Evolução dos Contadores de Forja:</strong>${forjasHtml}</div>
+        </div>
+      `;
+    });
+  }
+}
+
+function renderizarSecaoGlossario() {
+  if (!conteudoGlossarioBusca || !Explicacoes.renderizarGlossarioHtml) return;
+  conteudoGlossarioBusca.innerHTML = Explicacoes.renderizarGlossarioHtml(inputBuscaGlossario?.value || "");
+
+  if (inputBuscaGlossario && !inputBuscaGlossario.dataset.ouvinteVinculado) {
+    inputBuscaGlossario.dataset.ouvinteVinculado = "true";
+    inputBuscaGlossario.addEventListener("input", (e) => {
+      conteudoGlossarioBusca.innerHTML = Explicacoes.renderizarGlossarioHtml(e.target.value);
+    });
+  }
+}
+
+function renderizarResumoGeloFogoTopo(perfil) {
+  if (!resumoGeloFogoTopo || !perfil) return;
+  const counters = perfil.counters || {};
+
+  const slotsPity = [
+    { chave: "wpn", rotulo: "Arma", idx: 0 },
+    { chave: "helm", rotulo: "Elmo", idx: 1 },
+    { chave: "chest", rotulo: "Armadura", idx: 2 },
+    { chave: "legs", rotulo: "Calça", idx: 3 },
+    { chave: "boots", rotulo: "Botas", idx: 4 },
+    { chave: "neck", rotulo: "Colar", idx: 5 },
+    { chave: "ring", rotulo: "Anel", idx: 6 },
+  ];
+
+  let maxGelo = { slot: "Arma", raridade: "Arcano", valor: 0, slotChave: "wpn", raridadeChave: "arc" };
+  for (const s of slotsPity) {
+    for (const r of [{ chave: "arc", id: 7, rotulo: "Arcano" }, { chave: "imm", id: 6, rotulo: "Imortal" }, { chave: "epic", id: 4, rotulo: "Épico" }]) {
+      const g = Number(counters[`fz_f_${r.id}_${s.idx}`] || 0);
+      if (g > maxGelo.valor) {
+        maxGelo = { slot: s.rotulo, raridade: r.rotulo, valor: g, slotChave: s.chave, raridadeChave: r.chave };
+      }
+    }
+  }
+
+  const bonusPP = Math.min(5, maxGelo.valor) * 2;
+  resumoGeloFogoTopo.innerHTML = `
+    <div style="background:var(--panel-alt); border:1px solid var(--line); padding:12px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span class="muted small">Maior Bônus de Gelo (Pity) no Perfil</span>
+          <p style="margin:2px 0 0; font-size:1.05rem; font-weight:700; color:var(--cyan);">
+            +${bonusPP} p.p. em ${maxGelo.slot} (${maxGelo.raridade} · ${maxGelo.valor} falhas)
+          </p>
+        </div>
+        <button type="button" id="btn-abrir-planejador-maior-gelo" class="btn-secundario btn-compacto">Planejar com esta peça ↗</button>
+      </div>
+      <p class="note" style="margin:6px 0 0;">Cada ponto de Gelo soma +2 p.p. de chance na forja (máximo de +10 p.p. no Nv.5). Sucesso reseta o contador da respectiva peça.</p>
+    </div>
+  `;
+
+  const btnPity = document.querySelector("#btn-abrir-planejador-maior-gelo");
+  if (btnPity) {
+    btnPity.addEventListener("click", () => {
+      const selRaridade = document.querySelector("#select-planejador-raridade");
+      const selSlot = document.querySelector("#select-planejador-slot");
+      if (selRaridade && selSlot) {
+        selRaridade.value = maxGelo.raridadeChave;
+        selSlot.value = maxGelo.slotChave;
+        selRaridade.dispatchEvent(new Event("change"));
+        selRaridade.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+}
+
+function renderizarPlanejadorForjas(perfil) {
+  if (!planejadorProximaForja) return;
+
+  const counters = perfil?.counters || {};
+  const slotsPity = [
+    { chave: "wpn", rotulo: "Arma", idx: 0 },
+    { chave: "helm", rotulo: "Elmo", idx: 1 },
+    { chave: "chest", rotulo: "Armadura", idx: 2 },
+    { chave: "legs", rotulo: "Calça", idx: 3 },
+    { chave: "boots", rotulo: "Botas", idx: 4 },
+    { chave: "neck", rotulo: "Colar", idx: 5 },
+    { chave: "ring", rotulo: "Anel", idx: 6 },
+  ];
+
+  const raridades = [
+    { chave: "arc", rotulo: "Arcano", base: 25, idRarity: 7, custoOuro: 500000, custoMin: 30 },
+    { chave: "imm", rotulo: "Imortal", base: 35, idRarity: 6, custoOuro: 100000, custoMin: 15 },
+    { chave: "epic", rotulo: "Épico", base: 50, idRarity: 4, custoOuro: 25000, custoMin: 5 },
+  ];
+
+  if (!window._estadoPlanejador) {
+    window._estadoPlanejador = {
+      raridade: "arc",
+      slot: "wpn",
+      pergaminho: 0,
+      evento: 0,
+      tentativas: 1,
+      geloManual: null,
+    };
+  }
+  const ep = window._estadoPlanejador;
+
+  const cfgRaridade = raridades.find((r) => r.chave === ep.raridade) || raridades[0];
+  const cfgSlot = slotsPity.find((s) => s.chave === ep.slot) || slotsPity[0];
+
+  const geloPerfil = Number(counters[`fz_f_${cfgRaridade.idRarity}_${cfgSlot.idx}`] || 0);
+  const geloAtual = ep.geloManual !== null ? ep.geloManual : geloPerfil;
+  const geloNivel = Math.min(5, geloAtual);
+  const bonusGeloPP = geloNivel * 2;
+
+  const pergaminhoPP = Number(ep.pergaminho) || 0;
+  const eventoPP = Math.max(0, Math.min(50, Number(ep.evento) || 0));
+  const chanceProxima = Math.min(100, Math.max(0, cfgRaridade.base + bonusGeloPP + pergaminhoPP + eventoPP));
+
+  const N = Math.max(1, Math.min(10, Number(ep.tentativas) || 1));
+  let probTodasFalharem = 1.0;
+  for (let i = 0; i < N; i++) {
+    const nivelFalha = Math.min(5, geloAtual + i);
+    const bonusGeloNaTentativa = nivelFalha * 2;
+    const pi = Math.min(100, Math.max(0, cfgRaridade.base + bonusGeloNaTentativa + pergaminhoPP + eventoPP)) / 100;
+    probTodasFalharem *= (1 - pi);
+  }
+  const chanceEmNTentativas = (1 - probTodasFalharem) * 100;
+
+  const custoOuroTotal = cfgRaridade.custoOuro * N;
+  const custoMinTotal = cfgRaridade.custoMin * N;
+
+  const composicaoTexto = `Base ${cfgRaridade.base}% + Gelo ${bonusGeloPP >= 0 ? "+" : ""}${bonusGeloPP} p.p. + Pergaminho +${pergaminhoPP} p.p. + Evento +${eventoPP} p.p. = ${chanceProxima.toFixed(1)}%`;
+
+  const badgeCalc = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml("calculado") : "";
+  const badgeEst = Explicacoes.criarBadgeOrigemHtml ? Explicacoes.criarBadgeOrigemHtml("estimado") : "";
+
+  planejadorProximaForja.innerHTML = `
+    <h3 class="titulo-bloco-secao">Planejador da Próxima Forja</h3>
+    <p class="note-compacto">Preveja a probabilidade exata da próxima tentativa ou de uma sequência de tentativas com progressão de Gelo (Pity).</p>
+    
+    <div class="grid-planejador-inputs">
+      <div class="campo">
+        <label for="select-planejador-raridade">Raridade Alvo</label>
+        <select id="select-planejador-raridade">
+          ${raridades.map((r) => `<option value="${r.chave}" ${r.chave === ep.raridade ? "selected" : ""}>${r.rotulo} (Base ${r.base}%)</option>`).join("")}
+        </select>
+      </div>
+      <div class="campo">
+        <label for="select-planejador-slot">Tipo de Peça</label>
+        <select id="select-planejador-slot">
+          ${slotsPity.map((s) => `<option value="${s.chave}" ${s.chave === ep.slot ? "selected" : ""}>${s.rotulo}</option>`).join("")}
+        </select>
+      </div>
+      <div class="campo">
+        <label for="input-planejador-gelo">Gelo Atual (Pity: ${geloPerfil}x no perfil)</label>
+        <input id="input-planejador-gelo" type="number" min="0" max="20" value="${geloAtual}" title="Sequência de falhas atual nesta peça">
+      </div>
+      <div class="campo">
+        <label for="select-planejador-pergaminho">Pergaminho de Sorte</label>
+        <select id="select-planejador-pergaminho">
+          <option value="0" ${pergaminhoPP === 0 ? "selected" : ""}>Nenhum (+0 p.p.)</option>
+          <option value="10" ${pergaminhoPP === 10 ? "selected" : ""}>Pergaminho de Sorte (+10 p.p.)</option>
+          <option value="20" ${pergaminhoPP === 20 ? "selected" : ""}>Sorte Maior (+20 p.p.)</option>
+          <option value="25" ${pergaminhoPP === 25 ? "selected" : ""}>Sorte Suprema (+25 p.p.)</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="input-planejador-evento">Bônus de Evento (p.p.)</label>
+        <input id="input-planejador-evento" type="number" min="0" max="50" value="${eventoPP}" placeholder="0">
+      </div>
+      <div class="campo">
+        <label for="input-planejador-tentativas">Tentativas no Orçamento</label>
+        <input id="input-planejador-tentativas" type="number" min="1" max="10" value="${N}">
+      </div>
+    </div>
+
+    <div class="resultado-planejador-destaque">
+      <div class="card-composicao-forja">
+        <span>📐 Composição da próxima tentativa:</span>
+        <div style="font-size:1.1rem; color:var(--gold); margin-top:4px;">${escaparHtml(composicaoTexto)}</div>
+      </div>
+      <div class="orcamento-forja-grid">
+        <div class="item-comparacao-fc">
+          <span class="muted small">Chance da Próxima Tentativa ${badgeCalc}</span>
+          <strong style="color:var(--gold); font-size:1.3rem;">${chanceProxima.toFixed(1)}%</strong>
+        </div>
+        <div class="item-comparacao-fc">
+          <span class="muted small">Chance de ≥1 Sucesso em ${N}x (c/ Gelo) ${badgeCalc}</span>
+          <strong style="color:var(--cyan); font-size:1.3rem;">${chanceEmNTentativas.toFixed(1)}%</strong>
+        </div>
+        <div class="item-comparacao-fc">
+          <span class="muted small">Orçamento Estimado (${N} tentativa${N > 1 ? "s" : ""}) ${badgeEst}</span>
+          <strong>~${formatadorInteiro.format(custoOuroTotal)} Ouro · ${custoMinTotal} Minérios</strong>
+        </div>
+      </div>
+      <p class="note" style="margin:0;">* O orçamento para ${N} tentativa(s) representa o montante para executar as tentativas no cenário selecionado, e não custo garantido de obter sucesso.</p>
+    </div>
+  `;
+
+  const selRaridade = document.querySelector("#select-planejador-raridade");
+  const selSlot = document.querySelector("#select-planejador-slot");
+  const inGelo = document.querySelector("#input-planejador-gelo");
+  const selPerg = document.querySelector("#select-planejador-pergaminho");
+  const inEvento = document.querySelector("#input-planejador-evento");
+  const inTent = document.querySelector("#input-planejador-tentativas");
+
+  const atualizarPlanejador = () => {
+    if (selRaridade) ep.raridade = selRaridade.value;
+    if (selSlot) ep.slot = selSlot.value;
+    if (inGelo) ep.geloManual = inGelo.value !== "" ? Number(inGelo.value) : null;
+    if (selPerg) ep.pergaminho = Number(selPerg.value) || 0;
+    if (inEvento) ep.evento = Number(inEvento.value) || 0;
+    if (inTent) ep.tentativas = Math.max(1, Math.min(10, Number(inTent.value) || 1));
+    renderizarPlanejadorForjas(perfil);
+  };
+
+  [selRaridade, selSlot, selPerg].forEach((el) => el?.addEventListener("change", atualizarPlanejador));
+  [inGelo, inEvento, inTent].forEach((el) => el?.addEventListener("input", atualizarPlanejador));
+}
+
+/* ==========================================================================
+   Aba 2: Matriz de Gelo (Pity) e Fogo + Eventos & Conquistas
    ========================================================================== */
 
 function renderizarMatrizGeloEFogo(perfil) {
@@ -2182,8 +2793,326 @@ function importarPerfilParaSimulador(perfil) {
   simuladorEditadoManual = false;
 }
 
+function renderizarPainelGerenciadorBuilds() {
+  if (!painelGerenciadorBuilds || !Compartilhamento.listarBuildsSalvas) return;
+
+  const buildsSalvas = Compartilhamento.listarBuildsSalvas();
+
+  painelGerenciadorBuilds.innerHTML = `
+    <div class="builds-acoes-barra">
+      <div class="campo" style="flex:1; min-width:180px;">
+        <input id="input-nome-nova-build" maxlength="50" placeholder="Nome da build (ex. DPS Máximo ou Raide)" style="min-height:38px;">
+      </div>
+      <button type="button" id="btn-salvar-build-local" class="btn-secundario btn-compacto">💾 Salvar Build</button>
+      <button type="button" id="btn-copiar-link-build" class="btn-secundario btn-compacto">🔗 Copiar Link da Simulação</button>
+      <button type="button" id="btn-exportar-json-build" class="btn-secundario btn-compacto">📥 Exportar JSON</button>
+      <label class="btn-secundario btn-compacto" style="cursor:pointer; display:inline-flex; align-items:center;">
+        📤 Importar JSON
+        <input type="file" id="input-importar-json-build" accept=".json" style="display:none;">
+      </label>
+    </div>
+
+    ${
+      buildsSalvas.length > 0
+        ? `
+      <details class="detalhes-builds-salvas">
+        <summary class="sumario-expansivel">📂 Ver builds salvas neste navegador (${buildsSalvas.length})</summary>
+        <div class="grade-builds-salvas" style="margin-top:8px;">
+          ${buildsSalvas
+            .map(
+              (b) => `
+            <div class="card-build-salva" data-build-id="${b.id}">
+              <div>
+                <strong>${escaparHtml(b.nome)}</strong>
+                <div class="small muted">${nomesClasses[b.dados?.classe] || b.dados?.classe || "Build"} · Nv.${b.dados?.nivel || 1}</div>
+              </div>
+              <div class="acoes-inline">
+                <button type="button" class="btn-mini btn-carregar-build" data-build-id="${b.id}" title="Carregar esta build no simulador">Carregar</button>
+                <button type="button" class="btn-mini btn-duplicar-build" data-build-id="${b.id}" title="Duplicar build">Duplicar</button>
+                <button type="button" class="btn-mini btn-excluir-build" data-build-id="${b.id}" title="Excluir build" style="color:#ff6b5a;">✕</button>
+              </div>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </details>
+    `
+        : ""
+    }
+  `;
+
+  const btnSalvar = document.querySelector("#btn-salvar-build-local");
+  const inputNome = document.querySelector("#input-nome-nova-build");
+  if (btnSalvar && inputNome) {
+    btnSalvar.addEventListener("click", () => {
+      const nome = inputNome.value.trim() || `Build ${nomesClasses[estadoSimulador.cls]} Nv.${estadoSimulador.level}`;
+      const perfilOrig = perfilCarregadoP1 ? { nick: perfilCarregadoP1.login, plataforma: plataformaCarregadaP1 } : null;
+      Compartilhamento.salvarBuildLocal(nome, estadoSimulador, perfilOrig);
+      inputNome.value = "";
+      renderizarPainelGerenciadorBuilds();
+    });
+  }
+
+  const btnCopiarLink = document.querySelector("#btn-copiar-link-build");
+  if (btnCopiarLink) {
+    btnCopiarLink.addEventListener("click", async () => {
+      try {
+        const hash = Compartilhamento.serializarBuildParaHash(estadoSimulador, null, "Build Compartilhada");
+        const urlCompleta = `${window.location.origin}${window.location.pathname}?aba=simulador#${hash}`;
+        const res = await Compartilhamento.copiarTextoComFallback(urlCompleta);
+        if (res.sucesso) {
+          btnCopiarLink.textContent = "✓ Link copiado!";
+        } else {
+          prompt("Copie o link abaixo para compartilhar esta simulação:", res.texto);
+        }
+      } catch (err) {
+        alert("Não foi possível gerar o link: " + err.message);
+      }
+      setTimeout(() => {
+        if (btnCopiarLink) btnCopiarLink.textContent = "🔗 Copiar Link da Simulação";
+      }, 2500);
+    });
+  }
+
+  const btnExportar = document.querySelector("#btn-exportar-json-build");
+  if (btnExportar) {
+    btnExportar.addEventListener("click", () => {
+      Compartilhamento.exportarBuildParaArquivo(estadoSimulador, `build-${estadoSimulador.cls}.json`);
+    });
+  }
+
+  const inputImportar = document.querySelector("#input-importar-json-build");
+  if (inputImportar) {
+    inputImportar.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const dados = JSON.parse(evt.target?.result);
+          if (dados && dados.itens) {
+            estadoSimulador = dados;
+            simuladorEditadoManual = true;
+            renderizarSimulador();
+          } else {
+            alert("Formato de build JSON inválido.");
+          }
+        } catch {
+          alert("Arquivo JSON corrompido.");
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  painelGerenciadorBuilds.querySelectorAll(".btn-carregar-build").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.buildId;
+      const builds = Compartilhamento.listarBuildsSalvas();
+      const b = builds.find((it) => it.id === id);
+      if (b && b.dados) {
+        if (simuladorEditadoManual && !confirm("Deseja substituir a simulação atual pela build selecionada?")) return;
+        estadoSimulador = JSON.parse(JSON.stringify(b.dados));
+        simuladorEditadoManual = true;
+        renderizarSimulador();
+      }
+    });
+  });
+
+  painelGerenciadorBuilds.querySelectorAll(".btn-duplicar-build").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      Compartilhamento.duplicarBuild(btn.dataset.buildId);
+      renderizarPainelGerenciadorBuilds();
+    });
+  });
+
+  painelGerenciadorBuilds.querySelectorAll(".btn-excluir-build").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.buildId;
+      Compartilhamento.excluirBuild(id);
+      renderizarPainelGerenciadorBuilds();
+    });
+  });
+}
+
+function renderizarCompararMelhorias() {
+  if (!blocoCompararMelhorias) return;
+
+  const stSim = calcularStatusSimulados(estadoSimulador.cls, estadoSimulador.level, estadoSimulador.atributos, estadoSimulador.itens);
+  const fcSim = calcularFc(estadoSimulador.cls, stSim);
+  const metSim = calcularMetricasCombate(estadoSimulador.cls, estadoSimulador.level, stSim, estadoSimulador.itens);
+
+  const mapaNomesAttrs = [
+    { chave: "str", nome: "Força (FOR)" },
+    { chave: "vit", nome: "Vitalidade (VIT)" },
+    { chave: "def", nome: "Defesa (DEF)" },
+    { chave: "agi", nome: "Agilidade (AGI)" },
+    { chave: "luk", nome: "Sorte (SOR)" },
+  ];
+
+  const cenarios = [];
+
+  for (const attr of mapaNomesAttrs) {
+    for (const incremento of [1, 10]) {
+      const novosAttrs = { ...estadoSimulador.atributos, [attr.chave]: (estadoSimulador.atributos[attr.chave] || 0) + incremento };
+      const stTeste = calcularStatusSimulados(estadoSimulador.cls, estadoSimulador.level, novosAttrs, estadoSimulador.itens);
+      const fcTeste = calcularFc(estadoSimulador.cls, stTeste);
+      const metTeste = calcularMetricasCombate(estadoSimulador.cls, estadoSimulador.level, stTeste, estadoSimulador.itens);
+
+      cenarios.push({
+        id: `attr_${attr.chave}_${incremento}`,
+        tipo: "atributo",
+        descricao: `+${incremento} em ${attr.nome}`,
+        deltaFc: fcTeste - fcSim,
+        deltaDps: (metTeste?.dpsTotal || 0) - (metSim?.dpsTotal || 0),
+        deltaHp: (stTeste?.hp || 0) - (stSim?.hp || 0),
+        deltaCura: (metTeste?.curaPorSkill || 0) - (metSim?.curaPorSkill || 0),
+        aplicar: () => {
+          estadoSimulador.atributos[attr.chave] = (estadoSimulador.atributos[attr.chave] || 0) + incremento;
+        }
+      });
+    }
+  }
+
+  estadoSimulador.itens.forEach((item, idxSlot) => {
+    const slotsMax = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
+    const gemasAtuais = Array.isArray(item.gems) ? item.gems : [];
+    const primeiroVazio = gemasAtuais.findIndex((g, i) => i < slotsMax && (!g || !g.type));
+    if (primeiroVazio !== -1) {
+      const itensClone = JSON.parse(JSON.stringify(estadoSimulador.itens));
+      const gemaT5Atk = criarGemaPreset("ruby", item.slot, 5, item.itemLevel || 300, 1.0);
+      itensClone[idxSlot].gems[primeiroVazio] = gemaT5Atk;
+
+      const stTeste = calcularStatusSimulados(estadoSimulador.cls, estadoSimulador.level, estadoSimulador.atributos, itensClone);
+      const fcTeste = calcularFc(estadoSimulador.cls, stTeste);
+      const metTeste = calcularMetricasCombate(estadoSimulador.cls, estadoSimulador.level, stTeste, itensClone);
+
+      cenarios.push({
+        id: `gema_${idxSlot}_${primeiroVazio}`,
+        tipo: "gema",
+        descricao: `Engastar Gema Rubi T5 em ${nomesSlots[item.slot] || item.slot}`,
+        deltaFc: fcTeste - fcSim,
+        deltaDps: (metTeste?.dpsTotal || 0) - (metSim?.dpsTotal || 0),
+        deltaHp: (stTeste?.hp || 0) - (stSim?.hp || 0),
+        deltaCura: (metTeste?.curaPorSkill || 0) - (metSim?.curaPorSkill || 0),
+        aplicar: () => {
+          if (!estadoSimulador.itens[idxSlot].gems) estadoSimulador.itens[idxSlot].gems = [];
+          estadoSimulador.itens[idxSlot].gems[primeiroVazio] = gemaT5Atk;
+        }
+      });
+    }
+  });
+
+  if (!window._criterioOrdenacaoMelhorias) window._criterioOrdenacaoMelhorias = "fc";
+  const crit = window._criterioOrdenacaoMelhorias;
+
+  cenarios.sort((a, b) => {
+    if (crit === "dps") return b.deltaDps - a.deltaDps;
+    if (crit === "hp") return b.deltaHp - a.deltaHp;
+    if (crit === "cura") return b.deltaCura - a.deltaCura;
+    return b.deltaFc - a.deltaFc;
+  });
+
+  const temDesfazer = historicoDesfazerSimulador.length > 0;
+
+  const linhasHtml = cenarios.slice(0, 8).map((c) => {
+    const fcSinal = c.deltaFc >= 0 ? "+" : "";
+    const fcCls = c.deltaFc >= 0 ? "ganho-positivo" : "ganho-negativo";
+    const dpsSinal = c.deltaDps >= 0 ? "+" : "";
+    const dpsCls = c.deltaDps >= 0 ? "ganho-positivo" : "ganho-negativo";
+    const hpSinal = c.deltaHp >= 0 ? "+" : "";
+    const curaSinal = c.deltaCura >= 0 ? "+" : "";
+
+    return `
+      <tr>
+        <th scope="row" style="text-align:left;">${escaparHtml(c.descricao)}</th>
+        <td class="${fcCls}">${fcSinal}${formatadorInteiro.format(Math.round(c.deltaFc))} FC</td>
+        <td class="${dpsCls}">${dpsSinal}${formatadorInteiro.format(Math.round(c.deltaDps))}/s</td>
+        <td>${hpSinal}${formatadorInteiro.format(Math.round(c.deltaHp))} HP</td>
+        <td>${estadoSimulador.cls === "cleric" ? `${curaSinal}${formatadorInteiro.format(Math.round(c.deltaCura))}` : "—"}</td>
+        <td>
+          <button type="button" class="btn-secundario btn-compacto btn-aplicar-melhoria" data-melhoria-id="${c.id}">Aplicar ↗</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  blocoCompararMelhorias.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div>
+        <h3 class="titulo-secao-comp" style="margin:0;">Comparar Melhorias Hipotéticas (+1 alteração por vez)</h3>
+        <p class="note-compacto" style="margin:2px 0 0;">Avalia o impacto marginal isolado de cada hipótese sob as mesmas premissas de cálculo.</p>
+      </div>
+      <div class="acoes-inline">
+        <label style="font-size:0.78rem; color:var(--muted); display:inline-flex; align-items:center; gap:4px;">
+          Ordenar por:
+          <select id="select-ordem-melhorias" style="min-height:32px; padding:2px 8px; font-size:0.78rem;">
+            <option value="fc" ${crit === "fc" ? "selected" : ""}>Maior Ganho de FC</option>
+            <option value="dps" ${crit === "dps" ? "selected" : ""}>Maior Ganho de DPS</option>
+            <option value="hp" ${crit === "hp" ? "selected" : ""}>Maior Sobrevivência (HP)</option>
+            <option value="cura" ${crit === "cura" ? "selected" : ""}>Maior Cura (Clérigo)</option>
+          </select>
+        </label>
+        <button type="button" id="btn-desfazer-melhoria" class="btn-secundario btn-compacto" ${!temDesfazer ? "disabled" : ""}>↩ Desfazer</button>
+      </div>
+    </div>
+
+    <div class="tabela-melhorias-wrap">
+      <table class="tabela-melhorias">
+        <thead>
+          <tr>
+            <th scope="col" style="text-align:left;">Hipótese Avaliada</th>
+            <th scope="col">ΔFC Estimado</th>
+            <th scope="col">ΔDPS (0 DEF)</th>
+            <th scope="col">ΔVida Máxima</th>
+            <th scope="col">ΔCura</th>
+            <th scope="col">Ação</th>
+          </tr>
+        </thead>
+        <tbody>${linhasHtml}</tbody>
+      </table>
+    </div>
+  `;
+
+  blocoCompararMelhorias.querySelectorAll(".btn-aplicar-melhoria").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.melhoriaId;
+      const alvo = cenarios.find((c) => c.id === id);
+      if (alvo) {
+        historicoDesfazerSimulador.push(JSON.parse(JSON.stringify(estadoSimulador)));
+        alvo.aplicar();
+        simuladorEditadoManual = true;
+        renderizarSimulador();
+      }
+    });
+  });
+
+  const selOrdem = document.querySelector("#select-ordem-melhorias");
+  if (selOrdem) {
+    selOrdem.addEventListener("change", (e) => {
+      window._criterioOrdenacaoMelhorias = e.target.value;
+      renderizarCompararMelhorias();
+    });
+  }
+
+  const btnDesfazer = document.querySelector("#btn-desfazer-melhoria");
+  if (btnDesfazer && temDesfazer) {
+    btnDesfazer.addEventListener("click", () => {
+      const anterior = historicoDesfazerSimulador.pop();
+      if (anterior) {
+        estadoSimulador = anterior;
+        renderizarSimulador();
+      }
+    });
+  }
+}
+
 function renderizarSimulador() {
   if (!containerSimulador) return;
+
+  renderizarPainelGerenciadorBuilds();
+  renderizarCompararMelhorias();
 
   const stSim = calcularStatusSimulados(estadoSimulador.cls, estadoSimulador.level, estadoSimulador.atributos, estadoSimulador.itens);
   const fcSim = calcularFc(estadoSimulador.cls, stSim);
@@ -2354,47 +3283,55 @@ function renderizarSimulador() {
     }).join("");
 
     return `
-      <div class="sim-slot-card">
-        <div class="sim-slot-head">
-          <strong>${nomesSlots[item.slot]} · ${escaparHtml(item.name || "Peça")}</strong>
-          <span class="small muted">${nomesRaridade[item.rarity] || "Comum"} · Nv.${item.itemLevel || 1}</span>
-        </div>
-        <div class="sim-slot-selects">
-          <select data-sim-item-campo="${idxSlot}:set" title="Conjunto da Peça">
-            ${construirOptsConjunto(item.set || "")}
-          </select>
-          <select data-sim-item-campo="${idxSlot}:rarity" title="Raridade">
-            ${nomesRaridade.map((nr, rIdx) => `<option value="${rIdx}" ${Number(item.rarity) === rIdx ? "selected" : ""}>${nr}</option>`).join("")}
-          </select>
-          <input type="number" min="1" max="999" value="${item.itemLevel || 1}" title="Item Level" data-sim-item-campo="${idxSlot}:itemLevel">
-        </div>
-        ${
-          ehArma
-            ? `<select data-sim-item-campo="${idxSlot}:kind" title="Tipo de Arma">${construirOptsArma(item.kind || "")}</select>`
-            : ehAnel
-              ? `<select data-sim-item-campo="${idxSlot}:look" title="Anel Especial">${construirOptsAnel(item.look || 0)}</select>`
-              : ""
-        }
-        <div class="sim-slot-stats">
-          <label>ATK <input type="number" value="${item.atk || 0}" data-sim-item-stat="${idxSlot}:atk"></label>
-          <label>DEF <input type="number" value="${item.def || 0}" data-sim-item-stat="${idxSlot}:def"></label>
-          <label>HP <input type="number" value="${item.hp || 0}" data-sim-item-stat="${idxSlot}:hp"></label>
-          <label>CRÍT% <input type="number" value="${item.crit || 0}" data-sim-item-stat="${idxSlot}:crit"></label>
-          <label>VEL% <input type="number" value="${item.spd || 0}" data-sim-item-stat="${idxSlot}:spd"></label>
-        </div>
-        <div class="sim-gemas-bloco">
-          <div class="sim-gemas-topo">
-            <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) — clique para engastar/desengastar (rolagem sorteada na hora)</span>
-            <div class="sim-tier-bar">
-              ${botoesTierHtml}
-              <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Sorteia novas rolagens na hora (85% a 115%) para todas as gemas engastadas nesta peça">🎲 Re-rolar</button>
-              <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
-              <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
-            </div>
+      <details class="sim-slot-card sim-slot-card-expansivel" ${idxSlot === 0 ? "open" : ""}>
+        <summary class="sim-slot-head sumario-expansivel">
+          <span>
+            <strong>${nomesSlots[item.slot]} · ${escaparHtml(item.name || "Peça")}</strong>
+            <span class="small muted">${nomesRaridade[item.rarity] || "Comum"} · Nv.${item.itemLevel || 1}${item.set && catalogoConjuntos[item.set] ? ` · ${escaparHtml(catalogoConjuntos[item.set].nome)}` : ""}</span>
+          </span>
+          <span class="badge-gemas-resumo" style="font-size:0.8rem; color:var(--cyan); font-weight:600;">💎 ${qtdGemasAtivas}/${maxGemas} gemas ▾</span>
+        </summary>
+        <div class="sim-slot-conteudo" style="display:grid; gap:8px; margin-top:8px;">
+          <div class="sim-slot-selects">
+            <select data-sim-item-campo="${idxSlot}:set" title="Conjunto da Peça">
+              ${construirOptsConjunto(item.set || "")}
+            </select>
+            <select data-sim-item-campo="${idxSlot}:rarity" title="Raridade">
+              ${nomesRaridade.map((nr, rIdx) => `<option value="${rIdx}" ${Number(item.rarity) === rIdx ? "selected" : ""}>${nr}</option>`).join("")}
+            </select>
+            <input type="number" min="1" max="999" value="${item.itemLevel || 1}" title="Item Level" data-sim-item-campo="${idxSlot}:itemLevel">
           </div>
-          ${linhasGemasHtml}
+          ${
+            ehArma
+              ? `<select data-sim-item-campo="${idxSlot}:kind" title="Tipo de Arma">${construirOptsArma(item.kind || "")}</select>`
+              : ehAnel
+                ? `<select data-sim-item-campo="${idxSlot}:look" title="Anel Especial">${construirOptsAnel(item.look || 0)}</select>`
+                : ""
+          }
+          <div class="sim-slot-stats">
+            <label>ATK <input type="number" value="${item.atk || 0}" data-sim-item-stat="${idxSlot}:atk"></label>
+            <label>DEF <input type="number" value="${item.def || 0}" data-sim-item-stat="${idxSlot}:def"></label>
+            <label>HP <input type="number" value="${item.hp || 0}" data-sim-item-stat="${idxSlot}:hp"></label>
+            <label>CRÍT% <input type="number" value="${item.crit || 0}" data-sim-item-stat="${idxSlot}:crit"></label>
+            <label>VEL% <input type="number" value="${item.spd || 0}" data-sim-item-stat="${idxSlot}:spd"></label>
+          </div>
+          <div class="sim-gemas-bloco">
+            <div class="sim-gemas-topo">
+              <div>
+                <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
+                <p class="small muted" style="margin:2px 0 0 0; font-size:0.75rem;">Rolagem sorteada na hora (85% a 115%). Não altera o jogo.</p>
+              </div>
+              <div class="sim-tier-bar">
+                ${botoesTierHtml}
+                <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Sorteia novas rolagens na hora (85% a 115%) para todas as gemas engastadas nesta peça">🎲 Re-rolar</button>
+                <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
+                <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
+              </div>
+            </div>
+            ${linhasGemasHtml}
+          </div>
         </div>
-      </div>
+      </details>
     `;
   }).join("");
 
@@ -2851,7 +3788,7 @@ function renderizarSimuladorMonstros() {
   if (dBoss.golpesParaMorrer <= 1) {
     textoVeredito = `⚠️ Perigo Físico: O Chefe da Zona ${esc.zona} (${tema.boss}) aplica Hit-Kill físico no 1º golpe (${formatarNumeroCompacto(dBoss.danoRecebido)} dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`;
   } else if (bleedLetalNoBoss) {
-    textoVeredito = `💀 Sangramento Letal (${tema.boss}): Sua DEF segura o ataque físico (${dBoss.golpesParaMorrer} hits), MAS o Sangramento da skill IGNORA 100% DA DEFESA (${formatarNumeroCompacto(dotBossPorSeg)}/s de Dano Verdadeiro). Sem cura, VOCÊ MORRE EM ~${segsParaMorrerNoDoT} SEGUNDOS!`;
+    textoVeredito = `💀 Sangramento contínuo (${tema.boss}): Sua defesa reduz os ataques físicos (${dBoss.golpesParaMorrer} golpes necessários para derrota), mas o sangramento da habilidade ignora 100% da defesa (${formatarNumeroCompacto(dotBossPorSeg)}/s de dano verdadeiro). Neste cenário, este sangramento consumiria sua vida em aproximadamente ${segsParaMorrerNoDoT} segundos, sem cura ou escudo.`;
   } else if (tema.temBleedBoss) {
     const pctDoTHp = ((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0);
     textoVeredito = `⚠️ Atenção às Skills (${tema.boss}): O Sangramento da skill ignora 100% da sua DEF e causa ${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${pctDoTHp}% do seu HP). Você sobrevive se tiver cura ou escudo!`;
@@ -2881,6 +3818,26 @@ function renderizarSimuladorMonstros() {
     <div class="veredito-duelo ${classeVeredito}">
       <span>${textoVeredito}</span>
       <span class="small" style="color:var(--cyan);">Herói: <strong>${escaparHtml(heroi.origemLabel)}</strong> (${formatarNumeroCompacto(heroi.status.maxHp)} HP)</span>
+    </div>
+
+    <div class="grade-tres-indicadores-boss">
+      <div class="card-indicador-boss">
+        <span class="subtitulo-indicador">DPS estimado contra o chefe ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
+        <strong class="valor-indicador">${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s</strong>
+        <span class="nota-indicador">Considerando defesa de ${formatadorDecimal1.format(esc.boss.def)}</span>
+      </div>
+      <div class="card-indicador-boss">
+        <span class="subtitulo-indicador">Tempo estimado para derrotar (TTK) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
+        <strong class="valor-indicador" style="color:var(--gold);">${dBoss.ttk < 1 ? "< 1s" : `${dBoss.ttk.toFixed(1)}s`}</strong>
+        <span class="nota-indicador">Em combate individual contínuo</span>
+      </div>
+      <div class="card-indicador-boss">
+        <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
+        <strong class="valor-indicador" style="color:${dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss ? '#ff8a9b' : 'var(--green)'};">
+          ${dBoss.golpesParaMorrer <= 1 ? "Hit-Kill físico" : bleedLetalNoBoss ? `Sangramento (~${segsParaMorrerNoDoT}s)` : `${dBoss.golpesParaMorrer} golpes físicos`}
+        </strong>
+        <span class="nota-indicador">${dBoss.golpesParaMorrer <= 1 ? "Ataque físico supera vida máxima" : bleedLetalNoBoss ? "Dano que ignora defesa" : "Sobrevivência estável"}</span>
+      </div>
     </div>
 
     <div class="card-info" style="border-color: rgba(240, 180, 41, 0.35);">
@@ -2938,27 +3895,29 @@ function renderizarSimuladorMonstros() {
         ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Proc da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
         <div class="card-info-linha"><span>Dano Físico do Chefe (c/ DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)} · Skill (${tema.skillBossMult}×): ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
         <div class="card-info-linha"><span>Sangramento / DoT (Ignora DEF!)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0)}% do seu HP)` : "Sem Sangramento nesta zona"}</strong></div>
-        <div class="card-info-linha"><span>Tempo para Morrer no DoT</span><strong style="color:${bleedLetalNoBoss ? "#ff7a90" : "var(--green)"};">${tema.temBleedBoss ? (bleedLetalNoBoss ? `⚠️ Morre em ~${segsParaMorrerNoDoT}s (sem cura)` : `✅ Sobrevive com ${formatarNumeroCompacto(heroi.status.maxHp - dotBoss4s)} HP (se não levar hit físico)`) : "Seguro (sem DoT do Chefe)"}</strong></div>
+        <div class="card-info-linha"><span>Tempo para Morrer no DoT</span><strong style="color:${bleedLetalNoBoss ? "#ff7a90" : "var(--green)"};">${tema.temBleedBoss ? (bleedLetalNoBoss ? `⚠️ ~${segsParaMorrerNoDoT}s (sem cura ou escudo)` : `✅ Sobrevive com ${formatarNumeroCompacto(heroi.status.maxHp - dotBoss4s)} HP (se não levar dano físico adicional)`) : "Seguro (sem dano contínuo do Chefe)"}</strong></div>
       </article>
     </div>
 
-    <h4 class="titulo-secao-comp" style="margin-top:6px;">Escala de Fúria do Chefe (Rage a cada 15s: +10% ATK, +8% Vel, -8% CD Skill, -7% DEF)</h4>
-    <div class="table-wrap">
-      <table class="tabela-comp">
-        <thead>
-          <tr>
-            <th scope="col">Tempo de Luta</th>
-            <th scope="col">ATK (+10%)</th>
-            <th scope="col">Vel. / CD Skill</th>
-            <th scope="col">DEF (-7%)</th>
-            <th scope="col">Hit Físico / Skill (c/ DEF)</th>
-            <th scope="col">Sangramento 4s (Ignora DEF)</th>
-            <th scope="col">Impacto Real em Você</th>
-          </tr>
-        </thead>
-        <tbody>${ticksRage}</tbody>
-      </table>
-    </div>
+    <details class="detalhes-boss-furia" style="margin-top:12px;">
+      <summary class="sumario-expansivel">⏱️ Ver projeção temporal e fúria do chefe (a cada 15s)</summary>
+      <div class="table-wrap" style="margin-top:8px;">
+        <table class="tabela-comp">
+          <thead>
+            <tr>
+              <th scope="col">Tempo de Luta</th>
+              <th scope="col">ATK (+10%)</th>
+              <th scope="col">Vel. / CD Skill</th>
+              <th scope="col">DEF (-7%)</th>
+              <th scope="col">Hit Físico / Skill (c/ DEF)</th>
+              <th scope="col">Sangramento 4s (Ignora DEF)</th>
+              <th scope="col">Impacto Real em Você</th>
+            </tr>
+          </thead>
+          <tbody>${ticksRage}</tbody>
+        </table>
+      </div>
+    </details>
   `;
 
   containerResultadoMonstros.querySelectorAll("[data-atalho-zona]").forEach((btn) => {
@@ -3140,11 +4099,29 @@ async function escanearLiveSelecionada() {
     if (requisicaoRadarAtiva !== controlador) return;
 
     const perfisValidos = perfis.filter(Boolean);
+    const listaFalhas = [];
+    perfis.forEach((p, idx) => {
+      if (!p && listaUnica[idx]) {
+        listaFalhas.push(listaUnica[idx]);
+      }
+    });
+
+    const cobertura = {
+      totalAnunciado: canalInfo?.playersNow || totalBoard || 0,
+      paginasCarregadas: totalPaginas,
+      limitePaginasAtingido: totalBoard > 600 || totalPaginas >= 12,
+      jogadoresUnicos: listaUnica.length,
+      perfisAnalisados: perfisValidos.length,
+      perfisIndisponiveis: listaFalhas.length,
+    };
+
     ultimosDadosRadar = {
       canalAlvo,
       canalInfo,
       totalBoard,
       perfis: perfisValidos,
+      cobertura,
+      listaFalhas,
     };
 
     if (containerProgressoRadar) containerProgressoRadar.hidden = true;
@@ -3273,6 +4250,15 @@ function renderizarResultadoRadar() {
     }
   }
 
+  const cobertura = ultimosDadosRadar.cobertura || {
+    totalAnunciado: canalInfo.playersNow || totalEscaneados,
+    paginasCarregadas: 1,
+    limitePaginasAtingido: false,
+    jogadoresUnicos: totalEscaneados,
+    perfisAnalisados: totalEscaneados,
+    perfisIndisponiveis: 0,
+  };
+
   const topItens = [...contagemItensSala.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
@@ -3281,8 +4267,10 @@ function renderizarResultadoRadar() {
         ? (catalogoArmas[chave.slice(5)]?.nome || chave)
         : (catalogoAneis[chave.slice(5)]?.nome || chave);
       const pct = ((qtd / baseDivisorChips) * 100).toFixed(0);
+      const rotuloRecorte = filtroClasse ? nomesClasses[filtroClasse].toLowerCase() : "jogadores da live";
+      const textoTooltip = `${qtd} de ${baseDivisorChips} ${rotuloRecorte} usam este item (${pct}%)`;
       const ativo = filtroItem === chave ? "ativo" : "";
-      return `<button type="button" class="btn-mini ${ativo}" data-radar-quick-item="${escaparHtml(chave)}">${escaparHtml(nome)}: ${qtd} (${pct}%)</button>`;
+      return `<button type="button" class="btn-mini ${ativo}" data-radar-quick-item="${escaparHtml(chave)}" title="${escaparHtml(textoTooltip)}">${escaparHtml(nome)}: ${qtd}/${baseDivisorChips} (${pct}%)</button>`;
     })
     .join("");
 
@@ -3293,8 +4281,10 @@ function renderizarResultadoRadar() {
       const nome = catalogoConjuntos[setK]?.nome || setK;
       const pct = ((qtd / baseDivisorChips) * 100).toFixed(0);
       const chaveSet = `set:${setK}`;
+      const rotuloRecorte = filtroClasse ? nomesClasses[filtroClasse].toLowerCase() : "jogadores da live";
+      const textoTooltip = `${qtd} de ${baseDivisorChips} ${rotuloRecorte} usam este conjunto (${pct}%)`;
       const ativo = filtroItem === chaveSet ? "ativo" : "";
-      return `<button type="button" class="btn-mini ${ativo}" data-radar-quick-item="${escaparHtml(chaveSet)}">${escaparHtml(nome)}: ${qtd} (${pct}%)</button>`;
+      return `<button type="button" class="btn-mini ${ativo}" data-radar-quick-item="${escaparHtml(chaveSet)}" title="${escaparHtml(textoTooltip)}">${escaparHtml(nome)}: ${qtd}/${baseDivisorChips} (${pct}%)</button>`;
     })
     .join("");
 
@@ -3341,6 +4331,21 @@ function renderizarResultadoRadar() {
   const temFiltroAtivo = Boolean(filtroItem || filtroClasse || buscaTexto);
 
   containerResultadoRadar.innerHTML = `
+    <div class="banner-cobertura-radar" style="background:#1e1a38; border-left:3px solid var(--accent); padding:10px 14px; margin-bottom:12px; font-size:0.85rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong>Situação da cobertura:</strong>
+          Sala com ${cobertura.totalAnunciado} jogadores anunciados; ${cobertura.paginasCarregadas} páginas consultadas; ${cobertura.jogadoresUnicos} perfis únicos identificados; <strong>${cobertura.perfisAnalisados} analisados com sucesso</strong>${cobertura.perfisIndisponiveis > 0 ? `; ${cobertura.perfisIndisponiveis} temporariamente indisponíveis na API` : ""}.
+          ${cobertura.limitePaginasAtingido ? `<span style="color:var(--gold); display:block; margin-top:2px;">⚠️ Varredura parcial: limite de 12 páginas atingido na API pública.</span>` : ""}
+        </div>
+        ${
+          cobertura.perfisIndisponiveis > 0
+            ? `<button type="button" class="btn-mini btn-secundario" id="btn-radar-tentar-indisponiveis">🔄 Tentar perfis indisponíveis (${cobertura.perfisIndisponiveis})</button>`
+            : ""
+        }
+      </div>
+    </div>
+
     <div class="radar-destaque-filtro">
       <div>
         <span class="eyebrow">RESULTADO DO RADAR · ${escaparHtml(canalInfo.displayName || canalInfo.login)}</span>
@@ -3429,6 +4434,33 @@ function renderizarResultadoRadar() {
       popularSeletorItensRadar("");
       if (selectRadarItem) selectRadarItem.value = "";
       if (inputRadarBusca) inputRadarBusca.value = "";
+      renderizarResultadoRadar();
+    });
+  }
+
+  const btnTentarIndisponiveis = containerResultadoRadar.querySelector("#btn-radar-tentar-indisponiveis");
+  if (btnTentarIndisponiveis && Array.isArray(ultimosDadosRadar?.listaFalhas) && ultimosDadosRadar.listaFalhas.length > 0) {
+    btnTentarIndisponiveis.addEventListener("click", async () => {
+      btnTentarIndisponiveis.disabled = true;
+      btnTentarIndisponiveis.textContent = "Tentando novamente...";
+      const novasFalhas = [];
+      const recuperados = await mapearComConcorrencia(
+        ultimosDadosRadar.listaFalhas,
+        6,
+        undefined,
+        async (p) => {
+          const res = await obterPerfilEmCache(p.login, p.cls);
+          if (!res) novasFalhas.push(p);
+          return res;
+        }
+      );
+      const novosValidos = recuperados.filter(Boolean);
+      ultimosDadosRadar.perfis.push(...novosValidos);
+      ultimosDadosRadar.listaFalhas = novasFalhas;
+      if (ultimosDadosRadar.cobertura) {
+        ultimosDadosRadar.cobertura.perfisAnalisados = ultimosDadosRadar.perfis.length;
+        ultimosDadosRadar.cobertura.perfisIndisponiveis = novasFalhas.length;
+      }
       renderizarResultadoRadar();
     });
   }
@@ -3522,7 +4554,15 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
   selectPersonagem.replaceChildren(...opcoesPersonagem);
   selectPersonagem.value = perfil.cls;
 
-  // 1. Aba Forjas: Tabela + Gelo/Fogo + Eventos/Canais
+  const atBase = inferirAtributosBase(perfil);
+  const { itensPuros } = agregarItens(perfil.equipped ?? []);
+  const statusCalculados = calcularStatusSimulados(perfil.cls, perfil.level, atBase, itensPuros);
+  const metricasCombate = calcularMetricasCombate(perfil.cls, perfil.level, statusCalculados, itensPuros);
+
+  // 1. Aba Resumo
+  renderizarResumoPersonagem(perfil, statusCalculados, metricasCombate, perfil.cls, plataforma);
+
+  // 2. Aba Forjas: Tabela + Gelo/Fogo + Planejador + Eventos/Canais
   const linhas = tiposForja.map(({ chave, rotulo, chanceBase }) => {
     const tentativas = perfil.counters?.[`fuse_${chave}_try`] ?? 0;
     const sucessos = perfil.counters?.[`fuse_${chave}_ok`] ?? 0;
@@ -3534,13 +4574,21 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
     cabecalho.textContent = rotulo;
     linha.append(cabecalho);
 
+    let taxaTexto = "—";
+    if (tentativas === 0) {
+      taxaTexto = "Nenhuma tentativa registrada";
+    } else if (sucessos > tentativas) {
+      taxaTexto = "Dados inconsistentes";
+    } else {
+      const pct = (sucessos / tentativas) * 100;
+      taxaTexto = `${sucessos} sucessos em ${tentativas} tentativas · ${pct.toFixed(1)}%`;
+    }
+
     const valores = [
       formatadorPercentual.format(chanceBase),
       formatadorInteiro.format(tentativas),
       formatadorInteiro.format(sucessos),
-      tentativas > 0 && sucessos <= tentativas
-        ? formatadorPercentual.format(sucessos / tentativas)
-        : "—",
+      taxaTexto,
     ];
 
     for (const valor of valores) {
@@ -3552,13 +4600,15 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
     return linha;
   });
   corpoTabela.replaceChildren(...linhas);
+  renderizarResumoGeloFogoTopo(perfil);
   renderizarMatrizGeloEFogo(perfil);
+  renderizarPlanejadorForjas(perfil);
   renderizarEventosEConquistas(perfil);
 
-  // 2. Aba Equipamentos, Dano & FC
+  // 3. Aba Equipamentos, Dano & FC
   renderizarEquipamentosEGemas(perfil);
 
-  // 3. Estado da Comparação, Simulador e Monstros
+  // 4. Estado da Comparação, Simulador e Monstros
   perfilCarregadoP1 = perfil;
   plataformaCarregadaP1 = plataforma;
   atualizarCardP1Comparacao(perfil, plataforma);
@@ -3723,6 +4773,26 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const k1 = dadosClasses[p1.cls]?.k || 0.6;
   const k2 = dadosClasses[p2.cls]?.k || 0.6;
 
+  const mesmaClasse = p1.cls === p2.cls;
+  const avisoClassesDiferentes = !mesmaClasse
+    ? `<div class="aviso-classes-diferentes" style="background:#2a2342; border-left:3px solid var(--gold); padding:8px 12px; margin-bottom:12px; font-size:0.85rem;">
+        <strong>Classes diferentes (${nomesClasses[p1.cls] || p1.cls} vs ${nomesClasses[p2.cls] || p2.cls}):</strong>
+        Os atributos têm pesos distintos na fórmula de cada classe (multiplicador k=${k1.toFixed(2)} vs k=${k2.toFixed(2)}). As diferenças de FC refletem o balanceamento das classes além dos equipamentos.
+      </div>`
+    : "";
+
+  const diffDps = Math.abs(met1.dpsCombateMedio - met2.dpsCombateMedio);
+  const diffHp = Math.abs(st1.maxHp - st2.maxHp);
+  const liderDps = met1.dpsCombateMedio >= met2.dpsCombateMedio ? nome1 : nome2;
+  const liderHp = st1.maxHp >= st2.maxHp ? nome1 : nome2;
+
+  let resumoEquilibrado;
+  if (liderDps === liderHp) {
+    resumoEquilibrado = `${escaparHtml(liderDps)} lidera em DPS estimado (+${formatarNumeroCompacto(diffDps)}/s) e em vida (+${formatadorInteiro.format(diffHp)} HP).`;
+  } else {
+    resumoEquilibrado = `${escaparHtml(liderDps)} tem maior DPS estimado (+${formatarNumeroCompacto(diffDps)}/s); ${escaparHtml(liderHp)} possui maior sobrevivência física (+${formatadorInteiro.format(diffHp)} HP).`;
+  }
+
   const classesP2 = p2.classes || [];
   const seletorClassesP2 = (classesP2.length > 1)
     ? `<div class="p2-switch-classes" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
@@ -3747,9 +4817,9 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
       </div>
 
       <div class="badge-diferenca-fc">
-        <span class="eyebrow">VANTAGEM DE FORÇA</span>
-        <strong>${escaparHtml(vencedorFc)}</strong>
-        <span>+${formatadorInteiro.format(diffFc)} FC (+${pctDiffFc.toFixed(1)}%)</span>
+        <span class="eyebrow">RESUMO COMPARATIVO</span>
+        <strong style="font-size:0.95rem; line-height:1.3; color:var(--text);">${resumoEquilibrado}</strong>
+        <span style="margin-top:4px; font-size:0.82rem; color:var(--gold);">Diferença em FC: +${formatadorInteiro.format(diffFc)} (+${pctDiffFc.toFixed(1)}%) para ${escaparHtml(vencedorFc)}</span>
       </div>
 
       <div class="card-versus-jogador ${!p1VenceFc ? "vencedor" : ""}">
@@ -3773,10 +4843,11 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
     const diff = Math.abs(n1 - n2);
     const menor = Math.min(n1, n2);
     const pct = menor > 0 ? (diff / menor) * 100 : 0;
+    const semDif = diff === 0;
     const tagDiff = diff > 0 ? `<span class="tag-diff pos">+${formatadorFn(diff)} (+${pct.toFixed(1)}%)</span>` : "";
 
     return `
-      <tr>
+      <tr class="${semDif ? "linha-sem-diferenca" : ""}">
         <th scope="row">${rotulo}</th>
         <td class="${p1Ganhou ? "vencedor" : ""}">${formatadorFn(n1)} ${p1Ganhou ? tagDiff : ""}</td>
         <td class="${p2Ganhou ? "vencedor" : ""}">${formatadorFn(n2)} ${p2Ganhou ? tagDiff : ""}</td>
@@ -3791,6 +4862,13 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
 
   const htmlTabelaStats = `
     <div class="secao-comparacao-bloco">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+        <h3 class="titulo-secao-comp" style="margin:0;">Atributos, Dano Real e Cura</h3>
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; cursor:pointer;">
+          <input type="checkbox" id="check-apenas-diferencas">
+          Mostrar apenas diferenças
+        </label>
+      </div>
       <h3 class="titulo-secao-comp">Atributos, Dano Real e Cura</h3>
       <div class="table-wrap">
         <table class="tabela-comp">
@@ -3848,11 +4926,12 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
     const it2 = itensP2.find((i) => i.slot === s);
     const desc1 = it1
       ? `<span style="color: ${coresRaridade[it1.rarity] || "#fff"}; font-weight: 600;">${escaparHtml(it1.name)}</span> <small style="color: var(--muted);">(Nv. ${it1.itemLevel || 1})</small>`
-      : '<span style="color: var(--muted);">—</span>';
+      : '<span class="alerta-slot-vazio" style="color: #ff8a9b; font-weight:600;">⚠️ Espaço vazio</span>';
     const desc2 = it2
       ? `<span style="color: ${coresRaridade[it2.rarity] || "#fff"}; font-weight: 600;">${escaparHtml(it2.name)}</span> <small style="color: var(--muted);">(Nv. ${it2.itemLevel || 1})</small>`
-      : '<span style="color: var(--muted);">—</span>';
-    return `<tr><th scope="row">${nomesSlots[s] || s}</th><td>${desc1}</td><td>${desc2}</td></tr>`;
+      : '<span class="alerta-slot-vazio" style="color: #ff8a9b; font-weight:600;">⚠️ Espaço vazio</span>';
+    const saoIguais = Boolean(it1 && it2 && it1.name === it2.name && it1.rarity === it2.rarity && it1.itemLevel === it2.itemLevel && it1.set === it2.set);
+    return `<tr class="${saoIguais ? "linha-sem-diferenca" : ""}"><th scope="row">${nomesSlots[s] || s}</th><td>${desc1}</td><td>${desc2}</td></tr>`;
   }).join("");
 
   const htmlEquipamentos = `
@@ -3941,7 +5020,14 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
     </div>
   `;
 
-  resultadoComparacao.innerHTML = `${htmlVersus}${htmlTabelaStats}${htmlEquipamentos}${htmlGemas}${htmlForjas}`;
+  resultadoComparacao.innerHTML = `${avisoClassesDiferentes}${htmlVersus}${htmlTabelaStats}${htmlEquipamentos}${htmlGemas}${htmlForjas}`;
+
+  const checkDif = resultadoComparacao.querySelector("#check-apenas-diferencas");
+  if (checkDif) {
+    checkDif.addEventListener("change", (e) => {
+      resultadoComparacao.classList.toggle("ocultar-sem-diferenca", e.target.checked);
+    });
+  }
 }
 
 /* ==========================================================================
@@ -3958,6 +5044,7 @@ async function consultarPerfil(jogador, classeDesejada) {
 
   delete statusConsulta.dataset.error;
   statusConsulta.textContent = `Consultando ${jogador.nick} na ${nomePlataforma}…`;
+  estadoPerfil.status = "loading";
 
   try {
     const { resposta, urlPublica } = await buscarRespostaPerfil(
@@ -3983,6 +5070,17 @@ async function consultarPerfil(jogador, classeDesejada) {
       throw new Error("O RiftStream retornou um perfil diferente do solicitado.");
     }
 
+    estadoPerfil.data = perfil;
+    estadoPerfil.status = "success";
+    estadoPerfil.receivedAt = new Date().toISOString();
+    estadoPerfil.sourceUpdatedAt = perfil.updatedAt || null;
+    estadoPerfil.fromCache = false;
+    estadoPerfil.error = null;
+
+    if (Historico.obterConfigAutoSave && Historico.obterConfigAutoSave()) {
+      Historico.salvarSnapshotConsulta(jogador.plataforma, jogador.nick, perfil.cls, perfil, estadoPerfil.sourceUpdatedAt, CALCULATION_VERSION);
+    }
+
     jogadorAtual = jogador;
     atualizarParametrosUrl(jogador, perfil.cls);
     renderizarPerfil(perfil, urlPublica, jogador.plataforma);
@@ -3993,15 +5091,36 @@ async function consultarPerfil(jogador, classeDesejada) {
     statusConsulta.textContent = `${nomesClasses[perfil.cls]} · Nível ${formatadorInteiro.format(perfil.level)}${poderFormatado}`;
   } catch (erro) {
     if (requisicaoAtiva !== controlador) return;
-    statusConsulta.dataset.error = "true";
-    if (erro instanceof TypeError || erro.name === "TimeoutError") {
-      statusConsulta.textContent =
-        window.location.protocol === "file:"
-          ? "Falha de conexão em arquivo local. Abra http://127.0.0.1:4173/ no navegador."
-          : "Falha de conexão com a API do RiftStream. Tente novamente em instantes.";
-      return;
+
+    const ehMesmaIdentidade =
+      perfilCarregadoP1 &&
+      plataformaCarregadaP1 === jogador.plataforma &&
+      perfilCarregadoP1.login?.toLowerCase() === loginApi.toLowerCase();
+
+    if (ehMesmaIdentidade && estadoPerfil.receivedAt) {
+      estadoPerfil.status = "stale";
+      estadoPerfil.error = erro.message;
+      const dataRec = new Date(estadoPerfil.receivedAt);
+      const horaFmt = `${String(dataRec.getHours()).padStart(2, "0")}:${String(dataRec.getMinutes()).padStart(2, "0")}`;
+      statusConsulta.dataset.error = "true";
+      statusConsulta.textContent = `Não foi possível atualizar. Mostrando a consulta de ${horaFmt}. (${erro.message})`;
+    } else {
+      estadoPerfil.status = "error";
+      estadoPerfil.error = erro.message;
+      statusConsulta.dataset.error = "true";
+      if (perfilCarregadoP1) {
+        statusConsulta.textContent = `Não foi possível carregar ${jogador.nick} (${erro.message}). O personagem anterior (${perfilCarregadoP1.displayName || perfilCarregadoP1.login}) permanece visível.`;
+      } else {
+        if (erro instanceof TypeError || erro.name === "TimeoutError") {
+          statusConsulta.textContent =
+            window.location.protocol === "file:"
+              ? "Falha de conexão em arquivo local. Abra http://127.0.0.1:4173/ no navegador."
+              : "Falha de conexão com a API do RiftStream. Tente novamente em instantes.";
+        } else {
+          statusConsulta.textContent = erro.message;
+        }
+      }
     }
-    statusConsulta.textContent = erro.message;
   }
 }
 
@@ -4104,13 +5223,22 @@ if (btnSimImportar) {
       statusConsulta.textContent = "Consulte um jogador primeiro para importar a build dele.";
       return;
     }
+    if (simuladorEditadoManual && typeof window !== "undefined" && typeof window.confirm === "function") {
+      const confirmou = window.confirm("Você possui alterações manuais na simulação. Deseja sobrescrever com os equipamentos do jogador atual?");
+      if (!confirmou) return;
+    }
     importarPerfilParaSimulador(perfilCarregadoP1);
+    simuladorEditadoManual = false;
     renderizarSimulador();
   });
 }
 
 if (btnSimResetar) {
   btnSimResetar.addEventListener("click", () => {
+    if (simuladorEditadoManual && typeof window !== "undefined" && typeof window.confirm === "function") {
+      const confirmou = window.confirm("Deseja realmente resetar todas as alterações manuais do simulador para a build padrão?");
+      if (!confirmou) return;
+    }
     estadoSimulador = criarModeloSimuladorPadrao();
     simuladorEditadoManual = false;
     renderizarSimulador();
@@ -4201,7 +5329,7 @@ async function atualizarPlaceholderTop1() {
 
 // Inicialização imediata da interface
 configurarAbas();
-alternarVisibilidadeAba("forjas");
+alternarVisibilidadeAba("resumo");
 atualizarEstadoVazioOuPerfil(false);
 popularSeletorItensRadar();
 renderizarSimulador();
@@ -4209,6 +5337,24 @@ renderizarSimuladorMonstros();
 vincularEventosGradePanorama();
 sincronizarTextosTopsUI();
 void carregarPanoramaGlobal();
+
+// Decodifica build compartilhada via URL (#build=...)
+if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.decodificarBuildDeHash) {
+  try {
+    const buildDecodificada = Compartilhamento.decodificarBuildDeHash(window.location.hash);
+    if (buildDecodificada?.dados) {
+      estadoSimulador = {
+        cls: buildDecodificada.dados.classe || "warrior",
+        level: buildDecodificada.dados.nivel || 300,
+        atributos: { ...buildDecodificada.dados.atributos },
+        itens: buildDecodificada.dados.itens.map((it) => ({ ...it })),
+      };
+      simuladorEditadoManual = true;
+      renderizarSimulador();
+      alternarVisibilidadeAba("simulador");
+    }
+  } catch {}
+}
 
 const parametrosIniciais = new URLSearchParams(window.location.search);
 const nickInicial = parametrosIniciais.get("nick");
@@ -4229,5 +5375,10 @@ if (nickInicial) {
       { nick, plataforma },
       Object.hasOwn(nomesClasses, classeInicial) ? classeInicial : undefined
     );
+  }
+} else {
+  const abaInicial = parametrosIniciais.get("aba");
+  if (abaInicial && Object.hasOwn(secoesAbas, abaInicial)) {
+    alternarVisibilidadeAba(abaInicial);
   }
 }

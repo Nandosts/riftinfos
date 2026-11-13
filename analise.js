@@ -1,0 +1,268 @@
+/**
+ * analise.js — Análise de perfil, envelopes de consulta e regras determinísticas
+ * RiftInfos · RiftStream
+ */
+
+(function (raiz, fabrica) {
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = fabrica();
+  } else {
+    raiz.RiftAnalise = fabrica();
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+
+  const VERSAO_CALCULO = "2026.11.1";
+
+  /**
+   * Cria um envelope padrão de estado de consulta de dados.
+   */
+  function criarEnvelopeConsulta(dadosIniciais = null) {
+    return {
+      data: dadosIniciais,
+      status: "idle", // 'idle' | 'loading' | 'success' | 'partial' | 'stale' | 'error'
+      receivedAt: null,
+      sourceUpdatedAt: null,
+      fromCache: false,
+      error: null,
+      completeness: null
+    };
+  }
+
+  /**
+   * Normaliza números de forma estrita, rejeitando NaN, Infinity e valores fora do domínio.
+   */
+  function normalizarNumero(valor, padrao = null, min = -Infinity, max = Infinity) {
+    if (valor == null || valor === "" || typeof valor === "boolean") return padrao;
+    const num = Number(valor);
+    if (!Number.isFinite(num)) return padrao;
+    if (num < min || num > max) return padrao;
+    return num;
+  }
+
+  /**
+   * Analisa os dados de um perfil e gera um objeto estruturado de análise determinística.
+   * Não renderiza HTML: retorna o modelo conceitual pronto para consumo por Resumo, Simulador ou Comparar.
+   */
+  function analisarPerfilParaResumo(perfil, statusCalculados, metricasCombate, classe, catalogoConjuntos) {
+    if (!perfil) return null;
+
+    const fcInformadoBruto = normalizarNumero(perfil.power, null, 0);
+    const fcReconstruido = normalizarNumero(statusCalculados?.fc, null, 0);
+
+    // Comparação entre FC informado e reconstruído
+    let comparacaoFc = {
+      informado: fcInformadoBruto,
+      reconstruido: fcReconstruido,
+      diferencaAbsoluta: null,
+      diferencaPercentual: null,
+      concordanciaPerfeita: false,
+      explicacao: "FC oficial informado pelo jogo."
+    };
+
+    if (fcInformadoBruto != null && fcReconstruido != null) {
+      const diffAbs = Math.round(fcReconstruido - fcInformadoBruto);
+      const diffPct = fcInformadoBruto > 0 ? (diffAbs / fcInformadoBruto) * 100 : null;
+      const concordancia = Math.abs(diffAbs) <= 200 || (diffPct != null && Math.abs(diffPct) < 0.05);
+
+      let textoExplicacao = "";
+      if (concordancia) {
+        textoExplicacao = "Fidelidade matemática excelente: diferença de poucas unidades causada unicamente por arredondamentos de ponto flutuante.";
+      } else {
+        textoExplicacao = "Divergência detectada entre o valor gravado no jogo e os itens catalogados. Pode ocorrer por bônus de guilda, títulos, atributos ocultos ou gemas em recalibração.";
+      }
+
+      comparacaoFc = {
+        informado: fcInformadoBruto,
+        reconstruido: fcReconstruido,
+        diferencaAbsoluta: diffAbs,
+        diferencaPercentual: diffPct,
+        concordanciaPerfeita: concordancia,
+        explicacao: textoExplicacao
+      };
+    }
+
+    // Indicadores principais (máx 4)
+    const indicadores = [];
+
+    // 1. FC principal
+    indicadores.push({
+      id: "fc",
+      titulo: "Força de Combate (FC)",
+      pergunta: "Qual é o nível de poder geral?",
+      valor: fcInformadoBruto != null ? fcInformadoBruto : fcReconstruido,
+      unidade: "FC",
+      origem: fcInformadoBruto != null ? "jogo" : "calculado",
+      resumo: "Poder de combate global consolidado do personagem.",
+      detalhes: comparacaoFc.explicacao
+    });
+
+    // 2. DPS estimado
+    const dpsValor = normalizarNumero(metricasCombate?.dpsTotal, null, 0);
+    indicadores.push({
+      id: "dps",
+      titulo: "DPS Estimado",
+      pergunta: "Quanto dano causa por segundo?",
+      valor: dpsValor,
+      unidade: "/s",
+      origem: "estimado",
+      resumo: "Dano médio por segundo contra alvo de teste (0 DEF, sem redução).",
+      detalhes: `Considera cadência real de ${(metricasCombate?.aspdReal || 1).toFixed(2)} golpes/s, crítico de ${(statusCalculados?.critChance || 0).toFixed(1)}% e dano de skill de ${(metricasCombate?.danoPorSkill || 0).toLocaleString("pt-BR")} a cada ${(metricasCombate?.cdRealSkill || 10).toFixed(1)}s.`
+    });
+
+    // 3. Vida e Sobrevivência
+    const hpMax = normalizarNumero(statusCalculados?.hp, null, 0);
+    const ehp = normalizarNumero(metricasCombate?.ehpFisico, hpMax, 0);
+    const redDefPct = normalizarNumero(metricasCombate?.reducaoDefPct, 0, 0, 100);
+    indicadores.push({
+      id: "sobrevivencia",
+      titulo: "Vida Máxima & Defesa",
+      pergunta: "Qual é a capacidade de sobrevivência física?",
+      valor: hpMax,
+      unidade: "HP",
+      origem: "calculado",
+      resumo: `Vida total com ${redDefPct.toFixed(1)}% de redução física pela defesa.`,
+      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: sangramento, veneno e chefes com 'Singularidade' ignoram defesa e atingem a vida pura (${Math.round(hpMax).toLocaleString("pt-BR")}).`
+    });
+
+    // 4. Indicador de classe
+    if (classe === "cleric") {
+      const curaSkill = normalizarNumero(metricasCombate?.curaPorSkill, null, 0);
+      const hps = normalizarNumero(metricasCombate?.hpsTotal, null, 0);
+      indicadores.push({
+        id: "cura",
+        titulo: "Poder de Cura",
+        pergunta: "Qual é o suporte prestado à equipe?",
+        valor: curaSkill,
+        unidade: "por skill",
+        origem: "estimado",
+        resumo: `Cura estimada da Luz Divina (${Math.round(hps || 0).toLocaleString("pt-BR")} HPS contínuo).`,
+        detalhes: "Calculado a partir de INT, ATK e bônus específicos do cetro/cajado equipado."
+      });
+    } else if (classe === "archer") {
+      const aspdReal = normalizarNumero(metricasCombate?.aspdReal, 1, 0, 10);
+      const critChance = normalizarNumero(statusCalculados?.critChance, 0, 0, 100);
+      indicadores.push({
+        id: "cadencia",
+        titulo: "Cadência & Crítico",
+        pergunta: "Qual é a velocidade de disparo?",
+        valor: aspdReal ? aspdReal.toFixed(2) : "—",
+        unidade: "tiros/s",
+        origem: "calculado",
+        resumo: `Ataques contínuos com ${critChance.toFixed(1)}% de chance de crítico.`,
+        detalhes: `Cadência máxima limitada pelo cap do jogo a 4,60 ataques por segundo. Chance de crítico: ${critChance.toFixed(1)}%.`
+      });
+    } else {
+      // Guerreiro
+      const defTotal = normalizarNumero(statusCalculados?.def, 0, 0);
+      indicadores.push({
+        id: "armadura",
+        titulo: "Redução de Dano",
+        pergunta: "Quanto dano físico sua armadura bloqueia?",
+        valor: `${redDefPct.toFixed(1)}%`,
+        unidade: "mitigação",
+        origem: "calculado",
+        resumo: `Defesa total de ${Math.round(defTotal).toLocaleString("pt-BR")} pontos.`,
+        detalhes: "Fórmula oficial de mitigação: Redução = DEF ÷ (DEF + 300). Dano puro de chefes ignora este valor."
+      });
+    }
+
+    // Pontos de atenção determinísticos (até 3)
+    const pontosAtencao = [];
+
+    // Regra 1: Espaços de gemas vazios
+    let slotsVazios = 0;
+    if (Array.isArray(perfil.equipped)) {
+      for (const item of perfil.equipped) {
+        if (!item || !item.item) continue;
+        const slotsMax = item.item.rarity === "arcane" ? 3 : item.item.rarity === "immortal" ? 2 : 1;
+        const gemasQtd = Array.isArray(item.gems) ? item.gems.length : 0;
+        if (slotsMax > gemasQtd) {
+          slotsVazios += slotsMax - gemasQtd;
+        }
+      }
+    }
+    if (slotsVazios > 0) {
+      pontosAtencao.push({
+        id: "gemas_vazias",
+        tipo: "alerta",
+        icone: "💎",
+        titulo: `${slotsVazios} espaço${slotsVazios > 1 ? "s" : ""} de gema vazio${slotsVazios > 1 ? "s" : ""}`,
+        texto: `Você tem ${slotsVazios} espaço${slotsVazios > 1 ? "s" : ""} de gema disponível${slotsVazios > 1 ? "s" : ""} para equipar em suas peças.`,
+        valores: { slotsVazios },
+        acaoTexto: "Ver Equipamentos",
+        acaoAba: "equipamentos",
+        explicacao: "Gemas fornecem ATK, HP, DEF ou Crítico diretos que são amplificados pelos multiplicadores dos seus equipamentos e pelo bônus de classe."
+      });
+    }
+
+    // Regra 2: Conjuntos quase completos (ex: 2 de 3 peças)
+    if (catalogoConjuntos && Array.isArray(perfil.equipped)) {
+      const contagemSets = {};
+      for (const item of perfil.equipped) {
+        const setName = item?.item?.set;
+        if (setName) {
+          contagemSets[setName] = (contagemSets[setName] || 0) + 1;
+        }
+      }
+      for (const [setName, qtd] of Object.entries(contagemSets)) {
+        if (qtd === 2 && catalogoConjuntos[setName]) {
+          const cfg = catalogoConjuntos[setName];
+          pontosAtencao.push({
+            id: `set_incompleto_${setName}`,
+            tipo: "oportunidade",
+            icone: "🛡️",
+            titulo: `Conjunto ${cfg.nome} em 2/3 peças`,
+            texto: `Equipar a 3ª peça ativa o bônus principal do conjunto (ex: ${formatarBonusSetCurto(cfg.b3)}).`,
+            valores: { setName, qtdAtual: 2, qtdDestino: 3 },
+            acaoTexto: "Simular no Simulador",
+            acaoAba: "simulador",
+            explicacao: "Bônus de 3 peças de conjuntos arcanos e imortais concedem amplificações percentuais substanciais no dano, velocidade ou sobrevivência."
+          });
+          if (pontosAtencao.length >= 3) break;
+        }
+      }
+    }
+
+    // Regra 3: Alerta de dano verdadeiro / sangramento em chefes
+    if (pontosAtencao.length < 3) {
+      pontosAtencao.push({
+        id: "dano_verdadeiro_chefes",
+        tipo: "info",
+        icone: "⚠️",
+        titulo: "Defesa física não reduz sangramento",
+        texto: `Sua defesa física reduz ${redDefPct.toFixed(1)}% do dano normal, mas chefes de zona alta possuem sangramentos e habilidades que ignoram defesa.`,
+        valores: { reducaoDefesa: redDefPct, vidaPura: hpMax },
+        acaoTexto: "Simular em Chefes",
+        acaoAba: "monstros",
+        explicacao: "Em ondas avançadas de chefes com mecânicas de Fúria ou Singularidade, a Vida Pura e bônus de escudo têm valor de sobrevivência superior ao de armadura pura."
+      });
+    }
+
+    return {
+      versaoCalculo: VERSAO_CALCULO,
+      comparacaoFc,
+      indicadores,
+      pontosAtencao: pontosAtencao.slice(0, 3)
+    };
+  }
+
+  function formatarBonusSetCurto(bonus) {
+    if (!bonus) return "bônus especial";
+    const partes = [];
+    if (bonus.atk) partes.push(`+${Math.round(bonus.atk * 100)}% ATK`);
+    if (bonus.hp) partes.push(`+${Math.round(bonus.hp * 100)}% HP`);
+    if (bonus.def) partes.push(`+${Math.round(bonus.def * 100)}% DEF`);
+    if (bonus.spd) partes.push(`+${Math.round(bonus.spd * 100)}% Vel.`);
+    if (bonus.crit) partes.push(`+${bonus.crit}% Crítico`);
+    return partes.join(", ") || "bônus especial";
+  }
+
+  return {
+    VERSAO_CALCULO,
+    criarEnvelopeConsulta,
+    normalizarNumero,
+    analisarPerfilParaResumo
+  };
+});
+

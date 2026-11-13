@@ -6,6 +6,10 @@
   <title>RiftInfos · Forjas, Dano, Monstros e Radar de Lives · RiftStream</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
   <link rel="stylesheet" href="style.css">
+  <script src="explicacoes.js" defer></script>
+  <script src="analise.js" defer></script>
+  <script src="historico.js" defer></script>
+  <script src="compartilhamento.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -16,38 +20,38 @@
     </div>
   </header>
   <main class="wrap">
-    <div class="intro">
+    <div class="intro intro-compacta">
       <p class="eyebrow">ANÁLISE COMPLETA VIA APIS PÚBLICAS</p>
-      <h1>RiftInfos: Forjas, Dano, Monstros &amp; Radar de Lives</h1>
-      <p>Inspecione forjas (Gelo e Fogo por peça), calcule seu dano real e DPS contra chefes, simule builds e FC ou escaneie lives ao vivo para ver quem está usando cada item agora.</p>
+      <h1>RiftInfos</h1>
+      <p class="intro-descricao">Entenda seu personagem, planeje melhorias e acompanhe as lives.</p>
     </div>
 
     <section id="painel-recordes-globais" class="panel painel-panorama" aria-label="Panorama global do servidor">
       <div class="panorama-cabecalho">
         <span class="eyebrow">SERVIDOR AGORA · RADAR AO VIVO</span>
-        <span id="panorama-atualizacao" class="muted small">Último Patch: 2026-11-09 · Sincronizando lives…</span>
+        <span id="panorama-atualizacao" class="muted small">Sincronizando com o servidor…</span>
       </div>
       <div id="grade-recordes-globais" class="grade-panorama">
-        <div class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
+        <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
           <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
-          <strong>Z17 · Onda 5</strong>
-          <small>BELKY (ao vivo agora)</small>
-        </div>
-        <div class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar no Radar de Lives">
+          <strong>Carregando…</strong>
+          <small>Sincronizando lives…</small>
+        </button>
+        <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar no Radar de Lives">
           <span>👥 Maior Live Agora</span>
-          <strong>297 jogadores</strong>
-          <small>BELKY · 50 canais ao vivo</small>
-        </div>
-        <div class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar canal recente no Radar">
+          <strong>Carregando…</strong>
+          <small>Sincronizando canais…</small>
+        </button>
+        <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar canal recente no Radar">
           <span>✨ Live Mais Nova Online</span>
-          <strong>GlhrMzera</strong>
-          <small>Criada hoje · Z10-W8</small>
-        </div>
-        <div class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas do Top 1 FC Geral">
+          <strong>Carregando…</strong>
+          <small>Sincronizando…</small>
+        </button>
+        <button type="button" class="tile-panorama clicavel" data-panorama-acao="consultar-top1" style="border-color: rgba(240, 180, 41, 0.45);" title="Clique para consultar a build e forjas do Top 1 FC Geral">
           <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
-          <strong style="color:var(--gold);">49,9M FC</strong>
-          <small>halscriolo (Guerreiro Nv. 693)</small>
-        </div>
+          <strong style="color:var(--gold);">Carregando…</strong>
+          <small>Sincronizando rankings…</small>
+        </button>
       </div>
     </section>
 
@@ -67,26 +71,29 @@
     </form>
     <p id="status-consulta" role="status" aria-live="polite">Digite um nick para analisar o perfil, ou use diretamente os atalhos rápidos abaixo.</p>
 
-    <div id="atalhos-tops-container" class="atalhos-tops-barra" aria-label="Acesso rápido aos Tops Oficiais">
-      <span class="atalhos-tops-titulo">⚡ Tops em Tempo Real:</span>
-      <div id="lista-atalhos-tops" class="atalhos-tops-grade">
-        <button type="button" class="btn-top-pill" data-top-alvo="top1" title="Carregar Top 1 FC Geral do jogo">
-          👑 <span class="rotulo-top">Top 1 FC:</span> <strong class="valor-top" id="top-pill-val-top1">halscriolo (49,8M FC)</strong>
-        </button>
-        <button type="button" class="btn-top-pill" data-top-alvo="warrior" title="Carregar Top 1 Guerreiro">
-          🛡️ <span class="rotulo-top">Guerreiro:</span> <strong class="valor-top" id="top-pill-val-warrior">halscriolo (49,8M FC)</strong>
-        </button>
-        <button type="button" class="btn-top-pill" data-top-alvo="cleric" title="Carregar Top 1 Clérigo">
-          ✨ <span class="rotulo-top">Clérigo:</span> <strong class="valor-top" id="top-pill-val-cleric">nando_sts (31,7M FC)</strong>
-        </button>
-        <button type="button" class="btn-top-pill" data-top-alvo="archer" title="Carregar Top 1 Arqueiro">
-          🏹 <span class="rotulo-top">Arqueiro:</span> <strong class="valor-top" id="top-pill-val-archer">philippato (30,3M FC)</strong>
-        </button>
-        <button type="button" class="btn-top-pill" data-top-alvo="level" title="Carregar Maior Nível Geral">
-          ⭐ <span class="rotulo-top">Maior Nível:</span> <strong class="valor-top" id="top-pill-val-level">boingzeraa (Nv. 798)</strong>
-        </button>
+    <details id="detalhes-rankings" class="detalhes-rankings-recolhivel">
+      <summary class="sumario-rankings">⚡ Consultar rankings</summary>
+      <div id="atalhos-tops-container" class="atalhos-tops-barra" aria-label="Acesso rápido aos Tops Oficiais">
+        <span class="atalhos-tops-titulo">⚡ Tops em Tempo Real:</span>
+        <div id="lista-atalhos-tops" class="atalhos-tops-grade">
+          <button type="button" class="btn-top-pill" data-top-alvo="top1" title="Carregar Top 1 FC Geral do jogo">
+            👑 <span class="rotulo-top">Top 1 FC:</span> <strong class="valor-top" id="top-pill-val-top1">Carregando…</strong>
+          </button>
+          <button type="button" class="btn-top-pill" data-top-alvo="warrior" title="Carregar Top 1 Guerreiro">
+            🛡️ <span class="rotulo-top">Guerreiro:</span> <strong class="valor-top" id="top-pill-val-warrior">Carregando…</strong>
+          </button>
+          <button type="button" class="btn-top-pill" data-top-alvo="cleric" title="Carregar Top 1 Clérigo">
+            ✨ <span class="rotulo-top">Clérigo:</span> <strong class="valor-top" id="top-pill-val-cleric">Carregando…</strong>
+          </button>
+          <button type="button" class="btn-top-pill" data-top-alvo="archer" title="Carregar Top 1 Arqueiro">
+            🏹 <span class="rotulo-top">Arqueiro:</span> <strong class="valor-top" id="top-pill-val-archer">Carregando…</strong>
+          </button>
+          <button type="button" class="btn-top-pill" data-top-alvo="level" title="Carregar Maior Nível Geral">
+            ⭐ <span class="rotulo-top">Maior Nível:</span> <strong class="valor-top" id="top-pill-val-level">Carregando…</strong>
+          </button>
+        </div>
       </div>
-    </div>
+    </details>
 
     <section id="painel-resultado" class="panel" aria-labelledby="nome-jogador">
       <div id="cabecalho-perfil" class="result-head" hidden>
@@ -115,56 +122,100 @@
       </div>
 
       <div class="abas" role="tablist" aria-label="Ferramentas do RiftInfos">
-        <button type="button" id="aba-forjas" class="botao-aba" role="tab" aria-selected="true" aria-controls="secao-forjas">
-          Forjas, Gelo &amp; Eventos
+        <button type="button" id="aba-resumo" class="botao-aba" role="tab" aria-selected="true" aria-controls="secao-resumo">
+          Resumo
+        </button>
+        <button type="button" id="aba-forjas" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-forjas">
+          Forjas
         </button>
         <button type="button" id="aba-equipamentos" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-equipamentos">
-          Equipamentos, Dano &amp; FC
+          Equipamentos
         </button>
         <button type="button" id="aba-simulador" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-simulador">
-          Simulador de FC &amp; Build
+          Simulador
         </button>
         <button type="button" id="aba-monstros" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-monstros">
-          Monstros &amp; Boss
+          Chefes
         </button>
         <button type="button" id="aba-radar-live" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-radar-live">
-          Radar de Live &amp; Itens
+          Lives
         </button>
         <button type="button" id="aba-comparacao" class="botao-aba" role="tab" aria-selected="false" aria-controls="secao-comparacao">
-          Comparar Jogadores
+          Comparar
         </button>
       </div>
 
-      <!-- ABA 1: FORJAS, GELO, EVENTOS E CONQUISTAS -->
-      <div id="secao-forjas" role="tabpanel" aria-labelledby="aba-forjas">
+      <!-- ABA 1: RESUMO DO PERSONAGEM, SITUAÇÃO E PONTOS DE ATENÇÃO -->
+      <div id="secao-resumo" role="tabpanel" aria-labelledby="aba-resumo">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Situação atual e pontos de atenção.</p>
+        </div>
+        <div id="conteudo-resumo-vazio" class="aviso-aba-vazia">
+          Consulte um personagem acima para ver a situação atual, pontos de atenção determinísticos e evolução da conta.
+        </div>
+        <div id="conteudo-resumo-perfil" hidden>
+          <div id="grade-indicadores-principais" class="grade-indicadores-principais"></div>
+          <div id="bloco-fc-detalhado" class="bloco-subsecao"></div>
+          <div id="bloco-pontos-atencao" class="bloco-subsecao"></div>
+          <div id="secao-evolucao-historico" class="bloco-subsecao"></div>
+          <details id="detalhes-glossario-termos" class="bloco-subsecao">
+            <summary class="sumario-expansivel">📖 Entenda os termos (Glossário com busca rápida)</summary>
+            <div class="painel-glossario-interno">
+              <div class="campo campo-busca-glossario">
+                <label for="input-busca-glossario">Filtrar termos e fórmulas</label>
+                <input id="input-busca-glossario" type="search" placeholder="Ex: FC, DPS, Vida efetiva, Gelo, Parcela...">
+              </div>
+              <div id="conteudo-glossario-busca"></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ABA 2: FORJAS, HISTÓRICO, GELO E PLANEJADOR -->
+      <div id="secao-forjas" role="tabpanel" aria-labelledby="aba-forjas" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Resultados históricos e planejador da próxima tentativa.</p>
+        </div>
         <div id="conteudo-forjas-vazio" class="aviso-aba-vazia">
           Consulte um jogador acima para ver o histórico de forjas, matriz de Gelo (Pity) e Fogo atual por peça, estatísticas de eventos e canais frequentados.
         </div>
         <div id="conteudo-forjas-perfil" hidden>
-          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="legenda-forjas">
-            <table>
-              <caption id="legenda-forjas" class="sr-only">Estatísticas de forja do personagem</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Forja</th>
-                  <th scope="col">Chance base</th>
-                  <th scope="col">Tentativas</th>
-                  <th scope="col">Sucessos</th>
-                  <th scope="col">Taxa real</th>
-                </tr>
-              </thead>
-              <tbody id="linhas-forjas"></tbody>
-            </table>
+          <div class="bloco-subsecao">
+            <h3 class="titulo-bloco-secao">Histórico de Forjas do Personagem</h3>
+            <div class="table-wrap" tabindex="0" role="region" aria-labelledby="legenda-forjas">
+              <table>
+                <caption id="legenda-forjas" class="sr-only">Estatísticas de forja do personagem</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Forja</th>
+                    <th scope="col">Chance base</th>
+                    <th scope="col">Tentativas</th>
+                    <th scope="col">Sucessos</th>
+                    <th scope="col">Sucesso no histórico</th>
+                  </tr>
+                </thead>
+                <tbody id="linhas-forjas"></tbody>
+              </table>
+            </div>
+            <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte. Os bônus usados em cada tentativa individual não estão disponíveis neste histórico.</p>
           </div>
-          <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte.</p>
 
-          <div id="matriz-gelo-fogo" class="bloco-subsecao"></div>
+          <div id="resumo-gelo-fogo-topo" class="bloco-subsecao"></div>
+          <details id="detalhes-matriz-gelo" class="bloco-subsecao" open>
+            <summary class="sumario-expansivel">🔍 Ver matriz completa de Gelo e Fogo por peça</summary>
+            <div id="matriz-gelo-fogo"></div>
+          </details>
+
+          <div id="planejador-proxima-forja" class="bloco-subsecao"></div>
           <div id="resumo-eventos-conquistas" class="bloco-subsecao"></div>
         </div>
       </div>
 
-      <!-- ABA 2: EQUIPAMENTOS, DANO REAL, CURA E FC -->
+      <!-- ABA 3: EQUIPAMENTOS, DANO REAL, CURA E FC -->
       <div id="secao-equipamentos" role="tabpanel" aria-labelledby="aba-equipamentos" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Contribuição das peças, conjuntos e gemas.</p>
+        </div>
         <div id="conteudo-equipamentos-vazio" class="aviso-aba-vazia">
           Consulte um jogador acima para inspecionar o dano real em combate, poder de cura, mitigação de defesa, conjuntos, gemas e partição de FC.
         </div>
@@ -178,27 +229,44 @@
         </div>
       </div>
 
-      <!-- ABA 3: SIMULADOR INTERATIVO DE FC & BUILD -->
+      <!-- ABA 4: SIMULADOR INTERATIVO DE FC, BUILD E MELHORIAS -->
       <div id="secao-simulador" role="tabpanel" aria-labelledby="aba-simulador" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Editar build, comparar melhorias e salvar cenários.</p>
+        </div>
         <div class="subpainel-topo">
           <div>
             <h3 class="titulo-secao-comp">Simulador Interativo de FC, Build e Dano ("E se eu mudar...?")</h3>
-            <p class="note-compacto">Edite classe, nível, pontos de ouro, equipamentos, raridades e gemas (incluindo Supremas) para comparar instantaneamente FC, DPS e Cura.</p>
+            <p class="note-compacto">Edite classe, nível, pontos de ouro, equipamentos, raridades e gemas para comparar instantaneamente FC, DPS e Cura sob o mesmo motor.</p>
           </div>
           <div class="acoes-inline">
             <button type="button" id="btn-sim-importar" class="btn-secundario btn-compacto">Importar Jogador Atual</button>
             <button type="button" id="btn-sim-resetar" class="btn-secundario btn-compacto">Resetar Simulação</button>
           </div>
         </div>
+
+        <div id="painel-gerenciador-builds" class="bloco-subsecao"></div>
+        <div id="bloco-comparar-melhorias" class="bloco-subsecao"></div>
         <div id="simulador-container" class="simulador-container"></div>
       </div>
 
-      <!-- ABA 4: MONSTROS, BOSS & SIMULADOR PvE -->
+      <!-- ABA 5: MONSTROS, BOSS & SIMULADOR PvE -->
       <div id="secao-monstros" role="tabpanel" aria-labelledby="aba-monstros" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Desempenho estimado em uma zona/onda.</p>
+        </div>
         <div class="subpainel-topo">
           <div>
             <h3 class="titulo-secao-comp">Calculadora de Monstros, Chefes &amp; Simulador PvE</h3>
-            <p class="note-compacto">Fórmulas reais do jogo com escala de Zona/Onda, penalidade de jogadores na live (+2,5% HP por jogador), Fúria do Boss (Rage 15s) e Tempo para Matar (TTK) com o personagem atual ou simulado.</p>
+            <p class="note-compacto">Fórmulas do jogo com escala de Zona/Onda, bônus de vida por jogadores na live (+2,5% HP por jogador), Fúria do Boss (Rage 15s) e Tempo para Matar (TTK).</p>
+          </div>
+        </div>
+
+        <div class="alerta-condicoes-boss">
+          <span class="icone-condicao" aria-hidden="true">🛡️</span>
+          <div>
+            <strong>Condições consideradas no cálculo:</strong>
+            <p class="texto-condicoes">Ataques contínuos · sem ajuda de aliados · sem cura ou escudo externo · alvo com defesa correspondente à zona e onda.</p>
           </div>
         </div>
 
@@ -233,14 +301,20 @@
         <div id="resultado-monstros" class="bloco-subsecao"></div>
       </div>
 
-      <!-- ABA 5: RADAR DE LIVE & SCANNER DE ITENS -->
+      <!-- ABA 6: RADAR DE LIVE & SCANNER DE ITENS -->
       <div id="secao-radar-live" role="tabpanel" aria-labelledby="aba-radar-live" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Situação dos canais e equipamentos observados.</p>
+        </div>
         <div class="subpainel-topo">
           <div>
             <h3 class="titulo-secao-comp">Radar de Lives &amp; Scanner de Itens Usados ao Vivo</h3>
             <p class="note-compacto">Escolha uma live online agora (ou digite o canal) para varrer os jogadores ativos em tempo real e descobrir exatamente quantos estão usando determinado item, conjunto ou anel.</p>
           </div>
-          <button type="button" id="btn-atualizar-lives-online" class="btn-secundario btn-compacto">↻ Atualizar Lives Online</button>
+          <div class="acoes-inline">
+            <button type="button" id="btn-atualizar-lives-online" class="btn-secundario btn-compacto">↻ Atualizar Lives Online</button>
+            <button type="button" id="btn-radar-limpar-filtros" class="btn-secundario btn-compacto">Limpar Filtros</button>
+          </div>
         </div>
 
         <form id="form-radar-live" class="painel-controle-radar">
@@ -285,8 +359,11 @@
         <div id="resultado-radar-live" class="bloco-subsecao"></div>
       </div>
 
-      <!-- ABA 6: COMPARAÇÃO DE JOGADORES -->
+      <!-- ABA 7: COMPARAÇÃO DE JOGADORES -->
       <div id="secao-comparacao" role="tabpanel" aria-labelledby="aba-comparacao" hidden="until-found">
+        <div class="cabecalho-aba">
+          <p class="descricao-aba">Diferenças entre dois personagens.</p>
+        </div>
         <div id="conteudo-comparacao-vazio" class="aviso-aba-vazia">
           Consulte o Jogador 1 na barra superior para liberar a comparação lado a lado com qualquer outro jogador ou Top 1 da classe.
         </div>

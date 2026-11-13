@@ -1198,3 +1198,586 @@ a { color: var(--cyan); }
 }
 
 
+
+
+/* ==========================================================================
+   Novos Componentes e Melhorias Visuais — RiftInfos
+   ========================================================================== */
+
+/* Entrada compacta */
+.intro-compacta {
+  margin-bottom: 16px;
+}
+.intro-compacta h1 {
+  font-size: clamp(22px, 4.5vw, 32px);
+  margin-bottom: 4px;
+}
+.intro-descricao {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Rankings recolhíveis */
+.detalhes-rankings-recolhivel {
+  margin-top: 10px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel-alt);
+}
+.sumario-rankings {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-family: var(--pix);
+  color: var(--gold);
+  cursor: pointer;
+  user-select: none;
+}
+.sumario-rankings:hover {
+  background: #231d42;
+}
+.detalhes-rankings-recolhivel[open] .sumario-rankings {
+  border-bottom: 1px solid var(--line);
+}
+.detalhes-rankings-recolhivel .atalhos-tops-barra {
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+/* Descrição no cabeçalho das abas */
+.cabecalho-aba {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+.descricao-aba {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+/* Badges de Origem do Dado */
+.badge-origem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.badge-origem-icone {
+  font-size: 0.75rem;
+}
+.badge-origem-jogo {
+  background: rgba(107, 224, 138, 0.15);
+  color: #6be08a;
+  border: 1px solid rgba(107, 224, 138, 0.4);
+}
+.badge-origem-calc {
+  background: rgba(143, 208, 255, 0.15);
+  color: #8fd0ff;
+  border: 1px solid rgba(143, 208, 255, 0.4);
+}
+.badge-origem-est {
+  background: rgba(255, 213, 74, 0.15);
+  color: #ffd54a;
+  border: 1px solid rgba(255, 213, 74, 0.4);
+}
+
+/* Tooltip Acessível */
+.btn-ajuda-termo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  margin-left: 6px;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  border-radius: 50%;
+  background: #2d2656;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.btn-ajuda-termo:hover,
+.btn-ajuda-termo:focus-visible,
+.btn-ajuda-termo.ativo {
+  background: var(--gold);
+  color: #1a1020;
+  border-color: var(--gold);
+}
+.tooltip-conteudo {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 10px;
+  background: #141026;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  z-index: 100;
+  pointer-events: auto;
+}
+.tooltip-conteudo::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #141026;
+}
+.btn-ajuda-termo:hover .tooltip-conteudo,
+.btn-ajuda-termo:focus-visible .tooltip-conteudo,
+.btn-ajuda-termo.ativo .tooltip-conteudo {
+  display: block;
+}
+
+/* Grade de Indicadores Principais (Resumo) */
+.grade-indicadores-principais {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.card-indicador {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+.card-indicador:hover {
+  border-color: rgba(143, 208, 255, 0.4);
+}
+.card-indicador-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-indicador-titulo {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: var(--pix);
+  letter-spacing: 0.04em;
+}
+.card-indicador-valor {
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.card-indicador-unidade {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+.card-indicador-resumo {
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.35;
+  margin: 0;
+}
+.card-indicador-detalhes {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.sumario-card-detalhes {
+  cursor: pointer;
+  color: var(--cyan);
+  font-size: 0.74rem;
+}
+.sumario-card-detalhes:hover {
+  text-decoration: underline;
+}
+
+/* Bloco FC Detalhado */
+.grade-comparacao-fc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+}
+.item-comparacao-fc {
+  display: grid;
+  gap: 2px;
+}
+.item-comparacao-fc strong {
+  font-size: 1.15rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pontos de Atenção Determinísticos */
+.grade-pontos-atencao {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.card-ponto-atencao {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--cyan);
+}
+.card-ponto-atencao.alerta {
+  border-left-color: var(--gold);
+}
+.card-ponto-atencao.oportunidade {
+  border-left-color: var(--green);
+}
+.card-ponto-atencao.info {
+  border-left-color: var(--cyan);
+}
+.ponto-atencao-conteudo {
+  display: grid;
+  gap: 4px;
+}
+.ponto-atencao-titulo {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ponto-atencao-texto {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+.ponto-atencao-acao-btn {
+  white-space: nowrap;
+  font-size: 0.78rem;
+  padding: 6px 10px;
+  min-height: 32px;
+}
+
+/* Planejador de Forja */
+.grid-planejador-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+.resultado-planejador-destaque {
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+.card-composicao-forja {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.4;
+  padding: 8px 12px;
+  background: #100d22;
+  border: 1px solid rgba(255, 213, 74, 0.25);
+}
+.orcamento-forja-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+/* Condições do Chefe */
+.alerta-condicoes-boss {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: rgba(143, 208, 255, 0.08);
+  border: 1px solid rgba(143, 208, 255, 0.25);
+  font-size: 0.82rem;
+}
+.texto-condicoes {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
+
+/* Glossário */
+.painel-glossario-interno {
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+.grade-glossario {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+.card-glossario {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+.card-glossario-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+.card-glossario-titulo {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.card-glossario-cat {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.card-glossario-curto {
+  font-size: 0.78rem;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.35;
+}
+.card-glossario-detalhes {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Histórico de Evolução */
+.secao-historico-evolucao {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+.historico-topo-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.historico-autosave-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.historico-timeline {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.item-snapshot-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.comparador-snapshots-painel {
+  padding: 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Gerenciador de Builds e Comparação A/B */
+.painel-gerenciador-builds {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.builds-acoes-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.grade-builds-salvas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.card-build-salva {
+  padding: 8px 10px;
+  background: #100d22;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Comparador de Melhorias (+1 atributo, troca de gema, etc.) */
+.tabela-melhorias-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+.tabela-melhorias th,
+.tabela-melhorias td {
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+.ganho-positivo {
+  color: var(--green);
+  font-weight: 700;
+}
+.ganho-negativo {
+  color: #ff6b5a;
+  font-weight: 700;
+}
+
+.sumario-expansivel {
+  padding: 8px 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+  user-select: none;
+}
+.sumario-expansivel:hover {
+  background: #231d42;
+}
+
+/* Responsividade adicional */
+@media (max-width: 640px) {
+  .grade-indicadores-principais {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card-ponto-atencao {
+    flex-direction: column;
+  }
+  .ponto-atencao-acao-btn {
+    align-self: flex-start;
+  }
+  .grade-tres-indicadores-boss {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Slots expansíveis do simulador */
+.sim-slot-card-expansivel {
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+.sim-slot-card-expansivel[open] {
+  border-color: rgba(77, 208, 225, 0.4);
+}
+.sim-slot-card-expansivel summary {
+  cursor: pointer;
+  list-style: none;
+}
+.sim-slot-card-expansivel summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Indicadores de Chefes */
+.grade-tres-indicadores-boss {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.card-indicador-boss {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 4px;
+}
+.card-indicador-boss .subtitulo-indicador {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.card-indicador-boss .valor-indicador {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.card-indicador-boss .nota-indicador {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.detalhes-boss-furia {
+  margin-top: 12px;
+}
+
+/* Ocultar linhas sem diferença na comparação */
+.ocultar-sem-diferenca .linha-sem-diferenca {
+  display: none;
+}
+
+/* Alerta de slot vazio na comparação */
+.alerta-slot-vazio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Banner de cobertura do radar */
+.banner-cobertura-radar {
+  border-radius: 4px;
+}
