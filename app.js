@@ -1236,74 +1236,7 @@ async function carregarPanoramaGlobal() {
   }
 }
 
-async function atualizarTop1Dinamicos() {
-  await Promise.all([
-    ...["warrior", "cleric", "archer"].map(async (cls) => {
-      try {
-        const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 6000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          top1DinamicoPorClasse[cls] = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            power: top.power || 0,
-            level: top.level || 0,
-            cls,
-          };
-        }
-      } catch {
-        // Mantém fallback atualizado
-      }
-    }),
-    (async () => {
-      try {
-        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1&sort=level", undefined, 6000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          topLevelDinamico = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            level: top.level || 0,
-            cls: top.cls || "warrior",
-          };
-        }
-      } catch {
-        // Mantém fallback atualizado
-      }
-    })(),
-    (async () => {
-      try {
-        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 6000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          top1GeralDinamico = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            power: top.power || 0,
-            level: top.level || 0,
-            cls: top.cls || "warrior",
-          };
-        }
-      } catch {
-        // Mantém fallback atualizado
-      }
-    })(),
-  ]);
-
-  // Define o Top 1 Geral pelo maior FC entre as classes se não veio direto
-  const listaTops = Object.values(top1DinamicoPorClasse);
-  listaTops.sort((a, b) => (b.power || 0) - (a.power || 0));
-  if (listaTops[0]?.power && listaTops[0].power > (top1GeralDinamico.power || 0)) {
-    top1GeralDinamico = { ...listaTops[0] };
-  }
-
-  // Atualiza as pílulas de acesso rápido no topo
+function sincronizarTextosTopsUI() {
   if (topPillValTop1) topPillValTop1.textContent = `${top1GeralDinamico.rotulo} (${formatarNumeroCompacto(top1GeralDinamico.power)} FC)`;
   if (topPillValWarrior) topPillValWarrior.textContent = `${top1DinamicoPorClasse.warrior.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.warrior.power)} FC)`;
   if (topPillValCleric) topPillValCleric.textContent = `${top1DinamicoPorClasse.cleric.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.cleric.power)} FC)`;
@@ -1328,8 +1261,91 @@ async function atualizarTop1Dinamicos() {
   if (inputCompararNick && !inputCompararNick.value) {
     inputCompararNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
   }
+}
 
-  // Re-renderiza o panorama com os dados mais recentes do Top 1 FC
+async function atualizarTop1Dinamicos() {
+  sincronizarTextosTopsUI();
+
+  // Atualização progressiva: cada chamada atualiza a UI imediatamente assim que responde
+  const promessas = [
+    ...["warrior", "cleric", "archer"].map(async (cls) => {
+      try {
+        const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 5000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          top1DinamicoPorClasse[cls] = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            power: top.power || 0,
+            level: top.level || 0,
+            cls,
+          };
+          sincronizarTextosTopsUI();
+          if (cls === top1GeralDinamico.cls && top.power > top1GeralDinamico.power) {
+            top1GeralDinamico = { ...top1DinamicoPorClasse[cls] };
+            sincronizarTextosTopsUI();
+            renderizarGradePanorama();
+          }
+        }
+      } catch {
+        // Mantém fallback
+      }
+    }),
+    (async () => {
+      try {
+        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1&sort=level", undefined, 5000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          topLevelDinamico = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            level: top.level || 0,
+            cls: top.cls || "warrior",
+          };
+          sincronizarTextosTopsUI();
+          renderizarGradePanorama();
+        }
+      } catch {
+        // Mantém fallback
+      }
+    })(),
+    (async () => {
+      try {
+        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 5000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          top1GeralDinamico = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            power: top.power || 0,
+            level: top.level || 0,
+            cls: top.cls || "warrior",
+          };
+          sincronizarTextosTopsUI();
+          renderizarGradePanorama();
+        }
+      } catch {
+        // Mantém fallback
+      }
+    })(),
+  ];
+
+  await Promise.all(promessas);
+
+  // Garante que o de maior FC entre as classes seja o geral
+  const listaTops = Object.values(top1DinamicoPorClasse);
+  listaTops.sort((a, b) => (b.power || 0) - (a.power || 0));
+  if (listaTops[0]?.power && listaTops[0].power > (top1GeralDinamico.power || 0)) {
+    top1GeralDinamico = { ...listaTops[0] };
+  }
+
+  sincronizarTextosTopsUI();
   renderizarGradePanorama();
 
   if (perfilCarregadoP1) {
@@ -4000,8 +4016,8 @@ atualizarEstadoVazioOuPerfil(false);
 popularSeletorItensRadar();
 renderizarSimulador();
 renderizarSimuladorMonstros();
+sincronizarTextosTopsUI();
 void carregarPanoramaGlobal();
-void atualizarPlaceholderTop1();
 
 const parametrosIniciais = new URLSearchParams(window.location.search);
 const nickInicial = parametrosIniciais.get("nick");

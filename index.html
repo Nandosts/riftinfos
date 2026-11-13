@@ -28,11 +28,19 @@
         <span id="panorama-atualizacao" class="muted small">Sincronizando dados globais…</span>
       </div>
       <div id="grade-recordes-globais" class="grade-panorama">
-        <div class="tile-panorama"><span>Jogadores online</span><strong>—</strong><small>Carregando…</small></div>
+        <div class="tile-panorama"><span>Jogadores online</span><strong>—</strong><small>Sincronizando…</small></div>
         <div class="tile-panorama"><span>Melhor zona-onda</span><strong>—</strong><small>—</small></div>
         <div class="tile-panorama"><span>Maior live</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Top 1 FC Geral</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Maior nível</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama" style="border-color: rgba(240, 180, 41, 0.45);">
+          <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
+          <strong style="color:var(--gold);">49,8M FC</strong>
+          <small>halscriolo (Guerreiro Nv. 691)</small>
+        </div>
+        <div class="tile-panorama">
+          <span>⭐ Maior nível</span>
+          <strong>Nv. 798</strong>
+          <small>boingzeraa (Guerreiro)</small>
+        </div>
         <div class="tile-panorama"><span>Ouro em circulação</span><strong>—</strong><small>—</small></div>
         <div class="tile-panorama"><span>Último patch</span><strong>—</strong><small>—</small></div>
       </div>
@@ -41,7 +49,7 @@
     <form id="formulario-busca" class="panel" method="GET" action="">
       <div class="campo">
         <label for="input-nick">Nick ou link do perfil</label>
-        <input id="input-nick" name="nick" required maxlength="64" placeholder="Digite o nick ou cole o link..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
+        <input id="input-nick" name="nick" required maxlength="64" placeholder="Ex. halscriolo" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search">
       </div>
       <div class="campo">
         <label for="select-plataforma">Plataforma</label>
@@ -58,19 +66,19 @@
       <span class="atalhos-tops-titulo">⚡ Tops em Tempo Real:</span>
       <div id="lista-atalhos-tops" class="atalhos-tops-grade">
         <button type="button" class="btn-top-pill" data-top-alvo="top1" title="Carregar Top 1 FC Geral do jogo">
-          👑 <span class="rotulo-top">Top 1 FC:</span> <strong class="valor-top" id="top-pill-val-top1">Carregando…</strong>
+          👑 <span class="rotulo-top">Top 1 FC:</span> <strong class="valor-top" id="top-pill-val-top1">halscriolo (49,8M FC)</strong>
         </button>
         <button type="button" class="btn-top-pill" data-top-alvo="warrior" title="Carregar Top 1 Guerreiro">
-          🛡️ <span class="rotulo-top">Guerreiro:</span> <strong class="valor-top" id="top-pill-val-warrior">Carregando…</strong>
+          🛡️ <span class="rotulo-top">Guerreiro:</span> <strong class="valor-top" id="top-pill-val-warrior">halscriolo (49,8M FC)</strong>
         </button>
         <button type="button" class="btn-top-pill" data-top-alvo="cleric" title="Carregar Top 1 Clérigo">
-          ✨ <span class="rotulo-top">Clérigo:</span> <strong class="valor-top" id="top-pill-val-cleric">Carregando…</strong>
+          ✨ <span class="rotulo-top">Clérigo:</span> <strong class="valor-top" id="top-pill-val-cleric">nando_sts (31,7M FC)</strong>
         </button>
         <button type="button" class="btn-top-pill" data-top-alvo="archer" title="Carregar Top 1 Arqueiro">
-          🏹 <span class="rotulo-top">Arqueiro:</span> <strong class="valor-top" id="top-pill-val-archer">Carregando…</strong>
+          🏹 <span class="rotulo-top">Arqueiro:</span> <strong class="valor-top" id="top-pill-val-archer">philippato (30,3M FC)</strong>
         </button>
         <button type="button" class="btn-top-pill" data-top-alvo="level" title="Carregar Maior Nível Geral">
-          ⭐ <span class="rotulo-top">Maior Nível:</span> <strong class="valor-top" id="top-pill-val-level">Carregando…</strong>
+          ⭐ <span class="rotulo-top">Maior Nível:</span> <strong class="valor-top" id="top-pill-val-level">boingzeraa (Nv. 798)</strong>
         </button>
       </div>
     </div>
