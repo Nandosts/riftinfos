@@ -158,16 +158,6 @@
           <div id="bloco-fc-detalhado" class="bloco-subsecao"></div>
           <div id="bloco-pontos-atencao" class="bloco-subsecao"></div>
           <div id="secao-evolucao-historico" class="bloco-subsecao"></div>
-          <details id="detalhes-glossario-termos" class="bloco-subsecao">
-            <summary class="sumario-expansivel">📖 Entenda os termos (Glossário com busca rápida)</summary>
-            <div class="painel-glossario-interno">
-              <div class="campo campo-busca-glossario">
-                <label for="input-busca-glossario">Filtrar termos e fórmulas</label>
-                <input id="input-busca-glossario" type="search" placeholder="Ex: FC, DPS, Vida efetiva, Gelo, Parcela...">
-              </div>
-              <div id="conteudo-glossario-busca"></div>
-            </div>
-          </details>
         </div>
       </div>
 
@@ -416,10 +406,27 @@
         </div>
       </div>
 
-      <div id="rodape-painel" class="rodape-painel" hidden>
-        <a id="link-json" target="_blank" rel="noopener noreferrer">Ver dados originais do perfil ↗</a>
-      </div>
     </section>
+
+    <!-- RODAPÉ GLOBAL COM GLOSSÁRIO E EXPLICAÇÕES -->
+    <footer id="rodape-global" class="rodape-global" aria-label="Glossário e rodapé do RiftInfos">
+      <details id="detalhes-glossario-termos" class="detalhes-glossario-global">
+        <summary class="sumario-glossario-global">📖 Entenda os termos e fórmulas (Glossário global com busca rápida)</summary>
+        <div class="painel-glossario-interno">
+          <div class="campo campo-busca-glossario">
+            <label for="input-busca-glossario">Filtrar termos, siglas e fórmulas</label>
+            <input id="input-busca-glossario" type="search" placeholder="Ex: DoT, EHP, DPS, HPS, ASPD, TTK, Fúria, Gelo, True Damage, Cap...">
+          </div>
+          <div id="conteudo-glossario-busca"></div>
+        </div>
+      </details>
+      <div class="rodape-links-secundarios">
+        <span class="muted small">RiftInfos · Análise independente de personagens, forjas e combate para o RiftStream</span>
+        <div id="rodape-painel" class="rodape-painel" hidden>
+          <a id="link-json" target="_blank" rel="noopener noreferrer">Ver dados originais da API ↗</a>
+        </div>
+      </div>
+    </footer>
   </main>
 </body>
 </html>

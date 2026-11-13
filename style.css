@@ -1590,9 +1590,48 @@ a { color: var(--cyan); }
   color: var(--muted);
 }
 
-/* Glossário */
+/* Rodapé Global e Glossário */
+.rodape-global {
+  margin-top: 36px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+.detalhes-glossario-global {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.sumario-glossario-global {
+  padding: 12px 16px;
+  font-family: var(--pix);
+  font-size: 0.82rem;
+  color: var(--cyan);
+  cursor: pointer;
+  background: #17132e;
+  border-bottom: 1px solid transparent;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.sumario-glossario-global:hover {
+  background: #251e47;
+  color: #fff;
+}
+.detalhes-glossario-global[open] .sumario-glossario-global {
+  border-bottom-color: var(--line);
+  color: var(--gold);
+}
+.rodape-links-secundarios {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 16px;
+}
 .painel-glossario-interno {
-  padding: 12px;
+  padding: 14px 16px;
   display: grid;
   gap: 12px;
 }

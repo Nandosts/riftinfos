@@ -5351,6 +5351,7 @@ atualizarEstadoVazioOuPerfil(false);
 popularSeletorItensRadar();
 renderizarSimulador();
 renderizarSimuladorMonstros();
+renderizarSecaoGlossario();
 vincularEventosGradePanorama();
 sincronizarTextosTopsUI();
 void carregarPanoramaGlobal();
