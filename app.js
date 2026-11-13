@@ -2655,6 +2655,7 @@ function renderizarSimuladorMonstros() {
   }).join("");
 
   const bleedLetalNoBoss = tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp;
+  const segsParaMorrerNoDoT = dotBossPorSeg > 0 ? (heroi.status.maxHp / dotBossPorSeg).toFixed(1) : "—";
   const classeVeredito =
     dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss
       ? "perigo"
@@ -2664,11 +2665,14 @@ function renderizarSimuladorMonstros() {
 
   let textoVeredito;
   if (dBoss.golpesParaMorrer <= 1) {
-    textoVeredito = `⚠️ Perigo Físico: O Chefe da Zona ${esc.zona} (${tema.boss}) aplica Hit-Kill físico no segundo 0 (${formatarNumeroCompacto(dBoss.danoRecebido)} dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`;
+    textoVeredito = `⚠️ Perigo Físico: O Chefe da Zona ${esc.zona} (${tema.boss}) aplica Hit-Kill físico no 1º golpe (${formatarNumeroCompacto(dBoss.danoRecebido)} dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`;
+  } else if (bleedLetalNoBoss) {
+    textoVeredito = `💀 Sangramento Letal (${tema.boss}): Sua DEF segura o ataque físico (${dBoss.golpesParaMorrer} hits), MAS o Sangramento da skill IGNORA 100% DA DEFESA (${formatarNumeroCompacto(dotBossPorSeg)}/s de Dano Verdadeiro). Sem cura, VOCÊ MORRE EM ~${segsParaMorrerNoDoT} SEGUNDOS!`;
   } else if (tema.temBleedBoss) {
-    textoVeredito = `⚠️ Atenção às Skills (${tema.boss}): Sua DEF reduz o golpe físico básico para ${formatarNumeroCompacto(dBoss.danoRecebido)} (skill física: ${formatarNumeroCompacto(dBoss.danoSkillFisica)}), MAS o Sangramento/DoT da skill do Chefe IGNORA 100% DA DEFESA e causa ${formatarNumeroCompacto(dotBossPorSeg)}/s de Dano Verdadeiro (${formatarNumeroCompacto(dotBoss4s)} em 4s vs seus ${formatarNumeroCompacto(heroi.status.maxHp)} HP)!`;
+    const pctDoTHp = ((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0);
+    textoVeredito = `⚠️ Atenção às Skills (${tema.boss}): O Sangramento da skill ignora 100% da sua DEF e causa ${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${pctDoTHp}% do seu HP). Você sobrevive se tiver cura ou escudo!`;
   } else {
-    textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Golpe básico físico causa ${formatarNumeroCompacto(dBoss.danoRecebido)} e a Skill (${tema.skillBossMult}×) causa ${formatarNumeroCompacto(dBoss.danoSkillFisica)} a cada ${tema.cdSkillBoss}s. Seu TTK solo no Chefe é ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS líquido).`;
+    textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Você aguenta ${dBoss.golpesParaMorrer} golpes físicos do Chefe. Seu tempo para derrubá-lo solo é ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS real líquido).`;
   }
 
   const zonasAtalho = [10, 13, 16, 18, 20, 22, 25];
@@ -2692,7 +2696,7 @@ function renderizarSimuladorMonstros() {
 
     <div class="veredito-duelo ${classeVeredito}">
       <span>${textoVeredito}</span>
-      <span class="small" style="color:var(--cyan);">Herói: <strong>${escaparHtml(heroi.origemLabel)}</strong></span>
+      <span class="small" style="color:var(--cyan);">Herói: <strong>${escaparHtml(heroi.origemLabel)}</strong> (${formatarNumeroCompacto(heroi.status.maxHp)} HP)</span>
     </div>
 
     <div class="card-info" style="border-color: rgba(240, 180, 41, 0.35);">
@@ -2718,10 +2722,11 @@ function renderizarSimuladorMonstros() {
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}/s</strong></div>
-        <div class="card-info-linha"><span>Seu Golpe (Normal → Crít)</span><strong>${formatarNumeroCompacto(dSkel.hitNormal)} → ${formatarNumeroCompacto(dSkel.hitCrit)}</strong></div>
+        <div class="card-info-linha"><span>Seu Golpe no Lacaio</span><strong>Normal: ${formatarNumeroCompacto(dSkel.hitNormal)} · Crítico: ${formatarNumeroCompacto(dSkel.hitCrit)}</strong></div>
         <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dSkel.ttk < 1 ? "<1s" : `${dSkel.ttk.toFixed(1)}s`}</strong></div>
-        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits)</strong></div>
-        <div class="card-info-linha"><span>Se aplicar Bleed (Ignora DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(dSkel.bleedDpsNormal)}/s (Ladino: ${formatarNumeroCompacto(bleedAssassinoSkel5s)} em 5,5s)</strong></div>
+        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits para morrer)</strong></div>
+        <div class="card-info-linha"><span>Sangramento de Mob (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(dSkel.bleedDpsNormal)}/s (${formatarNumeroCompacto(dSkel.bleedTotal4s)} em 4s)</strong></div>
+        <div class="card-info-linha"><span class="small muted">Mobs Assassinos de Elite</span><span class="small" style="color:#ff9aa8;">${formatarNumeroCompacto(bleedAssassinoSkel5s)} total em 5,5s</span></div>
       </article>
 
       <article class="card-monstro">
@@ -2731,10 +2736,10 @@ function renderizarSimuladorMonstros() {
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}/s</strong></div>
-        <div class="card-info-linha"><span>Seu Golpe (Normal → Crít)</span><strong>${formatarNumeroCompacto(dGob.hitNormal)} → ${formatarNumeroCompacto(dGob.hitCrit)}</strong></div>
+        <div class="card-info-linha"><span>Seu Golpe no Lacaio</span><strong>Normal: ${formatarNumeroCompacto(dGob.hitNormal)} · Crítico: ${formatarNumeroCompacto(dGob.hitCrit)}</strong></div>
         <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dGob.ttk < 1 ? "<1s" : `${dGob.ttk.toFixed(1)}s`}</strong></div>
-        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits)</strong></div>
-        <div class="card-info-linha"><span>Poça Ácida (Z5/Z13/Z21 s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(esc.goblin.atk * 0.7)}/s (35% ATK a cada 0,5s)</strong></div>
+        <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits para morrer)</strong></div>
+        <div class="card-info-linha"><span>Poça Ácida no Chão (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(esc.goblin.atk * 0.7)}/s (se pisar dentro)</strong></div>
       </article>
 
       <article class="card-monstro boss">
@@ -2742,13 +2747,14 @@ function renderizarSimuladorMonstros() {
           <h4>${escaparHtml(tema.boss.toUpperCase())} (Z${esc.zona})</h4>
           <span class="small" style="color:var(--gold);">${formatadorInteiro.format(esc.boss.gold)}g · ${formatadorInteiro.format(esc.boss.exp)} XP</span>
         </div>
-        <div class="card-info-linha"><span>HP Total (+${((esc.multParty - 1) * 100).toFixed(0)}%)</span><strong>${formatarNumeroCompacto(esc.boss.hp)}</strong></div>
+        <div class="card-info-linha"><span>HP Total (+${((esc.multParty - 1) * 100).toFixed(0)}% Party)</span><strong>${formatarNumeroCompacto(esc.boss.hp)}</strong></div>
         <div class="card-info-linha"><span>ATK / DEF (Mitigação)</span><strong>${formatarNumeroCompacto(esc.boss.atk)} / ${formatadorDecimal1.format(esc.boss.def)} (-${((1 - dBoss.fatorDefInimigo) * 100).toFixed(1)}%)</strong></div>
-        <div class="card-info-linha"><span>Seu Hit no Chefe</span><strong style="color:var(--gold);">${formatarNumeroCompacto(dBoss.hitNormal)} → ${formatarNumeroCompacto(dBoss.hitCrit)}</strong></div>
+        <div class="card-info-linha"><span>Seu Golpe no Chefe</span><strong style="color:var(--gold);">Normal: ${formatarNumeroCompacto(dBoss.hitNormal)} · Crítico: ${formatarNumeroCompacto(dBoss.hitCrit)} <small class="muted" style="font-weight:400;">(${heroi.status.crit.toFixed(0)}% chance)</small></strong></div>
         <div class="card-info-linha"><span>DPS Real / TTK Solo</span><strong>${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s · ${dBoss.ttk.toFixed(1)}s</strong></div>
         ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Proc da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
-        <div class="card-info-linha"><span>Hit Básico → Skill (${tema.skillBossMult}× c/ DEF)</span><strong>${formatarNumeroCompacto(dBoss.danoRecebido)} → ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
-        <div class="card-info-linha"><span>Sangramento / DoT (Ignora DEF!)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s)` : "N/A nesta zona"}</strong></div>
+        <div class="card-info-linha"><span>Dano Físico do Chefe (c/ DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)} · Skill (${tema.skillBossMult}×): ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
+        <div class="card-info-linha"><span>Sangramento / DoT (Ignora DEF!)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0)}% do seu HP)` : "Sem Sangramento nesta zona"}</strong></div>
+        <div class="card-info-linha"><span>Tempo para Morrer no DoT</span><strong style="color:${bleedLetalNoBoss ? "#ff7a90" : "var(--green)"};">${tema.temBleedBoss ? (bleedLetalNoBoss ? `⚠️ Morre em ~${segsParaMorrerNoDoT}s (sem cura)` : `✅ Sobrevive com ${formatarNumeroCompacto(heroi.status.maxHp - dotBoss4s)} HP (se não levar hit físico)`) : "Seguro (sem DoT do Chefe)"}</strong></div>
       </article>
     </div>
 
