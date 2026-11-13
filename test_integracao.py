@@ -404,12 +404,43 @@ def executar_suite_local(ex, com_servidor=False):
 
     ex.afirmar(os.path.isfile(caminho_html) and os.path.isfile(caminho_js) and os.path.isfile(caminho_css), "Arquivos index.html, style.css e app.js existem")
 
-    # Checa sintaxe JS com node --check se disponível
+    # Checa sintaxe e execução inicial JS com node se disponível
     try:
         proc = subprocess.run(["node", "--check", caminho_js], capture_output=True, text=True, timeout=10)
         ex.afirmar(proc.returncode == 0, "Validação sintática node --check app.js sem erros", proc.stderr.strip())
+
+        script_smoke = """
+const fs = require("fs");
+const code = fs.readFileSync(process.argv[1], "utf8");
+function makeEl(id = "") {
+  return {
+    id, value: "", hidden: false, disabled: false, textContent: "", innerHTML: "", placeholder: "",
+    dataset: {}, style: {}, classList: { toggle(){}, add(){}, remove(){} }, options: [],
+    setAttribute(){}, removeAttribute(){}, addEventListener(){}, appendChild(){}, replaceChildren(){},
+    querySelector: () => makeEl(), querySelectorAll: () => [], contains: () => false,
+  };
+}
+global.window = { location: { href: "https://riftinfo.netlify.app/", protocol: "https:", search: "" }, history: { replaceState(){} }, scrollTo(){} };
+global.HTMLElement = function(){};
+global.Option = function(t, v){ this.text = t; this.value = v; };
+global.document = { querySelector: (s) => makeEl(s), querySelectorAll: () => [], createElement: () => makeEl(), addEventListener(){} };
+global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) });
+eval(code);
+popularSeletorItensRadar("warrior");
+popularSeletorItensRadar("cleric");
+popularSeletorItensRadar("archer");
+popularSeletorItensRadar("");
+renderizarSimulador();
+renderizarSimuladorMonstros();
+"""
+        proc_exec = subprocess.run(["node", "-e", script_smoke, caminho_js], capture_output=True, text=True, timeout=10)
+        ex.afirmar(
+            proc_exec.returncode == 0,
+            "Execução inicial de app.js (Simulador, Monstros e Radar) sem ReferenceError/TypeError",
+            proc_exec.stderr.strip(),
+        )
     except FileNotFoundError:
-        ex.avisar("Node.js não encontrado no PATH; validação 'node --check' ignorada.")
+        ex.avisar("Node.js não encontrado no PATH; validação 'node' ignorada.")
 
     # Garante que todos os IDs referenciados via #id em app.js existem em index.html
     with open(caminho_html, "r", encoding="utf-8") as f:

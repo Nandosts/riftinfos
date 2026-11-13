@@ -1734,7 +1734,7 @@ function resumoCurtoGemaBotao(tipo, slot, tier) {
   const gema = criarGemaPreset(tipo, slot, tier);
   if (!gema) return "";
   const fmt = (st, val, pct) => {
-    const rot = rotulosStatusGemas[st] || st.toUpperCase();
+    const rot = rotulosStats[st] || st.toUpperCase();
     if (pct) return `+${(val / 10).toFixed(1).replace(".", ",")}% ${rot}`;
     return `+${val} ${rot}`;
   };
