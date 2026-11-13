@@ -601,9 +601,18 @@ const formComparar = document.querySelector("#form-comparar");
 const inputCompararNick = document.querySelector("#input-comparar-nick");
 const selectCompararPlataforma = document.querySelector("#select-comparar-plataforma");
 const btnCompararTop1 = document.querySelector("#btn-comparar-top1");
+const btnCompararWarrior = document.querySelector("#btn-comparar-warrior");
+const btnCompararCleric = document.querySelector("#btn-comparar-cleric");
+const btnCompararArcher = document.querySelector("#btn-comparar-archer");
 const statusComparacao = document.querySelector("#status-comparacao");
 const resultadoComparacao = document.querySelector("#resultado-comparacao");
 const compararP1Card = document.querySelector("#comparar-p1-card");
+
+const topPillValTop1 = document.querySelector("#top-pill-val-top1");
+const topPillValWarrior = document.querySelector("#top-pill-val-warrior");
+const topPillValCleric = document.querySelector("#top-pill-val-cleric");
+const topPillValArcher = document.querySelector("#top-pill-val-archer");
+const topPillValLevel = document.querySelector("#top-pill-val-level");
 
 // Estado da aplicação
 let jogadorAtual;
@@ -617,11 +626,12 @@ let estadoSimulador = criarModeloSimuladorPadrao();
 let ultimosDadosRadar = null;
 const cachePerfisApi = new Map();
 const top1DinamicoPorClasse = {
-  cleric: { nick: "nando_sts", plataforma: "twitch", rotulo: "nando_sts", power: 0, cls: "cleric" },
-  warrior: { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", power: 0, cls: "warrior" },
-  archer: { nick: "philippato", plataforma: "twitch", rotulo: "philippato", power: 0, cls: "archer" },
+  cleric: { nick: "nando_sts", plataforma: "twitch", rotulo: "nando_sts", power: 31718512, cls: "cleric", level: 698 },
+  warrior: { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", power: 49864097, cls: "warrior", level: 691 },
+  archer: { nick: "philippato", plataforma: "twitch", rotulo: "philippato", power: 30357030, cls: "archer", level: 767 },
 };
-let top1GeralDinamico = { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", cls: "warrior" };
+let topLevelDinamico = { nick: "boingzeraa", plataforma: "twitch", rotulo: "boingzeraa", level: 798, cls: "warrior" };
+let top1GeralDinamico = { ...top1DinamicoPorClasse.warrior };
 
 /* ==========================================================================
    Utilitários e Rede
@@ -1146,6 +1156,54 @@ function formatarGemaTexto(gema) {
    Panorama Global + Lives Online (Topo e Dropdowns)
    ========================================================================== */
 
+let ultimosDadosPanorama = null;
+
+function renderizarGradePanorama() {
+  if (!gradeRecordesGlobais || !ultimosDadosPanorama) return;
+  const { records, changelog, livesOnline } = ultimosDadosPanorama;
+  const melhorLive = livesOnline[0];
+  const ultimoPatch = changelog?.entries?.[0];
+  const dataPatch = ultimoPatch?.id || changelog?.latest || "—";
+
+  gradeRecordesGlobais.innerHTML = `
+    <div class="tile-panorama">
+      <span>Jogadores Online</span>
+      <strong>${formatadorInteiro.format(records.playersNow || 0)}</strong>
+      <small>${formatadorInteiro.format(records.totalPlayers || 0)} registrados · ${livesOnline.length} lives</small>
+    </div>
+    <div class="tile-panorama">
+      <span>Melhor Zona-Onda</span>
+      <strong>Z${records.bestRun?.zone ?? "?"}-W${records.bestRun?.wave ?? "?"}</strong>
+      <small>${escaparHtml(records.bestRun?.channel || "—")}</small>
+    </div>
+    <div class="tile-panorama">
+      <span>Maior Live Agora</span>
+      <strong>${melhorLive ? formatadorInteiro.format(melhorLive.playersNow || 0) : formatadorInteiro.format(records.peakPlayers?.players || 0)}</strong>
+      <small>${melhorLive ? `${escaparHtml(melhorLive.name)} (Z${melhorLive.bestZone}-W${melhorLive.bestWave})` : `Pico: ${escaparHtml(records.peakPlayers?.channel || "—")}`}</small>
+    </div>
+    <div class="tile-panorama" style="border-color: rgba(240, 180, 41, 0.45);">
+      <span style="color:var(--gold);">⚡ Top 1 FC Geral</span>
+      <strong style="color:var(--gold);">${formatarNumeroCompacto(top1GeralDinamico.power)} FC</strong>
+      <small>${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})</small>
+    </div>
+    <div class="tile-panorama">
+      <span>⭐ Maior Nível</span>
+      <strong>Nv. ${formatadorInteiro.format(records.topCharacter?.level || topLevelDinamico.level)}</strong>
+      <small>${escaparHtml(records.topCharacter?.name || topLevelDinamico.rotulo)} (${nomesClasses[records.topCharacter?.cls] || records.topCharacter?.cls || "—"})</small>
+    </div>
+    <div class="tile-panorama">
+      <span>Ouro no Jogo</span>
+      <strong>${formatarNumeroCompacto(records.totalGoldInGame || 0)}</strong>
+      <small>${formatadorInteiro.format(records.totalChannels || 0)} canais totais</small>
+    </div>
+    <div class="tile-panorama">
+      <span>Último Patch</span>
+      <strong>${escaparHtml(dataPatch)}</strong>
+      <small title="${escaparHtml(ultimoPatch?.title || "")}">${escaparHtml(ultimoPatch?.title || "Atualizado")}</small>
+    </div>
+  `;
+}
+
 async function carregarPanoramaGlobal() {
   if (!gradeRecordesGlobais) return;
   if (panoramaAtualizacao) panoramaAtualizacao.textContent = "Sincronizando dados globais…";
@@ -1162,42 +1220,9 @@ async function carregarPanoramaGlobal() {
     preencherSelectsLivesOnline(livesOnline);
 
     if (records) {
-      const melhorLive = livesOnline[0];
-      const ultimoPatch = changelog?.entries?.[0];
-      const dataPatch = ultimoPatch?.id || changelog?.latest || "—";
+      ultimosDadosPanorama = { records, changelog, livesOnline };
+      renderizarGradePanorama();
 
-      gradeRecordesGlobais.innerHTML = `
-        <div class="tile-panorama">
-          <span>Jogadores Online</span>
-          <strong>${formatadorInteiro.format(records.playersNow || 0)}</strong>
-          <small>${formatadorInteiro.format(records.totalPlayers || 0)} registrados · ${livesOnline.length} lives</small>
-        </div>
-        <div class="tile-panorama">
-          <span>Melhor Zona-Onda</span>
-          <strong>Z${records.bestRun?.zone ?? "?"}-W${records.bestRun?.wave ?? "?"}</strong>
-          <small>${escaparHtml(records.bestRun?.channel || "—")}</small>
-        </div>
-        <div class="tile-panorama">
-          <span>Maior Live Agora</span>
-          <strong>${melhorLive ? formatadorInteiro.format(melhorLive.playersNow || 0) : formatadorInteiro.format(records.peakPlayers?.players || 0)}</strong>
-          <small>${melhorLive ? `${escaparHtml(melhorLive.name)} (Z${melhorLive.bestZone}-W${melhorLive.bestWave})` : `Pico: ${escaparHtml(records.peakPlayers?.channel || "—")}`}</small>
-        </div>
-        <div class="tile-panorama">
-          <span>Top Nível</span>
-          <strong>Nv. ${formatadorInteiro.format(records.topCharacter?.level || 0)}</strong>
-          <small>${escaparHtml(records.topCharacter?.name || "—")} (${nomesClasses[records.topCharacter?.cls] || records.topCharacter?.cls || "—"})</small>
-        </div>
-        <div class="tile-panorama">
-          <span>Ouro no Jogo</span>
-          <strong>${formatarNumeroCompacto(records.totalGoldInGame || 0)}</strong>
-          <small>${formatadorInteiro.format(records.totalChannels || 0)} canais totais</small>
-        </div>
-        <div class="tile-panorama">
-          <span>Último Patch</span>
-          <strong>${escaparHtml(dataPatch)}</strong>
-          <small title="${escaparHtml(ultimoPatch?.title || "")}">${escaparHtml(ultimoPatch?.title || "Atualizado")}</small>
-        </div>
-      `;
       if (panoramaAtualizacao) {
         const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
         panoramaAtualizacao.textContent = `Atualizado às ${agora}`;
@@ -1212,8 +1237,8 @@ async function carregarPanoramaGlobal() {
 }
 
 async function atualizarTop1Dinamicos() {
-  await Promise.all(
-    ["warrior", "cleric", "archer"].map(async (cls) => {
+  await Promise.all([
+    ...["warrior", "cleric", "archer"].map(async (cls) => {
       try {
         const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 6000);
         const top = res?.items?.[0];
@@ -1224,30 +1249,88 @@ async function atualizarTop1Dinamicos() {
             plataforma: ehKick ? "kick" : "twitch",
             rotulo: top.name || top.login,
             power: top.power || 0,
+            level: top.level || 0,
             cls,
           };
         }
       } catch {
         // Mantém fallback atualizado
       }
-    })
-  );
+    }),
+    (async () => {
+      try {
+        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1&sort=level", undefined, 6000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          topLevelDinamico = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            level: top.level || 0,
+            cls: top.cls || "warrior",
+          };
+        }
+      } catch {
+        // Mantém fallback atualizado
+      }
+    })(),
+    (async () => {
+      try {
+        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 6000);
+        const top = res?.items?.[0];
+        if (top?.login) {
+          const ehKick = /^kick:/i.test(top.login);
+          top1GeralDinamico = {
+            nick: top.login.replace(/^kick:/i, ""),
+            plataforma: ehKick ? "kick" : "twitch",
+            rotulo: top.name || top.login,
+            power: top.power || 0,
+            level: top.level || 0,
+            cls: top.cls || "warrior",
+          };
+        }
+      } catch {
+        // Mantém fallback atualizado
+      }
+    })(),
+  ]);
 
-  // Define o Top 1 Geral pelo maior FC entre as classes
+  // Define o Top 1 Geral pelo maior FC entre as classes se não veio direto
   const listaTops = Object.values(top1DinamicoPorClasse);
   listaTops.sort((a, b) => (b.power || 0) - (a.power || 0));
-  if (listaTops[0]?.nick) {
-    top1GeralDinamico = listaTops[0];
-    if (btnCarregarExemplo) {
-      btnCarregarExemplo.textContent = `Carregar Top 1 Geral (${top1GeralDinamico.rotulo})`;
-    }
-    if (inputNick && !inputNick.value) {
-      inputNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
-    }
-    if (inputCompararNick && !inputCompararNick.value) {
-      inputCompararNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
-    }
+  if (listaTops[0]?.power && listaTops[0].power > (top1GeralDinamico.power || 0)) {
+    top1GeralDinamico = { ...listaTops[0] };
   }
+
+  // Atualiza as pílulas de acesso rápido no topo
+  if (topPillValTop1) topPillValTop1.textContent = `${top1GeralDinamico.rotulo} (${formatarNumeroCompacto(top1GeralDinamico.power)} FC)`;
+  if (topPillValWarrior) topPillValWarrior.textContent = `${top1DinamicoPorClasse.warrior.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.warrior.power)} FC)`;
+  if (topPillValCleric) topPillValCleric.textContent = `${top1DinamicoPorClasse.cleric.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.cleric.power)} FC)`;
+  if (topPillValArcher) topPillValArcher.textContent = `${top1DinamicoPorClasse.archer.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.archer.power)} FC)`;
+  if (topPillValLevel) topPillValLevel.textContent = `${topLevelDinamico.rotulo} (Nv. ${topLevelDinamico.level})`;
+
+  if (btnCarregarExemplo) {
+    btnCarregarExemplo.textContent = `👑 Carregar Top 1 Geral (${top1GeralDinamico.rotulo})`;
+  }
+  const btnAtalhoWarrior = document.querySelector('[data-top-atalho="warrior"]');
+  if (btnAtalhoWarrior) btnAtalhoWarrior.textContent = `🛡️ Top Guerreiro (${top1DinamicoPorClasse.warrior.rotulo})`;
+  const btnAtalhoCleric = document.querySelector('[data-top-atalho="cleric"]');
+  if (btnAtalhoCleric) btnAtalhoCleric.textContent = `✨ Top Clérigo (${top1DinamicoPorClasse.cleric.rotulo})`;
+  const btnAtalhoArcher = document.querySelector('[data-top-atalho="archer"]');
+  if (btnAtalhoArcher) btnAtalhoArcher.textContent = `🏹 Top Arqueiro (${top1DinamicoPorClasse.archer.rotulo})`;
+  const btnAtalhoLevel = document.querySelector('[data-top-atalho="level"]');
+  if (btnAtalhoLevel) btnAtalhoLevel.textContent = `⭐ Maior Nível (${topLevelDinamico.rotulo} · Nv. ${topLevelDinamico.level})`;
+
+  if (inputNick && !inputNick.value) {
+    inputNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
+  }
+  if (inputCompararNick && !inputCompararNick.value) {
+    inputCompararNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
+  }
+
+  // Re-renderiza o panorama com os dados mais recentes do Top 1 FC
+  renderizarGradePanorama();
 
   if (perfilCarregadoP1) {
     atualizarCardP1Comparacao(perfilCarregadoP1, plataformaCarregadaP1);
@@ -2069,8 +2152,8 @@ function renderizarSimulador() {
               aria-pressed="${estaSelecionada ? "true" : "false"}"
               title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Selecionar ${tv.nome} T${tierSlot}`}"
             >
-              <strong>${tv.nome}</strong>
-              <small>${escaparHtml(subtexto)}</small>
+              <strong class="gema-titulo-btn"><span class="gema-ponto-cor" style="background:${tv.cor};"></span>${tv.nome}</strong>
+              <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
             </button>
           `;
         })
@@ -3301,13 +3384,64 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
     </div>
   `;
 
-  const top1Atual = top1DinamicoPorClasse[perfil.cls] || top1DinamicoPorClasse.warrior;
+  const loginP1Limpo = String(perfil.login || "").replace(/^kick:/i, "").toLowerCase();
+  const topClasseAtual = top1DinamicoPorClasse[perfil.cls] || top1DinamicoPorClasse.warrior;
+  const ehMesmoTopClasse = loginP1Limpo === String(topClasseAtual.nick || "").toLowerCase();
+
   if (btnCompararTop1) {
-    btnCompararTop1.textContent = `⚡ Top 1 (${top1Atual.rotulo})`;
-    btnCompararTop1.onclick = () => {
-      inputCompararNick.value = top1Atual.nick;
-      selectCompararPlataforma.value = top1Atual.plataforma;
-      void dispararComparacao(top1Atual.nick, top1Atual.plataforma, perfil.cls);
+    if (ehMesmoTopClasse) {
+      const ehTopGeral = loginP1Limpo === String(top1GeralDinamico.nick || "").toLowerCase();
+      btnCompararTop1.textContent = ehTopGeral ? `👑 Top 1 Geral (Você)` : `👑 vs Top 1 Geral (${top1GeralDinamico.rotulo})`;
+      btnCompararTop1.disabled = ehTopGeral;
+      btnCompararTop1.onclick = () => {
+        inputCompararNick.value = top1GeralDinamico.nick;
+        selectCompararPlataforma.value = top1GeralDinamico.plataforma;
+        void dispararComparacao(top1GeralDinamico.nick, top1GeralDinamico.plataforma, top1GeralDinamico.cls);
+      };
+    } else {
+      btnCompararTop1.textContent = `⚡ Top 1 ${nomesClasses[perfil.cls] || ""} (${topClasseAtual.rotulo})`;
+      btnCompararTop1.disabled = false;
+      btnCompararTop1.onclick = () => {
+        inputCompararNick.value = topClasseAtual.nick;
+        selectCompararPlataforma.value = topClasseAtual.plataforma;
+        void dispararComparacao(topClasseAtual.nick, topClasseAtual.plataforma, perfil.cls);
+      };
+    }
+  }
+
+  if (btnCompararWarrior) {
+    const topW = top1DinamicoPorClasse.warrior;
+    const ehP1W = loginP1Limpo === String(topW.nick || "").toLowerCase();
+    btnCompararWarrior.textContent = ehP1W ? `🛡️ Guerreiro (Você)` : `🛡️ vs Guerreiro (${topW.rotulo})`;
+    btnCompararWarrior.disabled = ehP1W;
+    btnCompararWarrior.onclick = () => {
+      inputCompararNick.value = topW.nick;
+      selectCompararPlataforma.value = topW.plataforma;
+      void dispararComparacao(topW.nick, topW.plataforma, "warrior");
+    };
+  }
+
+  if (btnCompararCleric) {
+    const topC = top1DinamicoPorClasse.cleric;
+    const ehP1C = loginP1Limpo === String(topC.nick || "").toLowerCase();
+    btnCompararCleric.textContent = ehP1C ? `✨ Clérigo (Você)` : `✨ vs Clérigo (${topC.rotulo})`;
+    btnCompararCleric.disabled = ehP1C;
+    btnCompararCleric.onclick = () => {
+      inputCompararNick.value = topC.nick;
+      selectCompararPlataforma.value = topC.plataforma;
+      void dispararComparacao(topC.nick, topC.plataforma, "cleric");
+    };
+  }
+
+  if (btnCompararArcher) {
+    const topA = top1DinamicoPorClasse.archer;
+    const ehP1A = loginP1Limpo === String(topA.nick || "").toLowerCase();
+    btnCompararArcher.textContent = ehP1A ? `🏹 Arqueiro (Você)` : `🏹 vs Arqueiro (${topA.rotulo})`;
+    btnCompararArcher.disabled = ehP1A;
+    btnCompararArcher.onclick = () => {
+      inputCompararNick.value = topA.nick;
+      selectCompararPlataforma.value = topA.plataforma;
+      void dispararComparacao(topA.nick, topA.plataforma, "archer");
     };
   }
 }
@@ -3717,32 +3851,30 @@ formularioBusca.addEventListener("submit", (evento) => {
   void consultarPerfil({ nick, plataforma });
 });
 
-if (btnCarregarExemplo) {
-  btnCarregarExemplo.addEventListener("click", async () => {
-    let alvo = {
-      nick: top1GeralDinamico.nick,
-      plataforma: top1GeralDinamico.plataforma,
-      cls: top1GeralDinamico.cls,
-    };
-    try {
-      const rank = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 5000);
-      const top = rank?.items?.[0];
-      if (top?.login) {
-        const ehKick = /^kick:/i.test(top.login);
-        alvo = {
-          nick: top.login.replace(/^kick:/i, ""),
-          plataforma: ehKick ? "kick" : "twitch",
-          cls: top.cls,
-        };
-      }
-    } catch {
-      // Usa top1GeralDinamico
-    }
-    inputNick.value = alvo.nick;
-    selectPlataforma.value = alvo.plataforma;
-    void consultarPerfil({ nick: alvo.nick, plataforma: alvo.plataforma }, alvo.cls);
-  });
+function carregarAtalhoTop(alvo) {
+  let item = top1GeralDinamico;
+  if (alvo === "warrior") item = top1DinamicoPorClasse.warrior;
+  else if (alvo === "cleric") item = top1DinamicoPorClasse.cleric;
+  else if (alvo === "archer") item = top1DinamicoPorClasse.archer;
+  else if (alvo === "level") item = topLevelDinamico;
+
+  if (!item?.nick) return;
+  inputNick.value = item.nick;
+  selectPlataforma.value = item.plataforma || "twitch";
+  void consultarPerfil({ nick: item.nick, plataforma: item.plataforma || "twitch" }, item.cls);
 }
+
+if (btnCarregarExemplo) {
+  btnCarregarExemplo.addEventListener("click", () => carregarAtalhoTop("top1"));
+}
+
+document.querySelectorAll("[data-top-alvo]").forEach((btn) => {
+  btn.addEventListener("click", () => carregarAtalhoTop(btn.dataset.topAlvo));
+});
+
+document.querySelectorAll("[data-top-atalho]").forEach((btn) => {
+  btn.addEventListener("click", () => carregarAtalhoTop(btn.dataset.topAtalho));
+});
 
 if (formComparar) {
   formComparar.addEventListener("submit", (evento) => {

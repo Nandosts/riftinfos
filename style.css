@@ -239,31 +239,45 @@ a { color: var(--cyan); }
 }
 
 .comparar-acoes-barra {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .btn-acao-comparar {
-  min-height: 48px;
-  width: 100%;
+  flex: 1 1 190px;
+  min-height: 44px;
   font-size: 0.95rem;
 }
-.btn-acao-top1 {
-  min-height: 48px;
-  width: 100%;
-  font-size: 0.88rem;
+.btn-acao-top1,
+.btn-comparar-atalho {
+  flex: 1 1 135px;
+  min-height: 44px;
+  font-size: 0.84rem;
   background: #26204b;
   color: var(--cyan);
   border: 2px solid var(--line);
   box-shadow: 0 3px #18123a;
-  padding: 8px 12px;
+  padding: 8px 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
-.btn-acao-top1:hover {
+.btn-acao-top1:hover,
+.btn-comparar-atalho:hover {
   background: #392b80;
+  border-color: var(--cyan);
   color: #fff;
+}
+.btn-comparar-atalho:disabled,
+.btn-acao-top1:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
 }
 
 .aviso-comparacao-classe {
@@ -1115,4 +1129,61 @@ a { color: var(--cyan); }
   .sim-gema-linha { grid-template-columns: 26px repeat(5, minmax(0, 1fr)); gap: 3px; }
   .btn-gema-opcao .gema-sub-btn { font-size: 0.6rem; }
 }
+
+/* Barra de Atalhos Rápidos dos Tops Oficiais */
+.atalhos-tops-barra {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  margin-top: 4px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.atalhos-tops-titulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.atalhos-tops-grade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.btn-top-pill {
+  background: #191530;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.76rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+.btn-top-pill:hover {
+  background: #27204f;
+  border-color: var(--cyan);
+  transform: translateY(-1px);
+}
+.btn-top-pill .rotulo-top {
+  color: var(--muted);
+  font-weight: 500;
+}
+.btn-top-pill .valor-top {
+  color: var(--gold);
+  font-weight: 700;
+}
+.aviso-vazio-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 

@@ -31,9 +31,10 @@
         <div class="tile-panorama"><span>Jogadores online</span><strong>—</strong><small>Carregando…</small></div>
         <div class="tile-panorama"><span>Melhor zona-onda</span><strong>—</strong><small>—</small></div>
         <div class="tile-panorama"><span>Maior live</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Top nível</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Top 1 FC Geral</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Maior nível</span><strong>—</strong><small>—</small></div>
         <div class="tile-panorama"><span>Ouro em circulação</span><strong>—</strong><small>—</small></div>
-        <div class="tile-panorama"><span>Última atualização</span><strong>—</strong><small>—</small></div>
+        <div class="tile-panorama"><span>Último patch</span><strong>—</strong><small>—</small></div>
       </div>
     </section>
 
@@ -51,7 +52,28 @@
       </div>
       <button type="submit">Consultar Jogador</button>
     </form>
-    <p id="status-consulta" role="status" aria-live="polite">Digite um nick para analisar o perfil, ou use diretamente as ferramentas globais abaixo.</p>
+    <p id="status-consulta" role="status" aria-live="polite">Digite um nick para analisar o perfil, ou use diretamente os atalhos rápidos abaixo.</p>
+
+    <div id="atalhos-tops-container" class="atalhos-tops-barra" aria-label="Acesso rápido aos Tops Oficiais">
+      <span class="atalhos-tops-titulo">⚡ Tops em Tempo Real:</span>
+      <div id="lista-atalhos-tops" class="atalhos-tops-grade">
+        <button type="button" class="btn-top-pill" data-top-alvo="top1" title="Carregar Top 1 FC Geral do jogo">
+          👑 <span class="rotulo-top">Top 1 FC:</span> <strong class="valor-top" id="top-pill-val-top1">Carregando…</strong>
+        </button>
+        <button type="button" class="btn-top-pill" data-top-alvo="warrior" title="Carregar Top 1 Guerreiro">
+          🛡️ <span class="rotulo-top">Guerreiro:</span> <strong class="valor-top" id="top-pill-val-warrior">Carregando…</strong>
+        </button>
+        <button type="button" class="btn-top-pill" data-top-alvo="cleric" title="Carregar Top 1 Clérigo">
+          ✨ <span class="rotulo-top">Clérigo:</span> <strong class="valor-top" id="top-pill-val-cleric">Carregando…</strong>
+        </button>
+        <button type="button" class="btn-top-pill" data-top-alvo="archer" title="Carregar Top 1 Arqueiro">
+          🏹 <span class="rotulo-top">Arqueiro:</span> <strong class="valor-top" id="top-pill-val-archer">Carregando…</strong>
+        </button>
+        <button type="button" class="btn-top-pill" data-top-alvo="level" title="Carregar Maior Nível Geral">
+          ⭐ <span class="rotulo-top">Maior Nível:</span> <strong class="valor-top" id="top-pill-val-level">Carregando…</strong>
+        </button>
+      </div>
+    </div>
 
     <section id="painel-resultado" class="panel" aria-labelledby="nome-jogador">
       <div id="cabecalho-perfil" class="result-head" hidden>
@@ -69,8 +91,14 @@
       </div>
 
       <div id="aviso-sem-perfil" class="aviso-vazio-perfil">
-        <span>Nenhum jogador carregado no momento. Pesquise um nick acima para ver <strong>Forjas, Gelo, Dano e Equipamentos</strong>, ou navegue livremente pelo <strong>Simulador</strong>, <strong>Monstros &amp; Boss</strong> e <strong>Radar de Lives</strong>.</span>
-        <button type="button" id="btn-carregar-exemplo" class="btn-secundario btn-compacto">Carregar Top 1 Geral</button>
+        <span>Nenhum jogador carregado no momento. Pesquise um nick acima para ver <strong>Forjas, Gelo, Dano e Equipamentos</strong>, ou use os atalhos rápidos abaixo:</span>
+        <div class="aviso-vazio-acoes">
+          <button type="button" id="btn-carregar-exemplo" class="btn-secundario btn-compacto">👑 Carregar Top 1 Geral</button>
+          <button type="button" class="btn-secundario btn-compacto" data-top-atalho="warrior">🛡️ Top Guerreiro</button>
+          <button type="button" class="btn-secundario btn-compacto" data-top-atalho="cleric">✨ Top Clérigo</button>
+          <button type="button" class="btn-secundario btn-compacto" data-top-atalho="archer">🏹 Top Arqueiro</button>
+          <button type="button" class="btn-secundario btn-compacto" data-top-atalho="level">⭐ Maior Nível</button>
+        </div>
       </div>
 
       <div class="abas" role="tablist" aria-label="Ferramentas do RiftInfos">
@@ -282,6 +310,9 @@
             <div class="comparar-acoes-barra">
               <button type="submit" id="btn-comparar" class="btn-acao-comparar">Comparar Jogadores</button>
               <button type="button" id="btn-comparar-top1" class="btn-secundario btn-acao-top1">⚡ Top 1 da Classe</button>
+              <button type="button" id="btn-comparar-warrior" class="btn-secundario btn-comparar-atalho">🛡️ vs Top Guerreiro</button>
+              <button type="button" id="btn-comparar-cleric" class="btn-secundario btn-comparar-atalho">✨ vs Top Clérigo</button>
+              <button type="button" id="btn-comparar-archer" class="btn-secundario btn-comparar-atalho">🏹 vs Top Arqueiro</button>
             </div>
           </form>
 
