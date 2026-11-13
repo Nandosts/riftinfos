@@ -73,7 +73,7 @@
       if (concordancia) {
         textoExplicacao = "Fidelidade matemática excelente: diferença de poucas unidades causada unicamente por arredondamentos de ponto flutuante.";
       } else {
-        textoExplicacao = "Divergência detectada entre o valor gravado no jogo e os itens catalogados. Pode ocorrer por bônus de guilda, títulos, atributos ocultos ou gemas em recalibração.";
+        textoExplicacao = "Divergência detectada entre o valor gravado no jogo e a reconstrução. Ocorre principalmente pela variação de sorte nas rolagens das gemas (85% a 115%) e arredondamentos de multiplicadores de conjunto.";
       }
 
       comparacaoFc = {

@@ -2302,14 +2302,16 @@ function renderizarAnaliseCombateJogador(perfil, status, metricas) {
   let cardArmaEspecial = "";
   if (metricas.analiseEfeitoArma?.bugado) {
     const b = metricas.analiseEfeitoArma;
+    const razaoFormatada = b.razaoPerda.toFixed(1).replace(".", ",") + "× mais";
+    const multFormatado = String(b.mult).replace(".", ",") + "× ATK";
     cardArmaEspecial = `
       <article class="card-combate destaque-arma">
         <div class="card-combate-titulo">Efeito da Arma (${escaparHtml(b.nome)})</div>
         <div class="metrica-principal">${formatarNumeroCompacto(b.danoAtualSemDefesa)} dano atual</div>
         <span class="badge-status-skill bug">⚠️ BUG NA FÓRMULA ATUAL (this.hit)</span>
-        <div class="card-info-linha"><span>Com Crítico &amp; Veloc. (pós-correção)</span><strong style="color:var(--green);">${formatarNumeroCompacto(b.danoCorrigidoSemDefesa)} (${b.razaoPerda.toFixed(1)}× mais)</strong></div>
-        <div class="card-info-linha"><span>Ciclo / Multiplicador</span><strong>A cada ${b.cada}s · ${b.mult}× ATK</strong></div>
-        <p class="note-compacto">Hoje o jogo aplica apenas <code>atk × ${b.mult}</code> sem crítico e sem bônus de velocidade &gt;4,6. Os números desta análise refletem o comportamento atual em produção.</p>
+        <div class="card-info-linha"><span>Com Crítico &amp; Veloc. (pós-correção)</span><strong style="color:var(--green);">${formatarNumeroCompacto(b.danoCorrigidoSemDefesa)} (${razaoFormatada})</strong></div>
+        <div class="card-info-linha"><span>Ciclo / Multiplicador</span><strong>A cada ${b.cada}s · ${multFormatado}</strong></div>
+        <p class="note-compacto">Hoje o jogo aplica apenas <code>atk × ${String(b.mult).replace(".", ",")}</code> sem crítico e sem bônus de velocidade &gt; 4,6. Os números desta análise refletem o comportamento atual em produção.</p>
       </article>
     `;
   } else if (metricas.analiseEfeitoArma && !metricas.analiseEfeitoArma.bugado) {
@@ -4569,10 +4571,10 @@ function renderizarPerfil(perfil, urlPublica, plataforma) {
   selectPersonagem.value = perfil.cls;
 
   const atBase = inferirAtributosBase(perfil);
-  const { itensPuros } = agregarItens(perfil.equipped ?? []);
-  const statusCalculados = calcularStatusSimulados(perfil.cls, perfil.level, atBase, itensPuros);
+  const itensEquipados = (perfil.equipped ?? []).filter((i) => i && i.slot !== "cosmetic");
+  const statusCalculados = calcularStatusSimulados(perfil.cls, perfil.level, atBase, itensEquipados);
   statusCalculados.fc = calcularFc(perfil.cls, statusCalculados);
-  const metricasCombate = calcularMetricasCombate(perfil.cls, perfil.level, statusCalculados, itensPuros);
+  const metricasCombate = calcularMetricasCombate(perfil.cls, perfil.level, statusCalculados, itensEquipados);
 
   // 1. Aba Resumo
   renderizarResumoPersonagem(perfil, statusCalculados, metricasCombate, perfil.cls, plataforma);

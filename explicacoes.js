@@ -16,7 +16,7 @@
     fc: {
       termo: "FC (Força de Combate)",
       curto: "Força de Combate: indicador geral do personagem. Um FC maior não garante mais dano ou sobrevivência em todo cenário.",
-      detalhes: "O FC agrega vida, ataque, defesa, crítico, velocidade e bônus de classe (k). Arredondamentos de ponto flutuante e atributos secundários podem gerar pequenas diferenças entre o valor calculado e o exibido no jogo.",
+      detalhes: "O FC agrega vida, ataque, defesa, crítico, velocidade e coeficientes de classe. A variação entre o FC oficial e o reconstruído deve-se principalmente à sorte nas rolagens das gemas (85% a 115%) e arredondamentos de conjuntos.",
       categoria: "combate"
     },
     fc_informado: {
@@ -31,10 +31,40 @@
       detalhes: "Calculado pela fórmula oficial: FC = (HP×k_hp + ATK×k_atk + DEF×k_def) × multiplicadores de classe e conjuntos. Permite simular mudanças de build sob o mesmo padrão.",
       categoria: "origem"
     },
+    dps: {
+      termo: "DPS Estimado",
+      curto: "Dano médio por segundo contra alvo de teste (0 DEF, sem redução). Considera cadência real com cap, chance de crítico e skills.",
+      detalhes: "Calcula cadência de ataque com cap de 4,60 golpes/s, chance e dano crítico, bônus de armas arcanas/imortais e dano por segundo das habilidades.",
+      categoria: "combate"
+    },
     dps_estimado: {
       termo: "DPS estimado",
       curto: "Dano médio por segundo no cenário selecionado. Depende do alvo e das condições consideradas.",
       detalhes: "Calcula a cadência de ataque (com cap de 4,6 golpes/s), chance de crítico, dano crítico, bônus de armas arcanas/imortais e dano da habilidade especial contra um alvo de teste (por padrão 0 DEF).",
+      categoria: "combate"
+    },
+    sobrevivencia: {
+      termo: "Vida Máxima & Defesa",
+      curto: "Capacidade de suportar dano físico com base na sua vida e redução da armadura. Habilidades como Singularidade ignoram defesa.",
+      detalhes: "A Vida Efetiva Física (EHP) projeta o dano físico total suportado após mitigação de defesa. Importante: sangramento, veneno e chefes com dano puro ignoram defesa e afetam diretamente a Vida Máxima pura.",
+      categoria: "combate"
+    },
+    cura: {
+      termo: "Poder de Cura",
+      curto: "Cura estimada da habilidade Luz Divina e pulsos por segundo. Escala com ATK, nível e cajado equipado.",
+      detalhes: "A fórmula de cura do clérigo utiliza (ATK × 2,4 + Nível × 1,5 + 6) multiplicado pelo bônus de velocidade da arma e pelo multiplicador de cura do cajado equipado.",
+      categoria: "combate"
+    },
+    cadencia: {
+      termo: "Cadência & Crítico",
+      curto: "Velocidade de disparos contínuos e chance de acertos críticos. Sujeito ao cap de 4,60 ataques por segundo.",
+      detalhes: "Calcula a cadência real da classe com cap de 4,60/s e a probabilidade de golpes críticos com bônus de conjuntos e equipamentos.",
+      categoria: "combate"
+    },
+    armadura: {
+      termo: "Redução de Dano Físico",
+      curto: "Percentual de mitigação física derivado da defesa total do personagem. Não protege contra sangramento ou dano puro.",
+      detalhes: "Calculado pela fórmula de mitigação oficial: Defesa / (Defesa + K_defesa). Mitiga exclusivamente golpes físicos convencionais.",
       categoria: "combate"
     },
     crit_chance: {
@@ -157,7 +187,7 @@
     const info = obterTermo(chave);
     const label = rotuloCustomizado || `O que significa ${info.termo}?`;
     const textoCurto = escaparHtmlTexto(info.curto);
-    return `<button type="button" class="btn-ajuda-termo" data-termo-chave="${escaparHtmlTexto(chave)}" aria-label="${escaparHtmlTexto(label)}" title="${textoCurto}">?<span class="tooltip-conteudo" role="tooltip">${textoCurto}</span></button>`;
+    return `<button type="button" class="btn-ajuda-termo" data-termo-chave="${escaparHtmlTexto(chave)}" aria-label="${escaparHtmlTexto(label)}">?<span class="tooltip-conteudo" role="tooltip">${textoCurto}</span></button>`;
   }
 
   /**
