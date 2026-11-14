@@ -18,7 +18,7 @@ import { escaparHtml, formatadorInteiro, formatarGemaTexto } from "../formato.mj
 import { perfilCarregadoP1 } from "../perfil.mjs";
 import { renderizarCompararMelhorias, renderizarPainelGerenciadorBuilds } from "./builds.mjs";
 import { vincularEventosSimulador } from "./controles.mjs";
-import { resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
+import { obterOrigemBuildSimulador, resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
 import {
   construirBarraModoCriativoHtml,
   construirModoFichaVisualHtml,
@@ -113,10 +113,13 @@ function renderizarSimulador() {
 
   let fcOrig = null;
   let metOrig = null;
-  if (perfilCarregadoP1) {
+  const classeSimulada = simulacao.estadoSimulador.cls;
+  if (perfilCarregadoP1?.cls === classeSimulada) {
     const atOrig = inferirAtributosBase(perfilCarregadoP1);
     const stOrig = calcularStatusSimulados(perfilCarregadoP1.cls, perfilCarregadoP1.level, atOrig, perfilCarregadoP1.equipped || []);
-    fcOrig = calcularFc(perfilCarregadoP1.cls, stOrig);
+    fcOrig = Number.isFinite(perfilCarregadoP1.power)
+      ? perfilCarregadoP1.power
+      : calcularFc(perfilCarregadoP1.cls, stOrig);
     metOrig = calcularMetricasCombate(perfilCarregadoP1.cls, perfilCarregadoP1.level, stOrig, perfilCarregadoP1.equipped || []);
   }
 
@@ -362,6 +365,14 @@ function renderizarSimulador() {
         ${resumoPainelDireitoHtml}
       </div>
     `;
+  }
+
+  const origem = obterOrigemBuildSimulador();
+  if (origem && origem.classe !== classeSimulada) {
+    const aviso = document.createElement("p");
+    aviso.className = "note-compacto";
+    aviso.textContent = `Build iniciada com os atributos e equipamentos de ${origem.nome} (${nomesClasses[origem.classe]}). Confira os atributos e os requisitos das peças da classe simulada antes de usar este FC como referência.`;
+    containerSimulador.prepend(aviso);
   }
 
   vincularEventosSimulador();

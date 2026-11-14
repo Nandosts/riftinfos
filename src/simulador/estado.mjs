@@ -8,6 +8,12 @@ import {
   rotulosStats,
 } from "../dados.mjs";
 
+const origemPorBuild = new WeakMap();
+
+function obterOrigemBuildSimulador() {
+  return origemPorBuild.get(simulacao.estadoSimulador);
+}
+
 const simulacao = {
   simuladorEditadoManual: false,
   modoVisualizacaoSimulador: "ficha",
@@ -257,6 +263,10 @@ function importarPerfilParaSimulador(perfil) {
     atributos: { ...attrs },
     itens: itensImportados,
   };
+  origemPorBuild.set(simulacao.estadoSimulador, {
+    nome: perfil.displayName || perfil.login,
+    classe: perfil.cls,
+  });
   simulacao.simuladorEditadoManual = false;
 }
 
@@ -335,6 +345,7 @@ export {
   formatarBonusConjuntoCurto,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,
+  obterOrigemBuildSimulador,
   obterResumoPassivasBuildSimulador,
   recalcularGemasBuildComModo,
   recalcularGemasItem,

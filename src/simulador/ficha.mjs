@@ -117,7 +117,7 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
   const classeBanner = deltaFc > 0 ? "up" : deltaFc < 0 ? "down" : "eq";
   const textoDelta = fcOrig !== null
     ? `${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} FC (${((deltaFc / Math.max(1, fcOrig)) * 100).toFixed(1)}%)`
-    : "Sem jogador base carregado (modo criativo livre)";
+    : "Sem referência de FC para esta classe";
 
   const passivas = obterResumoPassivasBuildSimulador();
 
@@ -658,12 +658,12 @@ function construirModoFichaVisualHtml(
           <div class="rs-htile fc">
             <span>FC SIMULADO</span>
             <b>${formatadorInteiro.format(fcSim)}</b>
+            ${fcOrig !== null ? `<small class="muted">Perfil consultado: ${formatadorInteiro.format(fcOrig)} FC</small>` : ""}
             ${deltaFc !== null ? `<small class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} vs atual</small>` : ""}
           </div>
           <div class="rs-htile">
             <span>${simulacao.estadoSimulador.cls === "cleric" ? "LUZ DIVINA (CURA)" : "DPS EM COMBATE"}</span>
             <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(simulacao.estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio))}</b>
-            ${fcOrig !== null ? `<small class="muted">Original: ${formatadorInteiro.format(fcOrig)} FC</small>` : `<small class="muted">EHP: ${formatarNumeroCompacto(metSim.ehp)}</small>`}
           </div>
         </div>
 
