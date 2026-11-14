@@ -41,21 +41,18 @@ function renderizarAnaliseCombateJogador(perfil, status, metricas) {
   const nomeArma = metricas.arma?.name || metricas.infoArma?.nome || "Arma Básica";
 
   let cardArmaEspecial = "";
-  if (metricas.analiseEfeitoArma?.bugado) {
-    const b = metricas.analiseEfeitoArma;
-    const razaoFormatada = b.razaoPerda.toFixed(1).replace(".", ",") + "× mais";
-    const multFormatado = String(b.mult).replace(".", ",") + "× ATK";
+  if (metricas.analiseEfeitoArma?.tipo === "dano" || metricas.analiseEfeitoArma?.tipo === "dano_carta") {
+    const efeito = metricas.analiseEfeitoArma;
     cardArmaEspecial = `
       <article class="card-combate destaque-arma">
-        <div class="card-combate-titulo">Efeito da Arma (${escaparHtml(b.nome)})</div>
-        <div class="metrica-principal">${formatarNumeroCompacto(b.danoAtualSemDefesa)} dano atual</div>
-        <span class="badge-status-skill bug">⚠️ BUG NA FÓRMULA ATUAL (this.hit)</span>
-        <div class="card-info-linha"><span>Com Crítico &amp; Veloc. (pós-correção)</span><strong style="color:var(--green);">${formatarNumeroCompacto(b.danoCorrigidoSemDefesa)} (${razaoFormatada})</strong></div>
-        <div class="card-info-linha"><span>Ciclo / Multiplicador</span><strong>A cada ${b.cada}s · ${multFormatado}</strong></div>
-        <p class="note-compacto">Hoje o jogo aplica apenas <code>atk × ${String(b.mult).replace(".", ",")}</code> sem crítico e sem bônus de velocidade &gt; 4,6. Os números desta análise refletem o comportamento atual em produção.</p>
+        <div class="card-combate-titulo">Efeito da arma (${escaparHtml(efeito.nome)})</div>
+        <div class="metrica-principal">${formatarNumeroCompacto(efeito.danoMedioSemDefesa)} de dano médio</div>
+        <div class="card-info-linha"><span>Intervalo</span><strong>${efeito.cada}s</strong></div>
+        <p class="note-compacto">${escaparHtml(efeito.texto)}</p>
+        <p class="note-compacto">Estimativa por acerto no alvo principal, com crítico e bônus de velocidade, antes da defesa. O DPS médio pondera a chance de sair a carta de dano quando aplicável.</p>
       </article>
     `;
-  } else if (metricas.analiseEfeitoArma && !metricas.analiseEfeitoArma.bugado) {
+  } else if (metricas.analiseEfeitoArma?.tipo === "singularity") {
     const s = metricas.analiseEfeitoArma;
     cardArmaEspecial = `
       <article class="card-combate destaque-arma">
@@ -120,7 +117,7 @@ function renderizarAnaliseCombateJogador(perfil, status, metricas) {
     <h3 class="titulo-secao-comp">Desempenho Real em Combate (${escaparHtml(nomeArma)})</h3>
     <div class="grade-combate">
       <article class="card-combate destaque-dps">
-        <div class="card-combate-titulo">Dano &amp; DPS Real (Alvo 0 DEF)</div>
+        <div class="card-combate-titulo">Dano e DPS estimados (alvo com 0 DEF)</div>
         <div class="metrica-principal">${formatarNumeroCompacto(metricas.dpsCombateMedio)} DPS</div>
         <div class="card-info-linha"><span>Golpe Normal Médio</span><strong>${formatarNumeroCompacto(metricas.golpeNormalBruto)}</strong></div>
         <div class="card-info-linha"><span>Golpe Crítico (${(metricas.multCrit * 100).toFixed(0)}%)</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metricas.golpeCritBruto)}</strong></div>

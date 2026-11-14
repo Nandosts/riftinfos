@@ -11,7 +11,7 @@ const Compartilhamento =
   window.RiftCompartilhamento ||
   {};
 
-const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.1";
+const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.14";
 
 export {
   Analise,

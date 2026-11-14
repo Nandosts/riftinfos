@@ -16,7 +16,7 @@ from pathlib import Path
 DIRETORIO_BASE = os.path.dirname(os.path.abspath(__file__))
 URL_API_BASE = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
 URL_SITE_JOGO = "https://riftstream.com.br/"
-BUNDLE_REFERENCIA = "index-Bw4Xm9JJ.js"
+BUNDLE_REFERENCIA = "index-CXlW0_-D.js"
 
 def requisicao_http(url, timeout=12):
     """Executa GET HTTP retornando (status, corpo_texto, headers)."""
@@ -233,23 +233,16 @@ def executar_suite_bundle_jogo(ex):
     if st_js != 200:
         return
 
-    # Checa se o bug conhecido em immortalTick ainda está presente ou foi corrigido pelo dev
-    pos_immortal = js_bundle.find("immortalTick(e,a){")
-    if pos_immortal == -1:
-        pos_immortal = js_bundle.find("immortalTick(")
-    if pos_immortal != -1:
-        trecho = js_bundle[pos_immortal:pos_immortal + 5500]
-        bugs_hit = re.findall(r"this\.hit\([^)]*e\.atk\*[^)]*!1", trecho)
-        if bugs_hit:
-            print(
-                f"  [INFO] Bug conhecido de dano fixo em armas Arcanas ('this.hit(..., e.atk*..., !1)' sem crítico/aspd) "
-                f"confirmado ativo em {len(bugs_hit)} trechos de immortalTick."
-            )
-        else:
-            ex.avisar(
-                "CORREÇÃO DETECTADA NO JOGO! Não foram encontradas chamadas diretas 'this.hit(..., e.atk*..., !1)' em immortalTick. "
-                "Atualize a tag de bug no catalogoArmas de src/dados.mjs!"
-            )
+    passiva = re.search(r"imHit\([^)]*\)\{([^}]+)\}", js_bundle)
+    inicio_ciclo = js_bundle.find("immortalTick(e,a){")
+    ciclo = js_bundle[inicio_ciclo:inicio_ciclo + 5500] if inicio_ciclo != -1 else ""
+    ex.afirmar(
+        passiva is not None
+        and ".rollDamage(" in passiva[1]
+        and len(re.findall(r"this\.imHit\(", ciclo)) >= 11,
+        "Passivas de dano Imortais e Arcanas ainda usam a rolagem de dano",
+        "O bundle mudou o fluxo de dano das passivas. Confira antes de atualizar o modelo.",
+    )
 
     ex.afirmar("healPower(" in js_bundle and "singPctBoss:" in js_bundle, "Constantes esperadas (healPower, singPctBoss) presentes no bundle")
 

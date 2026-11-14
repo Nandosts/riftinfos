@@ -6,7 +6,7 @@ const nomesClasses = {
 
 const dadosClasses = {
   warrior: {
-    k: 0.6,
+    k: 0.4,
     base: { hp: 120, atk: 9, def: 4, aspd: 0.95 },
     growth: { hp: 19, atk: 1.6, def: 1.1 },
     cor: "#ff6b5a",
@@ -15,7 +15,7 @@ const dadosClasses = {
     nomeSkill: "Golpe Giratório",
   },
   cleric: {
-    k: 0.84,
+    k: 0.56,
     base: { hp: 85, atk: 6, def: 2, aspd: 0.8 },
     growth: { hp: 9, atk: 1.1, def: 0.5 },
     cor: "#ffe27a",
@@ -24,7 +24,7 @@ const dadosClasses = {
     nomeSkill: "Luz Divina",
   },
   archer: {
-    k: 0.75,
+    k: 0.56,
     base: { hp: 70, atk: 11, def: 1.5, aspd: 1.1 },
     growth: { hp: 8, atk: 1.9, def: 0.4 },
     cor: "#7be07b",
@@ -92,7 +92,7 @@ const catalogoArmas = {
     skillMult: 1.5,
     skillAlvos: 1,
     revive: true,
-    efeito: { tipo: "revive", cada: 0, mult: 0, bugHit: false, texto: "1x por jornada: renasce com 60% de HP + 30% de escudo." },
+    efeito: { tipo: "revive", cada: 0, mult: 0, texto: "1x por jornada: renasce com 60% de HP + 30% de escudo." },
   },
   gorecleaver: {
     nome: "Ceifa-Reis",
@@ -100,7 +100,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "buff_atk", cada: 12, dur: 4, atkMult: 1.6, steal: 0.25, bugHit: false, texto: "A cada 12s por 4s: +60% ATK e 25% de roubo de vida." },
+    efeito: { tipo: "buff_atk", cada: 12, dur: 4, atkMult: 1.6, steal: 0.25, texto: "A cada 12s por 4s: +60% ATK e 25% de roubo de vida." },
   },
   chronoblade: {
     nome: "Lâmina do Cronarca",
@@ -108,7 +108,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "stun", cada: 14, stunMob: 1.7, stunBoss: 0.9, bugHit: false, texto: "A cada 14s: congela todos os inimigos por 1,7s (Chefe 0,9s)." },
+    efeito: { tipo: "stun", cada: 14, stunMob: 1.7, stunBoss: 0.9, texto: "A cada 14s: congela todos os inimigos por 1,7s (Chefe 0,9s)." },
   },
   singblade: {
     nome: "Lâmina da Singularidade",
@@ -116,7 +116,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "singularity", cada: 13, pctMob: 0.25, pctBoss: 0.04, bugHit: false, texto: "A cada 13s (+1,4s): causa 25% da vida máx. (Chefe 4%) ignorando defesa." },
+    efeito: { tipo: "singularity", cada: 13, pctMob: 0.25, pctBoss: 0.04, texto: "A cada 13s (+1,4s): causa 25% da vida máx. (Chefe 4%) ignorando defesa." },
   },
   tamerwhip: {
     nome: "Chicote do Domador",
@@ -124,7 +124,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 11, mult: 1.3, bugHit: true, texto: "A cada 11s: chicoteia todos os inimigos (1,3×) e aplica sangramento." },
+    efeito: { tipo: "dano", cada: 11, mult: 1.3, texto: "A cada 11s: chicoteia todos os inimigos (1,3×) e aplica sangramento." },
   },
   strongmallet: {
     nome: "Marreta do Homem-Forte",
@@ -132,7 +132,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 12, mult: 1.6, bugHit: true, texto: "A cada 12s: onda de choque em área (1,6×) + stun (1,3s / Chefe 0,5s)." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.6, texto: "A cada 12s: onda de choque em área (1,6×) + stun (1,3s / Chefe 0,5s)." },
   },
   obsidblade: {
     nome: "Montante de Obsidiana",
@@ -140,7 +140,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 12, mult: 1.8, bugHit: true, texto: "A cada 12s: onda de magma até 200px (1,8×) + escudo de 10% do HP máx." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.8, texto: "A cada 12s: onda de magma até 200px (1,8×) + escudo de 10% do HP máx." },
   },
   thunderaxe: {
     nome: "Machado do Trovão",
@@ -148,7 +148,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 11, mult: 2.4, alvos: 5, decaimento: 0.85, bugHit: true, texto: "A cada 11s: raio em cadeia em até 5 alvos (2,4× decaindo 0,85×) + stun." },
+    efeito: { tipo: "dano", cada: 11, mult: 2.4, alvos: 5, decaimento: 0.85, texto: "A cada 11s: raio em cadeia em até 5 alvos (2,4× decaindo 0,85×) + stun." },
   },
 
   // Arqueiro
@@ -167,7 +167,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "buff_crit", cada: 9, dur: 3.5, bugHit: false, texto: "A cada 9s por 3,5s: 100% de chance de Crítico garantido." },
+    efeito: { tipo: "buff_crit", cada: 9, dur: 3.5, texto: "A cada 9s por 3,5s: 100% de chance de Crítico garantido." },
   },
   tempbow: {
     nome: "Arco da Tempestade Escarlate",
@@ -175,7 +175,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "buff_aspd", cada: 12, dur: 4, bugHit: false, texto: "A cada 12s por 4s: dobra a cadência dos ataques básicos." },
+    efeito: { tipo: "buff_aspd", cada: 12, dur: 4, texto: "A cada 12s por 4s: dobra a cadência dos ataques básicos." },
   },
   lunabow: {
     nome: "Arco do Luar Prateado",
@@ -183,7 +183,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "splash", cada: 10, dur: 4, bugHit: false, texto: "A cada 10s por 4s: flechas ricocheteiam 55% do dano em +2 inimigos." },
+    efeito: { tipo: "splash", cada: 10, dur: 4, texto: "A cada 10s por 4s: flechas ricocheteiam 55% do dano em +2 inimigos." },
   },
   dragonbow: {
     nome: "Arco do Dragão Ancestral",
@@ -191,7 +191,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 12, mult: 2.4, bugHit: true, texto: "A cada 12s: sopro de dragão em todos os inimigos (2,4×)." },
+    efeito: { tipo: "dano", cada: 12, mult: 2.4, texto: "A cada 12s: sopro de dragão em todos os inimigos (2,4×)." },
   },
   trapezebow: {
     nome: "Arco do Trapézio",
@@ -199,7 +199,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 9, mult: 1.8, alvos: 4, bugHit: true, texto: "A cada 9s: acerta até 4 inimigos frontais (1,8×)." },
+    efeito: { tipo: "dano", cada: 9, mult: 1.8, alvos: 4, texto: "A cada 9s: acerta até 4 inimigos frontais (1,8×)." },
   },
   fireworkbow: {
     nome: "Arco de Fogos de Artifício",
@@ -207,7 +207,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 10, mult: 2.4, bugHit: true, texto: "A cada 10s: foguete explosivo (2,4× principal / 1,2× demais)." },
+    efeito: { tipo: "dano", cada: 10, mult: 2.4, texto: "A cada 10s: foguete explosivo (2,4× principal / 1,2× demais)." },
   },
   aurorabow: {
     nome: "Arco da Aurora Boreal",
@@ -215,7 +215,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 12, mult: 1.4, bugHit: true, texto: "A cada 12s: chuva da aurora (1,4×) + escudo de 10% do HP no time." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.4, texto: "A cada 12s: chuva da aurora (1,4×) + escudo de 10% do HP no time." },
   },
   abyssbow: {
     nome: "Arco Abissal",
@@ -223,7 +223,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 11, mult: 3.2, bugHit: true, texto: "A cada 11s: maré abissal (3,2× no alvo de maior HP / 1,0× demais) + autocura 8%." },
+    efeito: { tipo: "dano", cada: 11, mult: 3.2, texto: "A cada 11s: maré abissal (3,2× no alvo de maior HP / 1,0× demais) + autocura 8%." },
   },
 
   // Clérigo
@@ -243,7 +243,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "eco", cada: 18, bugHit: false, texto: "A cada 18s: zera a recarga da próxima skill (lançamento duplo)." },
+    efeito: { tipo: "eco", cada: 18, texto: "A cada 18s: zera a recarga da próxima skill (lançamento duplo)." },
   },
   commscepter: {
     nome: "Cetro da Comunhão Rubra",
@@ -251,7 +251,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "buff_time", cada: 12, dur: 5, bugHit: false, texto: "A cada 12s por 5s: cura 25% do HP máx. no time e dá +30% ATK." },
+    efeito: { tipo: "buff_time", cada: 12, dur: 5, texto: "A cada 12s por 5s: cura 25% do HP máx. no time e dá +30% ATK." },
   },
   conststaff: {
     nome: "Cajado da Constelação",
@@ -259,7 +259,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "escudo", cada: 16, dur: 6, bugHit: false, texto: "A cada 16s: concede escudo de 20% do HP máx. no time por 6s." },
+    efeito: { tipo: "escudo", cada: 16, dur: 6, texto: "A cada 16s: concede escudo de 20% do HP máx. no time por 6s." },
   },
   worldstaff: {
     nome: "Cajado da Árvore-Mundo",
@@ -268,7 +268,7 @@ const catalogoArmas = {
     skillTipo: "cura",
     curaMult: 0.85,
     revive: true,
-    efeito: { tipo: "revive", cada: 15, bugHit: false, texto: "A cada 15s: revive 1 aliado (50% HP) e cura 8% HP (16% se todos vivos)." },
+    efeito: { tipo: "revive", cada: 15, texto: "A cada 15s: revive 1 aliado (50% HP) e cura 8% HP (16% se todos vivos)." },
   },
   magewand: {
     nome: "Varinha da Cartola",
@@ -276,7 +276,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "dano_carta", cada: 10, mult: 1.6, bugHit: true, texto: "A cada 10s sorteia 1 carta (33% cura 40% HP / 33% escudo 12% / 33% dano 1,6×)." },
+    efeito: { tipo: "dano_carta", cada: 10, mult: 1.6, texto: "A cada 10s sorteia 1 carta (33% cura 40% HP / 33% escudo 12% / 33% dano 1,6×)." },
   },
   crystalball: {
     nome: "Bola de Cristal da Madame",
@@ -284,7 +284,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "escudo_cura", cada: 12, bugHit: false, texto: "A cada 12s: escudo de 25% HP máx. (7s) + cura de 10% HP máx. no time." },
+    efeito: { tipo: "escudo_cura", cada: 12, texto: "A cada 12s: escudo de 25% HP máx. (7s) + cura de 10% HP máx. no time." },
   },
   serafscepter: {
     nome: "Cetro do Serafim",
@@ -292,7 +292,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "escudo_cura", cada: 14, bugHit: false, texto: "A cada 14s: cura 20% HP (30% se <50% vida) + escudo de 8% no time." },
+    efeito: { tipo: "escudo_cura", cada: 14, texto: "A cada 14s: cura 20% HP (30% se <50% vida) + escudo de 8% no time." },
   },
   eclipsestaff: {
     nome: "Cajado do Eclipse",
@@ -300,23 +300,25 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "dano", cada: 15, mult: 1.4, bugHit: true, texto: "A cada 15s: eclipse total em todos os inimigos (1,4×) + stun." },
+    efeito: { tipo: "dano", cada: 15, mult: 1.4, texto: "A cada 15s: eclipse total em todos os inimigos (1,4×) + stun." },
   },
 };
 
 const catalogoAneis = {
-  2: { nome: "Anel Áureo", raridadeMin: 4, efeito: "Aura dourada com fagulhas subindo." },
-  7: { nome: "Anel do Eclipse", raridadeMin: 4, efeito: "Um eclipse negro de coroa brilhante gira atrás do herói, com poeira violeta." },
-  8: { nome: "Anel da Aurora Boreal", raridadeMin: 4, efeito: "Cortinas de luz verde, azul e rosa ondulam em volta do herói." },
-  9: { nome: "Anel da Supernova", raridadeMin: 4, efeito: "Núcleo incandescente e ondas de choque que se expandem de tempos em tempos." },
+  2: { nome: "Anel Áureo", raridadeMin: 4, efeito: "O brilho correspondente agora é uma aura cosmética separada." },
+  7: { nome: "Anel do Eclipse", raridadeMin: 4, efeito: "O brilho correspondente agora é uma aura cosmética separada." },
+  8: { nome: "Anel da Aurora Boreal", raridadeMin: 4, efeito: "O brilho correspondente agora é uma aura cosmética separada." },
+  9: { nome: "Anel da Supernova", raridadeMin: 4, efeito: "O brilho correspondente agora é uma aura cosmética separada." },
   10: { nome: "Anel da Sede Escarlate", raridadeMin: 6, efeito: "Aplica sangramento contínuo ignorando defesa." },
   11: { nome: "Anel do Sanguessuga", raridadeMin: 6, efeito: "Roubo de vida de 8% sobre todo o dano causado." },
-  12: { nome: "Anel do Carrasco", raridadeMin: 6, efeito: "+60% de dano contra inimigos com <=30% HP (amplifica Singularidade até 8%)." },
+  12: { nome: "Anel do Carrasco", raridadeMin: 6, efeito: "+60% de dano contra inimigos com <=30% HP." },
   13: { nome: "Anel da Fênix Rubra", raridadeMin: 6, revive: true, efeito: "1x por jornada: renasce na hora com 40% HP e escudo de 20%." },
-  14: { nome: "Anel do Eclipse Arcano", raridadeMin: 7, efeito: "Ricocheteia 60% do golpe em até 2 próximos e 20% de chance de ecoar 100% (amplifica Singularidade p/ 6,4%)." },
+  14: { nome: "Anel do Eclipse Arcano", raridadeMin: 7, efeito: "Ricocheteia 60% do golpe em até 2 próximos e 20% de chance de ecoar 100%." },
   15: { nome: "Anel do Coração do Vazio", raridadeMin: 7, revive: true, efeito: "1x por jornada: renasce com 70% HP + escudo 40% + explosão 2,0× ATK (c/ rollDamage)." },
   16: { nome: "Anel do Ceifador Cósmico", raridadeMin: 7, efeito: "Até 10 almas (+4% ATK por alma, máx. +40%) e Ceifa de 1,6× ATK na 10ª." },
   17: { nome: "Anel do Prisma Estelar", raridadeMin: 7, efeito: "A cada 10s purifica debuffs, aplica escudo 12% HP e cura 8% HP no time." },
+  18: { nome: "Anel da Presa de Ixtharra", raridadeMin: 7, efeito: "Exclusivo do Covil de Vexxaris. Prioriza ataque e crítico, com vida e defesa." },
+  19: { nome: "Anel da Teia Escarlate", raridadeMin: 7, efeito: "Exclusivo do Covil de Vexxaris. Prioriza vida e defesa, com ataque e velocidade." },
 };
 
 const catalogoGemas = {

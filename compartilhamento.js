@@ -14,7 +14,7 @@
 
   const CHAVE_STORAGE_BUILDS = "riftinfos:builds:v1";
   const SCHEMA_VERSION = 1;
-  const VERSAO_CALCULO = "2026.11.1";
+  const VERSAO_CALCULO = "2026.11.14";
   const LIMITE_TAMANHO_PAYLOAD_BYTES = 64 * 1024; // 64 KiB
   const LIMITE_URL_CARACTERES = 8000;
 

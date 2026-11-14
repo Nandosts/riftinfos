@@ -243,8 +243,8 @@
     },
     k_classe: {
       termo: "Coeficiente de Classe (k)",
-      curto: "Constante oficial de Força de Combate da classe: Clérigo (0,84), Arqueiro (0,75) e Guerreiro (0,60).",
-      detalhes: "Determina o peso relativo dos atributos brutos no FC. O Clérigo usa k = 0,84. O ganho de FC por ponto de atributo também depende das demais estatísticas; o coeficiente isolado não determina esse ganho.",
+      curto: "Coeficiente de FC observado no patch de 14/11/2026: Clérigo e Arqueiro (0,56), Guerreiro (0,40).",
+      detalhes: "Determina o peso relativo dos atributos brutos no FC. O ganho de FC por ponto de atributo também depende das demais estatísticas; o coeficiente isolado não determina esse ganho.",
       categoria: "combate"
     },
     mitigacao_defesa: {

@@ -266,6 +266,7 @@ function importarPerfilParaSimulador(perfil) {
   origemPorBuild.set(simulacao.estadoSimulador, {
     nome: perfil.displayName || perfil.login,
     classe: perfil.cls,
+    cosmetico: perfil.equipped?.find((item) => item.slot === "cosmetic")?.kind,
   });
   simulacao.simuladorEditadoManual = false;
 }

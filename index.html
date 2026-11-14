@@ -23,12 +23,12 @@
   <link rel="stylesheet" href="estilos/ficha.css">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
-  <script src="sprites.js?v=20261114e" defer></script>
+  <script src="sprites.js?v=20261114h" defer></script>
   <script src="explicacoes.js" defer></script>
-  <script src="analise.js" defer></script>
-  <script src="historico.js" defer></script>
-  <script src="compartilhamento.js?v=2" defer></script>
-  <script type="module" src="app.mjs?v=20261114g"></script>
+  <script src="analise.js?v=20261114h" defer></script>
+  <script src="historico.js?v=20261114h" defer></script>
+  <script src="compartilhamento.js?v=3" defer></script>
+  <script type="module" src="app.mjs?v=20261114h"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -274,7 +274,7 @@
         <div class="subpainel-topo">
           <div>
             <h3 class="titulo-secao-comp">Calculadora de Monstros, Chefes &amp; Simulador PvE</h3>
-            <p class="note-compacto">Fórmulas do jogo com escala de Zona/Onda, bônus de vida por jogadores na live (+2,5% HP por jogador), Fúria do Boss (Rage 15s) e Tempo para Matar (TTK).</p>
+            <p class="note-compacto">Estimativa para chefes de zona. O Covil de Vexxaris tem regras próprias. Escala por zona e onda, bônus de vida por jogadores na live (+2,5% HP por jogador), Fúria do Boss (Rage 15s) e Tempo para Matar (TTK).</p>
           </div>
         </div>
 
@@ -444,6 +444,27 @@
             <input id="input-busca-glossario" type="search" placeholder="Ex: DoT, EHP, DPS, HPS, ASPD, TTK, Fúria, Gelo, True Damage, Cap...">
           </div>
           <div id="conteudo-glossario-busca"></div>
+        </div>
+      </details>
+      <details id="detalhes-atualizacoes-modelo" class="detalhes-glossario-global" style="margin-top:8px;">
+        <summary class="sumario-glossario-global">📋 Atualizações do modelo e patches do jogo (v2026.11.14)</summary>
+        <div class="painel-glossario-interno" style="display:grid; gap:10px; font-size:0.86rem; line-height:1.45;">
+          <div>
+            <strong style="color:var(--gold);">Patch 14/11/2026 — Covil de Vexxaris, Alquimia e Auras Cosméticas (<code>index-CXlW0_-D.js</code>)</strong>
+            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:4px;">
+              <li><strong>Coeficientes de FC (<code>k</code>) atualizados:</strong> Guerreiro <code>0,40</code> (antes <code>0,60</code>), Clérigo <code>0,56</code> (antes <code>0,84</code>) e Arqueiro <code>0,56</code> (antes <code>0,75</code>).</li>
+              <li><strong>Passivas de armas Imortais e Arcanas corrigidas:</strong> golpes periódicos de armas (como <em>Varinha da Cartola</em>, <em>Machado do Trovão</em>, <em>Arco Abissal</em> etc.) agora usam <code>imHit</code>/<code>rollDamage</code> no jogo, recebendo <strong>crítico</strong> e <strong>bônus de velocidade acima de 4,6/s</strong>.</li>
+              <li><strong>Novos anéis da Raid (Covil de Vexxaris):</strong> adicionados <em>Anel da Presa de Ixtharra</em> (foco em ataque/crítico) e <em>Anel da Teia Escarlate</em> (foco em vida/defesa) com seus sprites e auras.</li>
+              <li><strong>Auras cosméticas separadas:</strong> o brilho de anéis e conjuntos Arcanos passou a ser um item cosmético próprio (<code>slot: "cosmetic"</code>), preservado ao importar o personagem no Simulador.</li>
+            </ul>
+          </div>
+          <div style="border-top:1px solid var(--line); padding-top:8px;">
+            <strong style="color:var(--cyan);">Patch 09/11/2026 — Novos conjuntos Arcanos e Gelo na Forja (<code>index-Bw4Xm9JJ.js</code>)</strong>
+            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:4px;">
+              <li><strong>6 conjuntos Arcanos clássicos:</strong> <em>Titã de Obsidiana</em>, <em>Senhor do Trovão</em>, <em>Serafim Dourado</em>, <em>Sacerdote do Eclipse</em>, <em>Aurora Boreal</em> e <em>Caçador Abissal</em>.</li>
+              <li><strong>Bônus de Gelo (Pity) na Forja:</strong> +2 p.p. de chance por falha seguida na mesma peça e raridade (até +10 p.p. no Nv.5).</li>
+            </ul>
+          </div>
         </div>
       </details>
       <div class="rodape-links-secundarios">

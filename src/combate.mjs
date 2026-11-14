@@ -253,8 +253,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   }
 
   let analiseEfeitoArma = null;
-  let dpsEfeitoBugado = 0;
-  let dpsEfeitoCorrigido = 0;
+  let dpsEfeitoArma = 0;
 
   if (infoArma?.efeito) {
     const ef = infoArma.efeito;
@@ -271,33 +270,28 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
       dpsBasico = golpeNormalBruto * fatorCritMedioEfetivo * cadenciaReal;
     } else if (ef.tipo === "dano" || ef.tipo === "dano_carta") {
       const pesoCarta = ef.tipo === "dano_carta" ? 1 / 3 : 1;
-      const danoBugado = status.atk * ef.mult;
-      const danoCorrigido = status.atk * speedBonus * ef.mult * fatorCritEsperado;
-      dpsEfeitoBugado = (danoBugado / ef.cada) * pesoCarta;
-      dpsEfeitoCorrigido = (danoCorrigido / ef.cada) * pesoCarta;
+      const danoMedioSemDefesa = status.atk * speedBonus * ef.mult * fatorCritEsperado;
+      dpsEfeitoArma = danoMedioSemDefesa / ef.cada * pesoCarta;
       analiseEfeitoArma = {
-        bugado: true,
+        tipo: ef.tipo,
         nome: infoArma.nome,
         cada: ef.cada,
         mult: ef.mult,
-        danoAtualSemDefesa: danoBugado,
-        danoCorrigidoSemDefesa: danoCorrigido,
-        razaoPerda: danoBugado > 0 ? danoCorrigido / danoBugado : 1,
+        danoMedioSemDefesa,
         texto: ef.texto,
       };
     } else if (ef.tipo === "singularity") {
-      const multAnelBoss = anelAtivo && anel.look === 14 ? 1.6 : (anelAtivo && anel.look === 12 ? 1.6 : 1.0);
       analiseEfeitoArma = {
-        bugado: false,
+        tipo: ef.tipo,
         nome: infoArma.nome,
         cada: ef.cada,
         texto: ef.texto,
-        pctBossEfetivo: ef.pctBoss * multAnelBoss,
+        pctBossEfetivo: ef.pctBoss,
       };
     }
   }
 
-  const dpsCombateMedio = dpsBasico * fatorAnelDps + (skillDanoPorAlvo / cdSkillReal) + dpsEfeitoBugado;
+  const dpsCombateMedio = dpsBasico * fatorAnelDps + (skillDanoPorAlvo / cdSkillReal) + dpsEfeitoArma * fatorAnelDps;
   const reducaoDefesa = (status.def * 4) / (100 + status.def * 4);
   const ehp = status.maxHp * (1 + status.def * 0.04);
 
@@ -323,8 +317,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     dpsBasico: dpsBasico * fatorAnelDps,
     dpsSkill,
     dpsCombateMedio,
-    dpsEfeitoBugado,
-    dpsEfeitoCorrigido,
+    dpsEfeitoArma,
     cdSkillReal,
     skillMult,
     skillAlvos,

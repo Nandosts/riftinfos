@@ -18,6 +18,7 @@ import {
 import {
   formatarBonusConjuntoCurto,
   obterNomeOficialPecaConjunto,
+  obterOrigemBuildSimulador,
   obterResumoPassivasBuildSimulador,
   resumoCurtoGemaBotao,
   simulacao,
@@ -900,6 +901,8 @@ function renderizarCanvasesFichaSimulador() {
   const canvasHeroi = containerSimulador.querySelector("#sim-canvas-heroi");
   if (canvasHeroi) {
     const itensSprite = (simulacao.estadoSimulador.itens || []).map(normalizarItemParaSprite);
+    const cosmetico = obterOrigemBuildSimulador()?.cosmetico;
+    if (cosmetico) itensSprite.push({ slot: "cosmetic", kind: cosmetico });
     window.RiftSprites.iniciarPalcoHeroi(canvasHeroi, simulacao.estadoSimulador.cls, itensSprite, 6);
   }
 
