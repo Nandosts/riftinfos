@@ -1330,11 +1330,7 @@ function vincularEventosGradePanorama() {
           void inspecionarLiveRadar(live.canal);
         }
       } else if (acao === "consultar-top1") {
-        if (top1GeralDinamico?.nick) {
-          if (inputNick) inputNick.value = top1GeralDinamico.nick;
-          if (selectPlataforma) selectPlataforma.value = "twitch";
-          void consultarPerfil(top1GeralDinamico.nick, top1GeralDinamico.cls);
-        }
+        carregarAtalhoTop("top1");
       }
     });
   });
