@@ -3197,8 +3197,46 @@ function renderizarCompararMelhorias() {
   }
 }
 
+const slotsAbertosSimulador = new Set([0]);
+
 function renderizarSimulador() {
   if (!containerSimulador) return;
+
+  // Preserva estado dos cards expansíveis abertos
+  const cardsExistentes = containerSimulador.querySelectorAll(".sim-slot-card");
+  if (cardsExistentes.length > 0) {
+    cardsExistentes.forEach((d) => {
+      const idx = Number(d.dataset.slotIndex);
+      if (!Number.isNaN(idx)) {
+        if (d.open) {
+          slotsAbertosSimulador.add(idx);
+        } else {
+          slotsAbertosSimulador.delete(idx);
+        }
+      }
+    });
+  }
+
+  // Preserva rolagem e elemento com foco ativo
+  const scrollYAnterior = typeof window !== "undefined" ? window.scrollY : 0;
+  const scrollXAnterior = typeof window !== "undefined" ? window.scrollX : 0;
+  const elementoFocadoAtivo = typeof document !== "undefined" ? document.activeElement : null;
+  let seletorFocoRestaurar = null;
+  if (elementoFocadoAtivo && containerSimulador.contains(elementoFocadoAtivo)) {
+    if (elementoFocadoAtivo.dataset?.simGemBtn) {
+      seletorFocoRestaurar = `[data-sim-gem-btn="${elementoFocadoAtivo.dataset.simGemBtn}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simSlotTier) {
+      seletorFocoRestaurar = `[data-sim-slot-tier="${elementoFocadoAtivo.dataset.simSlotTier}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simAttr) {
+      seletorFocoRestaurar = `[data-sim-attr="${elementoFocadoAtivo.dataset.simAttr}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simItemStat) {
+      seletorFocoRestaurar = `[data-sim-item-stat="${elementoFocadoAtivo.dataset.simItemStat}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simItemCampo) {
+      seletorFocoRestaurar = `[data-sim-item-campo="${elementoFocadoAtivo.dataset.simItemCampo}"]`;
+    } else if (elementoFocadoAtivo.id) {
+      seletorFocoRestaurar = `#${elementoFocadoAtivo.id}`;
+    }
+  }
 
   renderizarPainelGerenciadorBuilds();
   renderizarCompararMelhorias();
@@ -3372,7 +3410,7 @@ function renderizarSimulador() {
     }).join("");
 
     return `
-      <details class="sim-slot-card sim-slot-card-expansivel" ${idxSlot === 0 ? "open" : ""}>
+      <details class="sim-slot-card sim-slot-card-expansivel" data-slot-index="${idxSlot}" ${slotsAbertosSimulador.has(idxSlot) ? "open" : ""}>
         <summary class="sim-slot-head sumario-expansivel">
           <span>
             <strong>${nomesSlots[item.slot]} · ${escaparHtml(item.name || "Peça")}</strong>
@@ -3450,7 +3488,13 @@ function renderizarSimulador() {
           </span>
         </div>
 
-        <h4>Equipamentos &amp; Gemas</h4>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:-2px;">
+          <h4 style="margin:0;">Equipamentos &amp; Gemas</h4>
+          <span style="display:inline-flex; gap:6px;">
+            <button type="button" class="btn-mini" id="btn-sim-expandir-todos" title="Expandir todas as peças para editar gemas">Expandir Todas</button>
+            <button type="button" class="btn-mini" id="btn-sim-recolher-todos" title="Recolher todas as peças">Recolher</button>
+          </span>
+        </div>
         ${barraConjuntoRapidoHtml}
         ${slotsHtml}
       </div>
@@ -3487,10 +3531,60 @@ function renderizarSimulador() {
   `;
 
   vincularEventosSimulador();
+
+  // Restaura o foco sem disparar auto-scroll do navegador
+  if (seletorFocoRestaurar) {
+    const elRestaurar = containerSimulador.querySelector(seletorFocoRestaurar);
+    if (elRestaurar && typeof elRestaurar.focus === "function") {
+      try {
+        elRestaurar.focus({ preventScroll: true });
+      } catch {}
+    }
+  }
+
+  // Restaura precisamente a posição da tela (imediato e no próximo quadro)
+  if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+    window.scrollTo({ left: scrollXAnterior, top: scrollYAnterior, behavior: "instant" });
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => {
+        window.scrollTo({ left: scrollXAnterior, top: scrollYAnterior, behavior: "instant" });
+      });
+    }
+  }
 }
 
 function vincularEventosSimulador() {
   if (!containerSimulador) return;
+
+  // Monitora abertura/fechamento dos slots para manter abertos durante qualquer simulação
+  containerSimulador.querySelectorAll(".sim-slot-card").forEach((details) => {
+    details.addEventListener("toggle", () => {
+      const idx = Number(details.dataset.slotIndex);
+      if (!Number.isNaN(idx)) {
+        if (details.open) {
+          slotsAbertosSimulador.add(idx);
+        } else {
+          slotsAbertosSimulador.delete(idx);
+        }
+      }
+    });
+  });
+
+  const btnExpandirTodos = containerSimulador.querySelector("#btn-sim-expandir-todos");
+  if (btnExpandirTodos) {
+    btnExpandirTodos.addEventListener("click", () => {
+      estadoSimulador.itens.forEach((_, i) => slotsAbertosSimulador.add(i));
+      renderizarSimulador();
+    });
+  }
+
+  const btnRecolherTodos = containerSimulador.querySelector("#btn-sim-recolher-todos");
+  if (btnRecolherTodos) {
+    btnRecolherTodos.addEventListener("click", () => {
+      slotsAbertosSimulador.clear();
+      renderizarSimulador();
+    });
+  }
 
   const selClasse = containerSimulador.querySelector("#sim-classe");
   const inpNivel = containerSimulador.querySelector("#sim-nivel");
