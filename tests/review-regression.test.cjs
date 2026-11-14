@@ -6,16 +6,16 @@ const sharing = require('../compartilhamento.js');
 function build() {
   return { cls: 'cleric', level: 700, atributos: { str: 130, vit: 136, def: 131, agi: 140, luk: 131 }, itens: ['weapon','helmet','armor','ring'].map(slot => ({id:slot,slot,name:'Peça',kind:'staff',set:'',rarity:7,itemLevel:336,atk:1120,def:937,hp:4603,crit:159,spd:8,sockets:6,gems:Array.from({length:6},()=>({kind:'sapphire',tier:5,stat:'spd',value:43,pct:false,stat2:'def',value2:48,pct2:true}))})) };
 }
-test('shared build preserves class, attributes, equipment stats and all six Supreme gems', () => {
+test('shared build preserves class, attributes, equipment stats and all six Supreme gems', async () => {
   const original = build();
-  const decoded = sharing.decodificarBuildDeHash(sharing.serializarBuildParaHash(original));
+  const decoded = await sharing.decodificarBuildDeHash(await sharing.serializarBuildParaHash(original));
   assert.equal(decoded.buildA.cls, 'cleric');
   assert.deepEqual(decoded.buildA.atributos, original.atributos);
   assert.equal(decoded.buildA.itens[0].atk,1120);
   assert.deepEqual(decoded.buildA.itens[0].gems, original.itens[0].gems);
   assert.throws(()=>sharing.clonarBuildSeguro({itens:[]}));
   original.atributos.str=Infinity;
-  assert.throws(()=>sharing.serializarBuildParaHash(original));
+  await assert.rejects(()=>sharing.serializarBuildParaHash(original));
 });
 test('history records equipment and gem changes even when FC and counters do not change', () => {
   const store = new Map();
@@ -32,7 +32,7 @@ test('history records equipment and gem changes even when FC and counters do not
   delete global.localStorage;
 });
 test('shared link initializes the actual simulator and renders finite calculations', async (t) => {
-  const hash = sharing.serializarBuildParaHash(build());
+  const hash = await sharing.serializarBuildParaHash(build());
   const w = new JSDOM(fs.readFileSync('index.html', 'utf8'), {
     url: 'https://example.test/?aba=simulador#' + hash,
     runScripts: 'outside-only',
@@ -60,6 +60,9 @@ test('shared link initializes the actual simulator and renders finite calculatio
     });
   }
   w.TextEncoder = TextEncoder;
+  w.TextDecoder = TextDecoder;
+  w.Blob = Blob;
+  w.DecompressionStream = DecompressionStream;
   w.scrollTo = () => {};
   t.after(() => w.close());
   for (const file of ['explicacoes.js', 'analise.js', 'historico.js', 'compartilhamento.js']) {

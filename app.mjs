@@ -47,7 +47,7 @@ void atualizarTop1Dinamicos();
 // Decodifica build compartilhada via URL (#build=...)
 if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.decodificarBuildDeHash) {
   try {
-    const buildDecodificada = Compartilhamento.decodificarBuildDeHash(window.location.hash);
+    const buildDecodificada = await Compartilhamento.decodificarBuildDeHash(window.location.hash);
     if (buildDecodificada?.buildA) {
       simulacao.estadoSimulador = buildDecodificada.buildA;
       simulacao.simuladorEditadoManual = true;

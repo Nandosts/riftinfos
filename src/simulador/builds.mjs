@@ -79,7 +79,7 @@ function renderizarPainelGerenciadorBuilds() {
   if (btnCopiarLink) {
     btnCopiarLink.addEventListener("click", async () => {
       try {
-        const hash = Compartilhamento.serializarBuildParaHash(simulacao.estadoSimulador, null, "Build Compartilhada");
+        const hash = await Compartilhamento.serializarBuildParaHash(simulacao.estadoSimulador, null, "Build Compartilhada");
         const urlCompleta = `${window.location.origin}${window.location.pathname}?aba=simulador#${hash}`;
         const res = await Compartilhamento.copiarTextoComFallback(urlCompleta);
         if (res.sucesso) {

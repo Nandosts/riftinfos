@@ -174,7 +174,7 @@
   /**
    * Serializa um cenário de simulação (ou par A/B) para URL hash #build=...
    */
-  function serializarBuildParaHash(buildA, buildB = null, nome = "") {
+  async function serializarBuildParaHash(buildA, buildB = null, nome = "") {
     const payload = {
       v: SCHEMA_VERSION,
       cv: VERSAO_CALCULO,
@@ -183,31 +183,68 @@
       b: buildB ? clonarBuildSeguro(buildB) : null
     };
 
-    const jsonStr = JSON.stringify(payload);
-    if (new TextEncoder().encode(jsonStr).length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
+    const bytes = new TextEncoder().encode(JSON.stringify(payload));
+    if (bytes.length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
       throw new Error("Payload da build excede o limite seguro de 64 KiB.");
     }
 
-    const codificado = encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
-    return `build=${codificado}`;
+    if (typeof CompressionStream === "function" && typeof DecompressionStream === "function") {
+      const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"));
+      const compacto = new Uint8Array(await new Response(stream).arrayBuffer());
+      return `build=z.${codificarBase64(compacto).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
+    }
+
+    return `build=${encodeURIComponent(codificarBase64(bytes))}`;
+  }
+
+  function codificarBase64(bytes) {
+    let binario = "";
+    for (const byte of bytes) binario += String.fromCharCode(byte);
+    return btoa(binario);
+  }
+
+  async function descompactarBuild(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+    const leitor = stream.getReader();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+    let total = 0;
+    let json = "";
+    try {
+      while (true) {
+        const { value, done } = await leitor.read();
+        if (done) return json + decoder.decode();
+        total += value.byteLength;
+        if (total > LIMITE_TAMANHO_PAYLOAD_BYTES) {
+          throw new Error("Payload da build excedeu 64 KiB.");
+        }
+        json += decoder.decode(value, { stream: true });
+      }
+    } finally {
+      await leitor.cancel();
+    }
   }
 
   /**
    * Decodifica um payload de hash #build=... de forma estrita e segura.
    */
-  function decodificarBuildDeHash(hashString) {
+  async function decodificarBuildDeHash(hashString) {
     if (!hashString || hashString.length > 200000) return null;
     let hash = hashString.startsWith("#") ? hashString.slice(1) : hashString;
     const match = hash.match(/(?:^|&)build=([^&]+)/);
     if (!match) return null;
 
     try {
-      const decB64 = atob(decodeURIComponent(match[1]));
-      const jsonStr = decodeURIComponent(escape(decB64));
-
-      if (new TextEncoder().encode(jsonStr).length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
+      const compacto = match[1].startsWith("z.");
+      const base64 = compacto
+        ? match[1].slice(2).replace(/-/g, "+").replace(/_/g, "/")
+        : decodeURIComponent(match[1]);
+      const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+      if (!compacto && bytes.length > LIMITE_TAMANHO_PAYLOAD_BYTES) {
         throw new Error("Payload da build excedeu 64 KiB.");
       }
+      const jsonStr = compacto
+        ? await descompactarBuild(bytes)
+        : new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 
       const obj = JSON.parse(jsonStr);
       if (!obj || typeof obj !== "object") return null;
