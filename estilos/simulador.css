@@ -1,0 +1,140 @@
+/* Simulador de FC e Build */
+.simulador-container {
+  margin-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+.sim-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 16px;
+  align-items: start;
+}
+.sim-bloco {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+.sim-bloco h4 {
+  margin: 0;
+  font-family: var(--pix);
+  font-size: 0.88rem;
+  color: var(--cyan);
+  font-weight: 400;
+}
+.sim-campos-topo {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 10px;
+}
+.sim-atributo-linha {
+  display: grid;
+  grid-template-columns: 110px 78px 1fr;
+  gap: 8px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.sim-atributo-linha label {
+  color: var(--text);
+  font-weight: 600;
+}
+.sim-atributo-linha input {
+  min-height: 36px;
+  padding: 4px 8px;
+  text-align: center;
+}
+.sim-botoes-attr {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.sim-dica-melhor {
+  font-size: 0.8rem;
+  color: var(--gold);
+  background: #231e44;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+}
+.sim-slot-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+.sim-slot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sim-slot-head strong {
+  color: var(--gold);
+  font-size: 0.88rem;
+}
+.sim-slot-selects {
+  display: grid;
+  grid-template-columns: 1fr 120px 85px;
+  gap: 6px;
+}
+.sim-slot-selects select,
+.sim-slot-selects input,
+.sim-gem-row select {
+  min-height: 36px;
+  padding: 4px 8px;
+  font-size: 0.84rem;
+}
+.sim-slot-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.sim-slot-stats label {
+  font-size: 0.72rem;
+  display: grid;
+  gap: 2px;
+}
+.sim-slot-stats input {
+  min-height: 32px;
+  padding: 3px 6px;
+  font-size: 0.82rem;
+}
+.sim-gem-row {
+  display: grid;
+  grid-template-columns: 1fr 120px auto;
+  gap: 6px;
+  align-items: center;
+}
+.sim-painel-resultado {
+  position: sticky;
+  top: 16px;
+}
+.sim-fc-comparativo {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  padding: 12px;
+  text-align: center;
+}
+.sim-fc-comparativo strong {
+  display: block;
+  font-family: var(--pix);
+  font-size: 1rem;
+  color: var(--gold);
+}
+.sim-delta-banner {
+  padding: 8px 12px;
+  text-align: center;
+  font-family: var(--pix);
+  font-size: 0.95rem;
+  border: 1px solid var(--line);
+}
+.sim-delta-banner.up { background: #123120; color: var(--green); border-color: #2c7a4b; }
+.sim-delta-banner.down { background: #36131c; color: #ff9b90; border-color: #822b3d; }
+.sim-delta-banner.eq { background: var(--bg); color: var(--muted); }

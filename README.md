@@ -48,6 +48,24 @@ O simulador também pode ser usado sem consultar um perfil. As builds e o histó
 
 Ao editar os arquivos HTML, CSS ou JavaScript, atualize a página para carregar as mudanças. Não é preciso reiniciar o servidor. Se mudar `servidor.py`, encerre e inicie o servidor novamente.
 
+## Onde editar
+
+| Tarefa | Arquivos |
+| --- | --- |
+| Estrutura da página e carregamento | `index.html`, `app.mjs` e `src/abas.mjs` |
+| Consulta de perfil e tratamento de falhas | `src/perfil.mjs`, `src/api.mjs` e `src/identidade.mjs` |
+| Cálculos de FC e combate | `src/combate.mjs` e `src/dados.mjs` |
+| Resumo, histórico e glossário | `src/resumo.mjs`, `historico.js` e `explicacoes.js` |
+| Forjas, equipamentos e comparação | `src/forjas.mjs`, `src/equipamentos.mjs` e `src/comparacao.mjs` |
+| Panorama, radar e chefes | `src/panorama.mjs`, `src/radar.mjs` e `src/chefes.mjs` |
+| Ficha, escolha de peças e engastes | `src/simulador/ficha.mjs`, `src/simulador/controles.mjs` e `estilos/ficha.css` |
+| Regras, modo lista e builds salvas | `src/simulador/estado.mjs`, `src/simulador/tela.mjs`, `src/simulador/builds.mjs` e `compartilhamento.js` |
+| Aparência e fonte | `style.css` para a base, `estilos/` por área e `aparencia.js`/`aparencia.css` para a preferência |
+
+O navegador carrega os módulos diretamente. Cada módulo declara suas dependências com `import` e expõe com `export` o que outras áreas usam. Coloque eventos e seletores DOM no módulo dono da tela, e chame a função de configuração em `app.mjs` ao adicionar uma área. Mantenha a ordem das folhas de estilo no HTML, porque algumas regras dependem da cascata.
+
+Para dividir uma mudança entre agentes, combine quem altera cada área e quem coordena os arquivos compartilhados. Por exemplo, dá para trabalhar na bancada do simulador e no radar em paralelo. Mudanças no cálculo de FC ou no catálogo podem afetar várias telas e precisam ser combinadas entre as áreas.
+
 ## Problemas comuns
 
 - **A página não abre:** confira se o terminal continua executando o servidor e se o endereço usa a porta `4173`.

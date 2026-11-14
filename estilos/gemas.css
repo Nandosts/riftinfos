@@ -1,0 +1,112 @@
+/* Seletores visuais de Gemas linha a linha (Simulador) */
+.sim-gemas-bloco {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: 4px;
+  display: grid;
+  gap: 8px;
+}
+.sim-gemas-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sim-tier-bar {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.btn-tier-gema {
+  min-height: 26px;
+  padding: 2px 8px;
+  font-size: 0.74rem;
+  background: var(--panel-alt);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.btn-tier-gema.ativa {
+  background: #3b2f10;
+  color: var(--gold);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+.sim-gema-linha {
+  display: grid;
+  grid-template-columns: 30px repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  align-items: stretch;
+}
+.sim-gema-indice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.btn-gema-opcao {
+  min-height: 40px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 3px;
+  background: #191530;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  line-height: 1.15;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+}
+.btn-gema-opcao:hover {
+  background: #27214a;
+  border-color: var(--cyan);
+  filter: none;
+}
+.btn-gema-opcao .gema-titulo-btn {
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.btn-gema-opcao .gema-ponto-cor {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.btn-gema-opcao .gema-sub-btn {
+  font-size: 0.62rem;
+  color: var(--muted);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.btn-gema-opcao.ativa {
+  background: linear-gradient(180deg, #524111, #382b09);
+  border: 1px solid var(--gold);
+  color: #ffe885;
+  box-shadow: 0 0 0 1px #ffd24a55, inset 0 0 10px #ffd24a22;
+}
+.btn-gema-opcao.ativa .gema-titulo-btn {
+  color: var(--gold);
+}
+.btn-gema-opcao.ativa .gema-sub-btn {
+  color: #fff2b2;
+}

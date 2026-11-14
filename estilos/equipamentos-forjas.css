@@ -1,0 +1,69 @@
+/* Tabela de Forjas */
+.table-wrap { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 12px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child { text-align: left; }
+thead th { color: var(--muted); font-size: clamp(10px, 2vw, 13px); font-weight: 400; }
+tbody th { font-family: inherit; color: var(--rarity); }
+td:nth-child(2) { color: var(--muted); }
+td:last-child { color: var(--gold); font-weight: 700; }
+tr[data-forge="epic"] { --rarity: #c77dff; }
+tr[data-forge="imm"] { --rarity: #ff8073; }
+tr[data-forge="arc"] { --rarity: #ff8de6; }
+
+/* Aba de Equipamentos, Gemas e FC */
+.resumo-fc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; margin-top: 20px; }
+.bloco-resumo { background: var(--panel-alt); border: 1px solid var(--line); padding: 12px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.bloco-resumo span { color: var(--muted); font-size: 0.8rem; }
+.bloco-resumo strong { color: var(--gold); font-family: var(--pix); font-size: 1.05rem; font-weight: 400; }
+.bloco-resumo small { color: var(--cyan); font-size: 0.78rem; }
+
+.conjuntos-ativos { display: grid; gap: 8px; margin-top: 12px; }
+.cartao-conjunto { background: var(--panel-alt); border: 1px solid var(--line); border-left: 4px solid var(--gold); padding: 10px 12px; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cartao-conjunto b { color: var(--gold); }
+.cartao-conjunto .bonus-lista { color: var(--muted); font-size: 0.82rem; }
+.tag-fc { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #26204b; border: 1px solid var(--line); color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.tag-fc.secundaria { color: var(--cyan); }
+.tag-fc.remover { background: #2d1424; border-color: #5e223b; color: #ff9b90; }
+
+.aviso-sinergia { background: var(--panel-alt); border: 1px solid var(--line); border-left: 4px solid var(--cyan); padding: 12px 14px; margin-top: 14px; font-size: 0.85rem; line-height: 1.5; }
+.aviso-sinergia strong { color: var(--gold); }
+.aviso-sinergia p { margin: 4px 0 0; color: var(--muted); }
+.aviso-sinergia p:first-of-type { margin-top: 2px; }
+
+.lista-equipamentos { display: grid; gap: 14px; margin-top: 16px; }
+.cartao-equipamento { background: var(--panel-alt); border: 2px solid var(--line); padding: 14px; display: grid; gap: 12px; font-variant-numeric: tabular-nums; }
+.equip-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.equip-titulo { display: grid; gap: 4px; }
+.equip-slot { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.equip-nome { font-size: 1.05rem; font-weight: 700; }
+.equip-meta { color: var(--muted); font-size: 0.84rem; }
+.equip-fc-box { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+
+.atributos-item { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-stat { background: var(--bg); border: 1px solid var(--line); padding: 3px 8px; font-size: 0.82rem; color: var(--text); }
+.efeito-especial { color: var(--muted); font-size: 0.82rem; border-left: 2px solid var(--line); padding-left: 8px; }
+
+.grade-gemas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 245px), 1fr)); gap: 8px; }
+.cartao-gema { background: var(--bg); border: 1px solid var(--line); padding: 9px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cartao-gema.vazio { color: var(--muted); opacity: 0.65; font-size: 0.84rem; }
+.gema-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gema-icone { width: 12px; height: 12px; flex-shrink: 0; background: var(--cor-gema, var(--cyan)); box-shadow: 2px 2px #0008; border: 1px solid #fff6; }
+.gema-texto { display: grid; gap: 2px; min-width: 0; }
+.gema-nome { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gema-stats { font-size: 0.78rem; color: var(--muted); }
+.gema-fc-bloco { display: grid; justify-items: end; gap: 2px; text-align: right; flex-shrink: 0; }
+.gema-fc { color: var(--gold); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.gema-fc-perda { font-size: 0.72rem; color: #ff9b90; white-space: nowrap; }
+
+.rodape-painel { margin-top: 16px; }
+a { color: var(--cyan); }
+.note { margin: 16px 0 4px; font-size: 0.85rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+@media (max-width: 540px) {
+  #formulario-busca { grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); }
+  #formulario-busca button { grid-column: 1 / -1; }
+  th, td { padding-inline: 6px; }
+  .equip-fc-box { justify-content: flex-start; }
+}

@@ -1,0 +1,143 @@
+/* Monstros & Boss */
+.painel-controle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+}
+.painel-controle-grid input, .painel-controle-grid select {
+  min-height: 40px;
+  font-size: 0.92rem;
+}
+.grade-monstros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 12px;
+}
+.card-monstro {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.card-monstro.boss {
+  border-color: #b83b5e;
+  box-shadow: 0 0 14px #b83b5e22;
+}
+.card-monstro-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.card-monstro-topo h4 {
+  margin: 0;
+  font-family: var(--pix);
+  font-size: 0.92rem;
+  color: var(--gold);
+  font-weight: 400;
+}
+.card-monstro.boss .card-monstro-topo h4 {
+  color: #ff7a90;
+}
+
+/* Radar de Live & Scanner de Itens */
+.painel-controle-radar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+  gap: 10px;
+  align-items: end;
+  margin-top: 14px;
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+}
+.painel-controle-radar input,
+.painel-controle-radar select,
+.painel-controle-radar button {
+  min-height: 42px;
+  font-size: 0.9rem;
+}
+.progresso-radar {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+.barra-progresso {
+  height: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.barra-progresso i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+  transition: width 0.15s ease;
+}
+.status-bloco {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.status-bloco[data-error="true"] { color: #ff9b90; }
+.radar-destaque-filtro {
+  background: linear-gradient(90deg, #241d4d, #191438);
+  border: 2px solid var(--gold);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.radar-destaque-filtro strong {
+  font-family: var(--pix);
+  font-size: 1.2rem;
+  color: var(--gold);
+  font-weight: 400;
+}
+.tabela-radar td, .tabela-radar th {
+  text-align: left;
+  white-space: normal;
+}
+.tabela-radar td.num, .tabela-radar th.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.link-nick {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  min-height: auto;
+  color: var(--cyan);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-nick:hover {
+  color: var(--gold);
+  filter: none;
+}
+.lista-batalhas-live {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-batalha {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+.chip-batalha.vitoria { border-left: 3px solid var(--green); }
+.chip-batalha.derrota { border-left: 3px solid #ff7a7a; }

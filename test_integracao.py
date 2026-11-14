@@ -12,6 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 DIRETORIO_BASE = os.path.dirname(os.path.abspath(__file__))
 URL_API_BASE = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
@@ -105,7 +106,7 @@ def buscar_json(caminho, base=URL_API_BASE):
 
 
 def inferir_e_calcular_fc(perfil):
-    """Replica exatamente inferirAtributosBase + calcularStatusSimulados + calcularFc do app.js."""
+    """Replica exatamente inferirAtributosBase + calcularStatusSimulados + calcularFc de src/combate.mjs."""
     cls = perfil["cls"]
     dados = DADOS_CLASSES[cls]
     nivel = perfil["level"]
@@ -390,7 +391,7 @@ def executar_suite_bundle_jogo(ex):
         else:
             ex.avisar(
                 "CORREÇÃO DETECTADA NO JOGO! Não foram encontradas chamadas diretas 'this.hit(..., e.atk*..., !1)' em immortalTick. "
-                "Atualize a tag de bug no catalogoArmas de app.js!"
+                "Atualize a tag de bug no catalogoArmas de src/dados.mjs!"
             )
 
     ex.afirmar("healPower(" in js_bundle and "singPctBoss:" in js_bundle, "Constantes esperadas (healPower, singPctBoss) presentes no bundle")
@@ -399,19 +400,25 @@ def executar_suite_bundle_jogo(ex):
 def executar_suite_local(ex, com_servidor=False):
     print("\n6. Integridade Local (Sintaxe JS, HTML/JS IDs e Proxy)")
     caminho_html = os.path.join(DIRETORIO_BASE, "index.html")
-    caminho_js = os.path.join(DIRETORIO_BASE, "app.js")
+    caminho_js = os.path.join(DIRETORIO_BASE, "app.mjs")
     caminho_css = os.path.join(DIRETORIO_BASE, "style.css")
 
-    ex.afirmar(os.path.isfile(caminho_html) and os.path.isfile(caminho_js) and os.path.isfile(caminho_css), "Arquivos index.html, style.css e app.js existem")
+    ex.afirmar(os.path.isfile(caminho_html) and os.path.isfile(caminho_js) and os.path.isfile(caminho_css), "Arquivos index.html, style.css e app.mjs existem")
+
+    arquivos_js = [Path(caminho_js), *sorted((Path(DIRETORIO_BASE) / "src").rglob("*.mjs"))]
 
     # Checa sintaxe e execução inicial JS com node se disponível
     try:
-        proc = subprocess.run(["node", "--check", caminho_js], capture_output=True, text=True, timeout=10)
-        ex.afirmar(proc.returncode == 0, "Validação sintática node --check app.js sem erros", proc.stderr.strip())
+        erros_sintaxe = []
+        for arquivo in arquivos_js:
+            proc = subprocess.run(["node", "--check", str(arquivo)], capture_output=True, text=True, timeout=10)
+            if proc.returncode:
+                erros_sintaxe.append(proc.stderr.strip())
+        ex.afirmar(not erros_sintaxe, "Validação sintática dos módulos JavaScript", "\n".join(erros_sintaxe))
 
         script_smoke = """
-const fs = require("fs");
-const code = fs.readFileSync(process.argv[1], "utf8");
+const { pathToFileURL } = require("node:url");
+const { createRequire } = require("node:module");
 function makeEl(id = "") {
   return {
     id, value: "", hidden: false, disabled: false, textContent: "", innerHTML: "", placeholder: "",
@@ -425,34 +432,42 @@ global.HTMLElement = function(){};
 global.Option = function(t, v){ this.text = t; this.value = v; };
 global.document = { querySelector: (s) => makeEl(s), querySelectorAll: () => [], createElement: () => makeEl(), addEventListener(){} };
 global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ items: [] }) });
-eval(code);
-popularSeletorItensRadar("warrior");
-popularSeletorItensRadar("cleric");
-popularSeletorItensRadar("archer");
-popularSeletorItensRadar("");
-renderizarSimulador();
-renderizarSimuladorMonstros();
+const entrada = pathToFileURL(process.argv[1]);
+const carregar = createRequire(entrada);
+Object.assign(window, {
+  RiftExplicacoes: carregar("./explicacoes.js"),
+  RiftAnalise: carregar("./analise.js"),
+  RiftHistorico: carregar("./historico.js"),
+  RiftCompartilhamento: carregar("./compartilhamento.js"),
+});
+(async () => {
+  await import(entrada);
+  const { popularSeletorItensRadar } = await import(new URL("./src/radar.mjs", entrada));
+  for (const classe of ["warrior", "cleric", "archer", ""]) popularSeletorItensRadar(classe);
+})().catch((erro) => {
+  console.error(erro);
+  process.exitCode = 1;
+});
 """
         proc_exec = subprocess.run(["node", "-e", script_smoke, caminho_js], capture_output=True, text=True, timeout=10)
         ex.afirmar(
             proc_exec.returncode == 0,
-            "Execução inicial de app.js (Simulador, Monstros e Radar) sem ReferenceError/TypeError",
+            "Execução inicial de app.mjs (Simulador, Monstros e Radar) sem ReferenceError/TypeError",
             proc_exec.stderr.strip(),
         )
     except FileNotFoundError:
         ex.avisar("Node.js não encontrado no PATH; validação 'node' ignorada.")
 
-    # Garante que todos os IDs referenciados via #id em app.js existem em index.html
+    # Confere IDs consultados pelos módulos, incluindo os gerados pelos templates.
     with open(caminho_html, "r", encoding="utf-8") as f:
         html_txt = f.read()
-    with open(caminho_js, "r", encoding="utf-8") as f:
-        js_txt = f.read()
+    js_txt = "\n".join(arquivo.read_text(encoding="utf-8") for arquivo in arquivos_js)
 
     ids_html = set(re.findall(r'\bid="([^"]+)"', html_txt))
     ids_dinamicos_js = set(re.findall(r'id="([a-zA-Z0-9_-]+)"', js_txt))
     ids_js = set(re.findall(r'querySelector\("#([^"]+)"\)', js_txt))
     ids_faltando = sorted(ids_js - (ids_html | ids_dinamicos_js))
-    ex.afirmar(not ids_faltando, "Todos os IDs consultados em app.js existem em index.html (ou template JS)", f"Faltando: {ids_faltando}")
+    ex.afirmar(not ids_faltando, "Todos os IDs consultados pelos módulos existem em index.html (ou template JS)", f"Faltando: {ids_faltando}")
 
     if com_servidor:
         proc_srv = subprocess.Popen(

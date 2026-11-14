@@ -31,25 +31,58 @@ test('history records equipment and gem changes even when FC and counters do not
   assert.equal(h.compararSnapshots(...history).alteracoesItens.length,1);
   delete global.localStorage;
 });
-test('shared link initializes the actual simulator and renders finite calculations', () => {
-  const hash=sharing.serializarBuildParaHash(build());
-  const w=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://example.test/?aba=simulador#'+hash,runScripts:'outside-only'}).window;
-  w.TextEncoder = TextEncoder;
+test('shared link initializes the actual simulator and renders finite calculations', async (t) => {
+  const hash = sharing.serializarBuildParaHash(build());
+  const w = new JSDOM(fs.readFileSync('index.html', 'utf8'), {
+    url: 'https://example.test/?aba=simulador#' + hash,
+    runScripts: 'outside-only',
+  }).window;
   const requested = [];
-  w.fetch=async(url)=>{ requested.push(String(url)); throw new Error('offline fixture'); };
-  for(const file of ['explicacoes.js','analise.js','historico.js','compartilhamento.js','app.js']) w.eval(fs.readFileSync(file,'utf8') + (file === 'app.js' ? '; window.reviewTop = () => { top1GeralDinamico = { nick: "regression_nick", plataforma: "kick", cls: "cleric" }; }; window.reviewPlanner = () => renderizarPlanejadorForjas(null); window.reviewState = () => estadoSimulador; window.reviewFC = () => calcularFc(estadoSimulador.cls, calcularStatusSimulados(estadoSimulador.cls, estadoSimulador.level, estadoSimulador.atributos, estadoSimulador.itens));' : ''));
-  assert.equal(w.reviewState().cls,'cleric');
-  assert.equal(w.reviewState().itens[0].gems.length,6);
-  assert.ok(Number.isFinite(w.reviewFC()));
-  w.reviewPlanner();
+  const globals = {
+    window: w,
+    document: w.document,
+    HTMLElement: w.HTMLElement,
+    Option: w.Option,
+    fetch: async (url) => {
+      requested.push(String(url));
+      const items = String(url).includes('/ranking/characters?')
+        ? [{ login: 'kick:regression_nick', cls: 'cleric', level: 700, power: 12345 }]
+        : [];
+      return { ok: true, status: 200, json: async () => ({ items }) };
+    },
+  };
+  for (const [key, value] of Object.entries(globals)) {
+    const anterior = Object.getOwnPropertyDescriptor(globalThis, key);
+    Object.defineProperty(globalThis, key, { configurable: true, value, writable: true });
+    t.after(() => {
+      if (anterior) Object.defineProperty(globalThis, key, anterior);
+      else delete globalThis[key];
+    });
+  }
+  w.TextEncoder = TextEncoder;
+  w.scrollTo = () => {};
+  t.after(() => w.close());
+  for (const file of ['explicacoes.js', 'analise.js', 'historico.js', 'compartilhamento.js']) {
+    w.eval(fs.readFileSync(file, 'utf8'));
+  }
+
+  await import('../app.mjs');
+  const { simulacao } = await import('../src/simulador/estado.mjs');
+  const { calcularFc, calcularStatusSimulados } = await import('../src/combate.mjs');
+  const { renderizarPlanejadorForjas } = await import('../src/forjas.mjs');
+  const { atualizarTop1Dinamicos } = await import('../src/panorama.mjs');
+  const { cls, level, atributos, itens } = simulacao.estadoSimulador;
+  assert.equal(cls, 'cleric');
+  assert.equal(itens[0].gems.length, 6);
+  assert.ok(Number.isFinite(calcularFc(cls, calcularStatusSimulados(cls, level, atributos, itens))));
+  renderizarPlanejadorForjas(null);
   const slots = [...w.document.querySelectorAll('#select-planejador-slot option')].map(node => node.textContent);
   assert.deepEqual(slots, ['Arma', 'Elmo', 'Armadura', 'Anel']);
   assert.doesNotMatch(w.document.querySelector('#select-planejador-slot').parentElement.parentElement.parentElement.textContent, /Minérios|500\.000/);
-  w.reviewTop();
+  await atualizarTop1Dinamicos();
   w.document.querySelector('[data-panorama-acao="consultar-top1"]').click();
   assert.equal(w.document.querySelector('#input-nick').value, 'regression_nick');
   assert.equal(w.document.querySelector('#select-plataforma').value, 'kick');
   assert.ok(requested.some(url => url.includes('kick%3Aregression_nick')));
   assert.ok(!requested.some(url => url.includes('/profile/undefined')));
-  w.close();
 });

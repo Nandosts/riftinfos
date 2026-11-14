@@ -12,6 +12,11 @@ API_REMOTA = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
 
 
 class ServidorRiftForjas(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        ".mjs": "text/javascript",
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(DIRETORIO_BASE), **kwargs)
 

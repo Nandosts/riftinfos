@@ -1,0 +1,39 @@
+/* Botões utilitários */
+.btn-secundario {
+  background: #26204b;
+  color: var(--cyan);
+  border: 2px solid var(--line);
+  box-shadow: 0 3px #18123a;
+}
+.btn-secundario:hover {
+  background: #352b70;
+  color: #fff;
+}
+.btn-compacto {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+.btn-mini {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  background: #26204b;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.btn-mini:hover {
+  background: #383070;
+  color: var(--gold);
+}
+.acoes-inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.muted { color: var(--muted); }
+.small { font-size: 0.82rem; }

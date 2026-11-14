@@ -1,0 +1,152 @@
+/* Modal de Escolha de Live (Twitch / Kick) */
+.modal-escolha-live {
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 0;
+  max-width: 440px;
+  width: 90vw;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+  color: var(--text);
+  margin: auto;
+}
+.modal-escolha-live::backdrop {
+  background: rgba(10, 7, 20, 0.75);
+  backdrop-filter: blur(3px);
+}
+.modal-live-caixa {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  padding: 18px 20px;
+  display: grid;
+  gap: 14px;
+}
+.modal-live-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+.modal-live-titulos {
+  display: grid;
+  gap: 2px;
+}
+.modal-live-subtitulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.modal-live-titulo {
+  margin: 0;
+  font-family: var(--pix);
+  font-size: 1.05rem;
+  color: var(--gold);
+}
+.btn-fechar-modal {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  min-height: auto;
+  box-shadow: none;
+}
+.btn-fechar-modal:hover {
+  color: #fff;
+  filter: none;
+}
+.modal-live-corpo {
+  display: grid;
+  gap: 12px;
+}
+.modal-live-status-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.badge-modal-stat {
+  font-size: 0.78rem;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  color: var(--text);
+}
+.modal-live-chamada {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.modal-live-links {
+  display: grid;
+  gap: 10px;
+}
+.btn-live-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: var(--panel-alt);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.btn-live-opcao:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+.btn-live-opcao.twitch {
+  border-color: rgba(145, 70, 255, 0.4);
+}
+.btn-live-opcao.twitch:hover {
+  background: #251842;
+  border-color: #9146ff;
+}
+.btn-live-opcao.kick {
+  border-color: rgba(83, 252, 24, 0.35);
+}
+.btn-live-opcao.kick:hover {
+  background: #112d1b;
+  border-color: #53fc18;
+}
+.icone-live-plat {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.dados-live-plat {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+.nome-live-plat {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+}
+.url-live-plat {
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-family: monospace;
+}
+.seta-live-link {
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+.modal-live-acoes-secundarias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+.modal-live-acoes-secundarias button {
+  flex: 1 1 140px;
+}

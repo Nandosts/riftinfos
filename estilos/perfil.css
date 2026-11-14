@@ -1,0 +1,169 @@
+/* Avisos de estado sem perfil */
+.aviso-vazio-perfil {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--cyan);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+.aviso-vazio-perfil strong { color: var(--text); }
+.aviso-aba-vazia {
+  background: var(--panel-alt);
+  border: 1px dashed var(--line);
+  padding: 20px;
+  margin-top: 18px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Subseções & Gelo/Fogo/Eventos */
+.bloco-subsecao {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+}
+.subpainel-topo {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.note-compacto {
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.tabela-gelo th, .tabela-gelo td {
+  text-align: center;
+  padding: 10px 8px;
+}
+.tabela-gelo th:first-child, .tabela-gelo td:first-child {
+  text-align: left;
+}
+.celula-gelo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.badge-gelo {
+  font-size: 0.78rem;
+  padding: 2px 7px;
+  background: #13253a;
+  border: 1px solid #2b5b8c;
+  color: var(--cyan);
+}
+.badge-gelo.alto {
+  background: #15354f;
+  border-color: var(--cyan);
+  color: #fff;
+  font-weight: 700;
+}
+.badge-fogo {
+  font-size: 0.78rem;
+  padding: 2px 7px;
+  background: #381814;
+  border: 1px solid #963c2b;
+  color: #ff9f7f;
+  font-weight: 700;
+}
+.chance-efetiva {
+  font-size: 0.74rem;
+  color: var(--gold);
+}
+
+.grade-cards-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+.card-info {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.card-info h4 {
+  margin: 0;
+  font-family: var(--pix);
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: 400;
+}
+.card-info-linha {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.84rem;
+  border-bottom: 1px solid #ffffff0d;
+  padding-bottom: 4px;
+}
+.card-info-linha > span { color: var(--muted); flex: 1 1 110px; min-width: 0; }
+.card-info-linha > strong {
+  color: var(--text);
+  text-align: right;
+  flex: 1 1 150px;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Análise Real de Combate do Jogador */
+.grade-combate {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+.card-combate {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  font-variant-numeric: tabular-nums;
+}
+.card-combate.destaque-dps { border-left: 4px solid var(--gold); }
+.card-combate.destaque-cura { border-left: 4px solid var(--green); }
+.card-combate.destaque-arma { border-left: 4px solid var(--cyan); }
+.card-combate.destaque-defesa { border-left: 4px solid #ff7a7a; }
+.card-combate-titulo {
+  font-family: var(--pix);
+  font-size: 0.86rem;
+  color: var(--gold);
+  margin: 0;
+}
+.metrica-principal {
+  font-family: var(--pix);
+  font-size: 1.25rem;
+  color: #fff;
+}
+.badge-status-skill {
+  display: inline-block;
+  font-size: 0.74rem;
+  padding: 2px 8px;
+  border: 1px solid;
+  width: fit-content;
+}
+.badge-status-skill.bug {
+  background: #3a121b;
+  border-color: #a8324a;
+  color: #ff9b90;
+}
+.badge-status-skill.ok {
+  background: #133322;
+  border-color: #2f855a;
+  color: var(--green);
+}
