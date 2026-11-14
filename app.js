@@ -60,42 +60,42 @@ const dadosClasses = {
 };
 
 const catalogoConjuntos = {
-  berserker: { nome: "Fúria do Berserker", classe: "warrior", armaKind: "bloodaxe", b2: { atk: 0.12 }, b3: { hp: 0.15, crit: 6 } },
-  lunar: { nome: "Ordem Lunar", classe: "cleric", armaKind: "moonstaff", b2: { hp: 0.12, def: 0.1 }, b3: { atk: 0.15, spd: 0.1 } },
-  wind: { nome: "Arqueiro do Vento", classe: "archer", armaKind: "yumi", b2: { atk: 0.1, spd: 0.05 }, b3: { crit: 6, spd: 0.1 } },
-  volcano: { nome: "Titã Vulcânico", classe: "warrior", armaKind: "magmablade", b2: { atk: 0.15, def: 0.1 }, b3: { hp: 0.2, atk: 0.12, crit: 5 } },
-  reaperset: { nome: "Ceifador Espectral", classe: "warrior", armaKind: "reaper", b2: { atk: 0.1, crit: 6 }, b3: { atk: 0.2, spd: 0.1 } },
-  dawn: { nome: "Serafim da Aurora", classe: "cleric", armaKind: "dawnscepter", b2: { hp: 0.18, def: 0.1 }, b3: { atk: 0.25, hp: 0.12 } },
-  abyss: { nome: "Arconte do Vazio", classe: "cleric", armaKind: "voidstaff", b2: { atk: 0.15, crit: 5 }, b3: { atk: 0.2, spd: 0.12 } },
-  stellar: { nome: "Caçador Estelar", classe: "archer", armaKind: "starbow", b2: { atk: 0.12, spd: 0.08 }, b3: { crit: 8, atk: 0.15 } },
-  cosmicvan: { nome: "Vanguarda Cósmica", classe: "warrior", armaKind: "sword", b2: { atk: 0.1, def: 0.08 }, b3: { hp: 0.15, atk: 0.1 } },
-  oracle: { nome: "Oráculo Interestelar", classe: "cleric", armaKind: "staff", b2: { hp: 0.12, atk: 0.08 }, b3: { atk: 0.15, spd: 0.1 } },
-  etehunter: { nome: "Caçador de Etês", classe: "archer", armaKind: "piercebow", b2: { atk: 0.1, crit: 5 }, b3: { crit: 8, spd: 0.1 } },
-  prism: { nome: "Mestre Prismático", classe: "archer", armaKind: "prismbow", b2: { atk: 0.12, crit: 6 }, b3: { hp: 0.1, atk: 0.2, spd: 0.1 } },
-  ember: { nome: "Brasa Eterna", classe: "warrior", armaKind: "emberblade", b2: { hp: 0.2, def: 0.15 }, b3: { atk: 0.3, hp: 0.25 } },
-  gore: { nome: "Carnificina", classe: "warrior", armaKind: "gorecleaver", b2: { atk: 0.25, crit: 8 }, b3: { atk: 0.4, spd: 0.15 } },
-  echo: { nome: "Eco Rubro", classe: "cleric", armaKind: "echostaff", b2: { hp: 0.2, atk: 0.15 }, b3: { atk: 0.35, spd: 0.2 } },
-  communion: { nome: "Comunhão Rubra", classe: "cleric", armaKind: "commscepter", b2: { hp: 0.25, def: 0.15 }, b3: { atk: 0.3, hp: 0.25 } },
-  predator: { nome: "Predador Carmesim", classe: "archer", armaKind: "predbow", b2: { atk: 0.2, crit: 8 }, b3: { atk: 0.3, crit: 10, spd: 0.1 } },
-  tempest: { nome: "Tempestade Escarlate", classe: "archer", armaKind: "tempbow", b2: { atk: 0.2, spd: 0.12 }, b3: { atk: 0.3, spd: 0.25 } },
-  chrono: { nome: "Cronarca", classe: "warrior", armaKind: "chronoblade", b2: { def: 0.15, spd: 0.12 }, b3: { atk: 0.3, spd: 0.2, hp: 0.15 } },
-  singular: { nome: "Singularidade", classe: "warrior", armaKind: "singblade", b2: { atk: 0.25, crit: 6 }, b3: { atk: 0.4, hp: 0.2, crit: 10 } },
-  constel: { nome: "Constelação", classe: "cleric", armaKind: "conststaff", b2: { hp: 0.22, def: 0.15 }, b3: { atk: 0.3, hp: 0.25, spd: 0.1 } },
-  worldtree: { nome: "Árvore-Mundo", classe: "cleric", armaKind: "worldstaff", b2: { hp: 0.3, atk: 0.1 }, b3: { atk: 0.4, atk: 0.25 } },
-  luna: { nome: "Luar Prateado", classe: "archer", armaKind: "lunabow", b2: { atk: 0.22, spd: 0.1 }, b3: { atk: 0.35, crit: 8, spd: 0.1 } },
-  dragon: { nome: "Dragão Ancestral", classe: "archer", armaKind: "dragonbow", b2: { atk: 0.2, crit: 8 }, b3: { atk: 0.4, hp: 0.15, crit: 10 } },
-  tamer: { nome: "Domador de Feras", classe: "warrior", armaKind: "tamerwhip", b2: { atk: 0.3, hp: 0.2 }, b3: { atk: 0.55, hp: 0.25, spd: 0.15 } },
-  strongman: { nome: "Homem-Forte", classe: "warrior", armaKind: "strongmallet", b2: { hp: 0.35, def: 0.25 }, b3: { atk: 0.5, hp: 0.4, crit: 10 } },
-  illusion: { nome: "Ilusionista", classe: "cleric", armaKind: "magewand", b2: { hp: 0.3, atk: 0.25 }, b3: { atk: 0.5, hp: 0.3, spd: 0.2 } },
-  fortune: { nome: "Madame Cartomante", classe: "cleric", armaKind: "crystalball", b2: { hp: 0.35, def: 0.2 }, b3: { atk: 0.35, hp: 0.55 } },
-  trapeze: { nome: "Trapezista", classe: "archer", armaKind: "trapezebow", b2: { atk: 0.3, spd: 0.15 }, b3: { atk: 0.5, crit: 12, spd: 0.25 } },
-  firework: { nome: "Pirotécnico", classe: "archer", armaKind: "fireworkbow", b2: { atk: 0.3, crit: 10 }, b3: { atk: 0.6, crit: 15, hp: 0.15 } },
-  obsidian: { nome: "Titã de Obsidiana", classe: "warrior", armaKind: "obsidblade", b2: { hp: 0.3, def: 0.3 }, b3: { atk: 0.45, hp: 0.45, def: 0.15 } },
-  thunderlord: { nome: "Senhor do Trovão", classe: "warrior", armaKind: "thunderaxe", b2: { atk: 0.35, crit: 10 }, b3: { atk: 0.6, crit: 15, spd: 0.15 } },
-  seraphgold: { nome: "Serafim Dourado", classe: "cleric", armaKind: "serafscepter", b2: { hp: 0.35, atk: 0.25 }, b3: { hp: 0.55, atk: 0.4, spd: 0.1 } },
-  eclipsepriest: { nome: "Sacerdote do Eclipse", classe: "cleric", armaKind: "eclipsestaff", b2: { atk: 0.3, def: 0.2 }, b3: { atk: 0.55, hp: 0.3, spd: 0.2 } },
-  auroraborealis: { nome: "Aurora Boreal", classe: "archer", armaKind: "aurorabow", b2: { atk: 0.25, spd: 0.2 }, b3: { atk: 0.45, spd: 0.2, hp: 0.2 } },
-  abysshunter: { nome: "Caçador Abissal", classe: "archer", armaKind: "abyssbow", b2: { atk: 0.35, crit: 12 }, b3: { atk: 0.6, crit: 18, hp: 0.1 } },
+  berserker: { nome: "Fúria do Berserker", classe: "warrior", armaKind: "bloodaxe", armaNome: "Machado Sanguinário", elmoKind: "berserkhelm", elmoNome: "Elmo do Berserker", armaduraKind: "berserkhide", armaduraNome: "Couro do Berserker", raridadePadrao: 4, b2: { atk: 0.12 }, b3: { hp: 0.15, crit: 6 } },
+  lunar: { nome: "Ordem Lunar", classe: "cleric", armaKind: "moonstaff", armaNome: "Cajado Lunar", elmoKind: "moonveil", elmoNome: "Véu Lunar", armaduraKind: "moonrobe", armaduraNome: "Manto Lunar", raridadePadrao: 4, b2: { hp: 0.12, def: 0.1 }, b3: { atk: 0.15, spd: 0.1 } },
+  wind: { nome: "Arqueiro do Vento", classe: "archer", armaKind: "yumi", armaNome: "Yumi", elmoKind: "kasa", elmoNome: "Kasa", armaduraKind: "kyudogi", armaduraNome: "Kyudogi", raridadePadrao: 4, b2: { atk: 0.1, spd: 0.05 }, b3: { crit: 6, spd: 0.1 } },
+  volcano: { nome: "Titã Vulcânico", classe: "warrior", armaKind: "magmablade", armaNome: "Lâmina Vulcânica", elmoKind: "magmahelm", elmoNome: "Elmo Vulcânico", armaduraKind: "magmaplate", armaduraNome: "Couraça Vulcânica", raridadePadrao: 4, b2: { atk: 0.15, def: 0.1 }, b3: { hp: 0.2, atk: 0.12, crit: 5 } },
+  reaperset: { nome: "Ceifador Espectral", classe: "warrior", armaKind: "reaper", armaNome: "Foice do Ceifador", elmoKind: "reaperhood", elmoNome: "Capuz do Ceifador", armaduraKind: "reapergarb", armaduraNome: "Mortalha do Ceifador", raridadePadrao: 4, b2: { atk: 0.1, crit: 6 }, b3: { atk: 0.2, spd: 0.1 } },
+  dawn: { nome: "Serafim da Aurora", classe: "cleric", armaKind: "dawnscepter", armaNome: "Cetro da Aurora", elmoKind: "dawnhalo", elmoNome: "Diadema da Aurora", armaduraKind: "dawnrobe", armaduraNome: "Vestes da Aurora", raridadePadrao: 4, b2: { hp: 0.18, def: 0.1 }, b3: { atk: 0.25, hp: 0.12 } },
+  abyss: { nome: "Arconte do Vazio", classe: "cleric", armaKind: "voidstaff", armaNome: "Cajado do Vazio", elmoKind: "voidmask", elmoNome: "Máscara do Vazio", armaduraKind: "voidrobe", armaduraNome: "Vestes do Vazio", raridadePadrao: 4, b2: { atk: 0.15, crit: 5 }, b3: { atk: 0.2, spd: 0.12 } },
+  stellar: { nome: "Caçador Estelar", classe: "archer", armaKind: "starbow", armaNome: "Arco Estelar", elmoKind: "startiara", elmoNome: "Tiara Estelar", armaduraKind: "starcloak", armaduraNome: "Manto Estelar", raridadePadrao: 4, b2: { atk: 0.12, spd: 0.08 }, b3: { crit: 8, atk: 0.15 } },
+  cosmicvan: { nome: "Vanguarda Cósmica", classe: "warrior", armaKind: "plasmablade", armaNome: "Sabre de Plasma", elmoKind: "spacehelm", elmoNome: "Capacete de Astronauta", armaduraKind: "spacearmor", armaduraNome: "Armadura Espacial", raridadePadrao: 4, b2: { atk: 0.1, def: 0.08 }, b3: { hp: 0.15, atk: 0.1 } },
+  oracle: { nome: "Oráculo Interestelar", classe: "cleric", armaKind: "orbstaff", armaNome: "Cajado Orbital", elmoKind: "antennae", elmoNome: "Antenas de Etê", armaduraKind: "nebularobe", armaduraNome: "Manto da Nebulosa", raridadePadrao: 4, b2: { hp: 0.12, atk: 0.08 }, b3: { atk: 0.15, spd: 0.1 } },
+  etehunter: { nome: "Caçador de Etês", classe: "archer", armaKind: "plasmabow", armaNome: "Arco de Plasma", elmoKind: "visor", elmoNome: "Visor Ciborgue", armaduraKind: "stealthsuit", armaduraNome: "Traje de Camuflagem", raridadePadrao: 4, b2: { atk: 0.1, crit: 5 }, b3: { crit: 8, spd: 0.1 } },
+  prism: { nome: "Mestre Prismático", classe: "archer", armaKind: "prismbow", armaNome: "Arco Prismático", elmoKind: "prismhelm", elmoNome: "Elmo Prismático", armaduraKind: "prismvest", armaduraNome: "Colete Prismático", raridadePadrao: 4, b2: { atk: 0.12, crit: 6 }, b3: { hp: 0.1, atk: 0.2, spd: 0.1 } },
+  ember: { nome: "Brasa Eterna", classe: "warrior", armaKind: "emberblade", armaNome: "Lâmina da Brasa Eterna", elmoKind: "emberhelm", elmoNome: "Elmo da Brasa Eterna", armaduraKind: "emberplate", armaduraNome: "Couraça da Brasa Eterna", raridadePadrao: 6, b2: { hp: 0.2, def: 0.15 }, b3: { atk: 0.3, hp: 0.25 } },
+  gore: { nome: "Carnificina", classe: "warrior", armaKind: "gorecleaver", armaNome: "Ceifa-Reis", elmoKind: "gorehelm", elmoNome: "Elmo da Carnificina", armaduraKind: "goreplate", armaduraNome: "Couraça da Carnificina", raridadePadrao: 6, b2: { atk: 0.25, crit: 8 }, b3: { atk: 0.4, spd: 0.15 } },
+  echo: { nome: "Eco Rubro", classe: "cleric", armaKind: "echostaff", armaNome: "Cajado do Eco Rubro", elmoKind: "echoveil", elmoNome: "Véu do Eco Rubro", armaduraKind: "echorobe", armaduraNome: "Vestes do Eco Rubro", raridadePadrao: 6, b2: { hp: 0.2, atk: 0.15 }, b3: { atk: 0.35, spd: 0.2 } },
+  communion: { nome: "Comunhão Rubra", classe: "cleric", armaKind: "commscepter", armaNome: "Cetro da Comunhão Rubra", elmoKind: "commhalo", elmoNome: "Auréola da Comunhão Rubra", armaduraKind: "commrobe", armaduraNome: "Vestes da Comunhão Rubra", raridadePadrao: 6, b2: { hp: 0.25, def: 0.15 }, b3: { atk: 0.3, hp: 0.25 } },
+  predator: { nome: "Predador Carmesim", classe: "archer", armaKind: "predbow", armaNome: "Arco do Predador Carmesim", elmoKind: "predhood", elmoNome: "Capuz do Predador Carmesim", armaduraKind: "predcloak", armaduraNome: "Manto do Predador Carmesim", raridadePadrao: 6, b2: { atk: 0.2, crit: 8 }, b3: { atk: 0.3, crit: 10, spd: 0.1 } },
+  tempest: { nome: "Tempestade Escarlate", classe: "archer", armaKind: "tempbow", armaNome: "Arco da Tempestade Escarlate", elmoKind: "tempmask", elmoNome: "Máscara da Tempestade Escarlate", armaduraKind: "tempvest", armaduraNome: "Colete da Tempestade Escarlate", raridadePadrao: 6, b2: { atk: 0.2, spd: 0.12 }, b3: { atk: 0.3, spd: 0.25 } },
+  chrono: { nome: "Cronarca", classe: "warrior", armaKind: "chronoblade", armaNome: "Lâmina do Cronarca", elmoKind: "chronohelm", elmoNome: "Elmo do Cronarca", armaduraKind: "chronoplate", armaduraNome: "Couraça do Cronarca", raridadePadrao: 6, b2: { def: 0.15, spd: 0.12 }, b3: { atk: 0.3, spd: 0.2, hp: 0.15 } },
+  singular: { nome: "Singularidade", classe: "warrior", armaKind: "singblade", armaNome: "Lâmina da Singularidade", elmoKind: "singhelm", elmoNome: "Elmo da Singularidade", armaduraKind: "singplate", armaduraNome: "Couraça da Singularidade", raridadePadrao: 6, b2: { atk: 0.25, crit: 6 }, b3: { atk: 0.4, hp: 0.2, crit: 10 } },
+  constel: { nome: "Constelação", classe: "cleric", armaKind: "conststaff", armaNome: "Cajado da Constelação", elmoKind: "consthalo", elmoNome: "Diadema da Constelação", armaduraKind: "constrobe", armaduraNome: "Vestes da Constelação", raridadePadrao: 6, b2: { hp: 0.22, def: 0.15 }, b3: { atk: 0.3, hp: 0.25, spd: 0.1 } },
+  worldtree: { nome: "Árvore-Mundo", classe: "cleric", armaKind: "worldstaff", armaNome: "Cajado da Árvore-Mundo", elmoKind: "worldcrown", elmoNome: "Coroa da Árvore-Mundo", armaduraKind: "worldrobe", armaduraNome: "Vestes da Árvore-Mundo", raridadePadrao: 6, b2: { hp: 0.3, atk: 0.1 }, b3: { hp: 0.4, atk: 0.25 } },
+  luna: { nome: "Luar Prateado", classe: "archer", armaKind: "lunabow", armaNome: "Arco do Luar Prateado", elmoKind: "lunahood", elmoNome: "Capuz do Luar Prateado", armaduraKind: "lunacloak", armaduraNome: "Manto do Luar Prateado", raridadePadrao: 6, b2: { atk: 0.22, spd: 0.1 }, b3: { atk: 0.35, crit: 8, spd: 0.1 } },
+  dragon: { nome: "Dragão Ancestral", classe: "archer", armaKind: "dragonbow", armaNome: "Arco do Dragão Ancestral", elmoKind: "dragonmask", elmoNome: "Máscara do Dragão Ancestral", armaduraKind: "dragonvest", armaduraNome: "Colete do Dragão Ancestral", raridadePadrao: 6, b2: { atk: 0.2, crit: 8 }, b3: { atk: 0.4, hp: 0.15, crit: 10 } },
+  tamer: { nome: "Domador de Feras", classe: "warrior", armaKind: "tamerwhip", armaNome: "Chicote do Domador", elmoKind: "tamermane", elmoNome: "Juba do Domador", armaduraKind: "tamercoat", armaduraNome: "Casaca do Domador", raridadePadrao: 7, b2: { atk: 0.3, hp: 0.2 }, b3: { atk: 0.55, hp: 0.25, spd: 0.15 } },
+  strongman: { nome: "Homem-Forte", classe: "warrior", armaKind: "strongmallet", armaNome: "Marreta do Homem-Forte", elmoKind: "strongcap", elmoNome: "Boina do Homem-Forte", armaduraKind: "strongsuit", armaduraNome: "Collant do Homem-Forte", raridadePadrao: 7, b2: { hp: 0.35, def: 0.25 }, b3: { atk: 0.5, hp: 0.4, crit: 10 } },
+  illusion: { nome: "Ilusionista", classe: "cleric", armaKind: "magewand", armaNome: "Varinha da Cartola", elmoKind: "magetop", elmoNome: "Cartola do Ilusionista", armaduraKind: "magecape", armaduraNome: "Capa do Ilusionista", raridadePadrao: 7, b2: { hp: 0.3, atk: 0.25 }, b3: { atk: 0.5, hp: 0.3, spd: 0.2 } },
+  fortune: { nome: "Madame Cartomante", classe: "cleric", armaKind: "crystalball", armaNome: "Bola de Cristal da Madame", elmoKind: "madamturban", elmoNome: "Turbante da Madame", armaduraKind: "madamshawl", armaduraNome: "Xale da Madame", raridadePadrao: 7, b2: { hp: 0.35, def: 0.2 }, b3: { atk: 0.35, hp: 0.55 } },
+  trapeze: { nome: "Trapezista", classe: "archer", armaKind: "trapezebow", armaNome: "Arco do Trapézio", elmoKind: "trapezemask", elmoNome: "Máscara do Trapezista", armaduraKind: "trapezesuit", armaduraNome: "Maiô do Trapezista", raridadePadrao: 7, b2: { atk: 0.3, spd: 0.15 }, b3: { atk: 0.5, crit: 12, spd: 0.25 } },
+  firework: { nome: "Pirotécnico", classe: "archer", armaKind: "fireworkbow", armaNome: "Arco de Fogos de Artifício", elmoKind: "fireworkhat", elmoNome: "Chapéu do Pirotécnico", armaduraKind: "fireworkvest", armaduraNome: "Bandoleira do Pirotécnico", raridadePadrao: 7, b2: { atk: 0.3, crit: 10 }, b3: { atk: 0.6, crit: 15, hp: 0.15 } },
+  obsidian: { nome: "Titã de Obsidiana", classe: "warrior", armaKind: "obsidblade", armaNome: "Montante de Obsidiana", elmoKind: "obsidhelm", elmoNome: "Elmo do Titã de Obsidiana", armaduraKind: "obsidplate", armaduraNome: "Couraça do Titã de Obsidiana", raridadePadrao: 7, b2: { hp: 0.3, def: 0.3 }, b3: { atk: 0.45, hp: 0.45, def: 0.15 } },
+  thunderlord: { nome: "Senhor do Trovão", classe: "warrior", armaKind: "thunderaxe", armaNome: "Machado do Trovão", elmoKind: "thunderhelm", elmoNome: "Elmo Alado do Trovão", armaduraKind: "thunderplate", armaduraNome: "Couraça do Trovão", raridadePadrao: 7, b2: { atk: 0.35, crit: 10 }, b3: { atk: 0.6, crit: 15, spd: 0.15 } },
+  seraphgold: { nome: "Serafim Dourado", classe: "cleric", armaKind: "serafscepter", armaNome: "Cetro do Serafim", elmoKind: "serafhalo", elmoNome: "Auréola do Serafim", armaduraKind: "serafrobe", armaduraNome: "Manto do Serafim", raridadePadrao: 7, b2: { hp: 0.35, atk: 0.25 }, b3: { hp: 0.55, atk: 0.4, spd: 0.1 } },
+  eclipsepriest: { nome: "Sacerdote do Eclipse", classe: "cleric", armaKind: "eclipsestaff", armaNome: "Cajado do Eclipse", elmoKind: "eclipsehood", elmoNome: "Capuz do Eclipse", armaduraKind: "eclipserobe", armaduraNome: "Túnica do Eclipse", raridadePadrao: 7, b2: { atk: 0.3, def: 0.2 }, b3: { atk: 0.55, hp: 0.3, spd: 0.2 } },
+  auroraborealis: { nome: "Aurora Boreal", classe: "archer", armaKind: "aurorabow", armaNome: "Arco da Aurora Boreal", elmoKind: "aurorahood", elmoNome: "Capuz da Aurora Boreal", armaduraKind: "auroracloak", armaduraNome: "Manto da Aurora Boreal", raridadePadrao: 7, b2: { atk: 0.25, spd: 0.2 }, b3: { atk: 0.45, spd: 0.2, hp: 0.2 } },
+  abysshunter: { nome: "Caçador Abissal", classe: "archer", armaKind: "abyssbow", armaNome: "Arco Abissal", elmoKind: "abyssmask", elmoNome: "Máscara Abissal", armaduraKind: "abyssvest", armaduraNome: "Colete Abissal", raridadePadrao: 7, b2: { atk: 0.35, crit: 12 }, b3: { atk: 0.6, crit: 18, hp: 0.1 } },
 };
 
 const catalogoArmas = {
@@ -107,6 +107,7 @@ const catalogoArmas = {
   shockblade: { nome: "Espada de Choque", classe: "warrior", cdMult: 1.15, skillMult: 1.35, skillAlvos: 4, notaSkill: "Descarga elétrica em área (1,35×)." },
   chainblade: { nome: "Corrente Abissal", classe: "warrior", cdMult: 1.1, skillMult: 1.65, skillAlvos: 6, notaSkill: "Corrente em até 6 inimigos (1,65×)." },
   bloodaxe: { nome: "Machado Sanguinário", classe: "warrior", cdMult: 1.0, skillMult: 1.5, skillAlvos: 1, notaSkill: "Conjunto Fúria do Berserker." },
+  plasmablade: { nome: "Sabre de Plasma", classe: "warrior", cdMult: 1.0, skillMult: 1.5, skillAlvos: 1, notaSkill: "Conjunto Vanguarda Cósmica." },
   magmablade: { nome: "Lâmina Vulcânica", classe: "warrior", cdMult: 1.2, skillMult: 1.5, skillAlvos: 5, notaSkill: "Onda de magma frontal (1,5×)." },
   reaper: { nome: "Foice do Ceifador", classe: "warrior", cdMult: 1.0, skillMult: 1.305, skillAlvos: 2, notaSkill: "1,305× + executa monstros com <20% de vida." },
   emberblade: {
@@ -182,6 +183,7 @@ const catalogoArmas = {
   rainbow: { nome: "Arco da Chuva", classe: "archer", cdMult: 1.2, skillMult: 0.42, skillAlvos: 22, skillSemCrit: true, notaSkill: "22 flechas em área (0,42× cada); também usa hit direto sem crítico." },
   piercebow: { nome: "Arco Perfurante", classe: "archer", cdMult: 1.1, skillMult: 2.2, skillAlvos: 3, notaSkill: "Flecha perfurante na linha (2,2× ATK)." },
   yumi: { nome: "Yumi", classe: "archer", cdMult: 1.0, skillMult: 1.1, skillAlvos: 3, notaSkill: "Arco tradicional (Kyudogi)." },
+  plasmabow: { nome: "Arco de Plasma", classe: "archer", cdMult: 1.0, skillMult: 1.1, skillAlvos: 3, notaSkill: "Conjunto Caçador de Etês." },
   starbow: { nome: "Arco Estelar", classe: "archer", cdMult: 1.25, skillMult: 3.52, skillAlvos: 3, notaSkill: "Chuva meteórica: 3,52× centro e 1,76× em área." },
   prismbow: { nome: "Arco Prismático", classe: "archer", cdMult: 1.1, skillMult: 1.4, skillAlvos: 6, notaSkill: "Até 6 ricochetes luminosos (~1,40× × 0,92^i)." },
   predbow: {
@@ -257,6 +259,7 @@ const catalogoArmas = {
   froststaff: { nome: "Cajado Glacial", classe: "cleric", cdMult: 1.1, skillTipo: "dano", skillMult: 1.2, skillAlvos: 3, notaSkill: "Ataca até 3 inimigos (1,2× c/ crítico e velocidade) e congela 0,5s." },
   lantern: { nome: "Lanterna das Almas", classe: "cleric", cdMult: 1.25, skillTipo: "misto", skillMult: 0.3, curaMult: 0.14 * 8, skillAlvos: 3, notaSkill: "8 pulsos em área (0,14× cura + 0,3× dano holy)." },
   moonstaff: { nome: "Cajado Lunar", classe: "cleric", cdMult: 1.0, skillTipo: "cura", curaMult: 0.85, notaSkill: "Conjunto Ordem Lunar." },
+  orbstaff: { nome: "Cajado Orbital", classe: "cleric", cdMult: 1.0, skillTipo: "cura", curaMult: 0.85, notaSkill: "Conjunto Oráculo Interestelar." },
   dawnscepter: { nome: "Cetro da Aurora", classe: "cleric", cdMult: 1.2, skillTipo: "cura", curaMult: 0.3, escudoMult: 1.2, notaSkill: "Cura 30% e aplica escudo de 120% do Poder de Cura no time." },
   voidstaff: { nome: "Cajado do Vazio", classe: "cleric", cdMult: 1.3, skillTipo: "dano", skillMult: 0.45 * 7 + 1.2, skillAlvos: 4, notaSkill: "Buraco negro: 7 ticks de 0,45× + implosão 1,2× (com crítico)." },
   echostaff: {
@@ -327,6 +330,10 @@ const catalogoArmas = {
 };
 
 const catalogoAneis = {
+  2: { nome: "Anel Áureo", raridadeMin: 4, efeito: "Aura dourada com fagulhas subindo." },
+  7: { nome: "Anel do Eclipse", raridadeMin: 4, efeito: "Um eclipse negro de coroa brilhante gira atrás do herói, com poeira violeta." },
+  8: { nome: "Anel da Aurora Boreal", raridadeMin: 4, efeito: "Cortinas de luz verde, azul e rosa ondulam em volta do herói." },
+  9: { nome: "Anel da Supernova", raridadeMin: 4, efeito: "Núcleo incandescente e ondas de choque que se expandem de tempos em tempos." },
   10: { nome: "Anel da Sede Escarlate", raridadeMin: 6, efeito: "Aplica sangramento contínuo ignorando defesa." },
   11: { nome: "Anel do Sanguessuga", raridadeMin: 6, efeito: "Roubo de vida de 8% sobre todo o dano causado." },
   12: { nome: "Anel do Carrasco", raridadeMin: 6, efeito: "+60% de dano contra inimigos com <=30% HP (amplifica Singularidade até 8%)." },
@@ -689,6 +696,11 @@ let requisicaoAtiva;
 let requisicaoRadarAtiva;
 let abaAtualAtiva = "resumo";
 let simuladorEditadoManual = false;
+let modoVisualizacaoSimulador = "ficha"; // "ficha" (Modo Criativo / MyPers) ou "lista" (Lista Completa)
+let slotSelecionadoSimulador = 0; // 0 = weapon, 1 = helmet, 2 = armor, 3 = ring
+let modoRolagemGemaSimulador = "max"; // "max" (115%), "media" (100%), "sorteio" (85%-115%)
+let autoCalcularStatsItemSimulador = true;
+let filtroConjuntoSlotSimulador = "classe"; // "classe" ou "todos"
 let estadoSimulador = criarModeloSimuladorPadrao();
 let historicoDesfazerSimulador = [];
 let ultimosDadosRadar = null;
@@ -2840,6 +2852,14 @@ const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5];
 const escalaGemasXz = [1, 2, 3.5, 6, 9];
 const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
 
+const multiplicadoresRaridadeItem = [0.35, 0.45, 0.55, 0.68, 0.78, 0.84, 0.92, 1.0];
+
+function obterRollFixoModoGema() {
+  if (modoRolagemGemaSimulador === "max") return 1.15;
+  if (modoRolagemGemaSimulador === "media") return 1.0;
+  return null;
+}
+
 function sortearRolagemGema() {
   // Intervalo oficial do jogo: 0.85 a 1.15
   return 0.85 + Math.random() * 0.30;
@@ -2859,13 +2879,14 @@ function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, ro
   return Math.max(1, Math.round(basePlana * roll));
 }
 
-function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, rollFixo = null) {
+function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, rollFixo = undefined) {
   if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return null;
   const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
   const t = Math.min(5, Math.max(1, Number(tier) || 5));
 
-  const roll1 = typeof rollFixo === "number" ? rollFixo : sortearRolagemGema();
-  const roll2 = typeof rollFixo === "number" ? rollFixo : sortearRolagemGema();
+  const rollModo = rollFixo === undefined ? obterRollFixoModoGema() : rollFixo;
+  const roll1 = typeof rollModo === "number" ? rollModo : sortearRolagemGema();
+  const roll2 = typeof rollModo === "number" ? rollModo : sortearRolagemGema();
 
   const val1 = calcularValorGemaOficial(spec.stat, t, itemLevel, spec.pct, roll1);
   const gema = {
@@ -2887,13 +2908,111 @@ function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, rollFixo = null)
   return gema;
 }
 
+function recalcularGemasItem(item, rollForcado = undefined) {
+  if (!item || !Array.isArray(item.gems)) return;
+  const rollUsar = rollForcado === undefined ? obterRollFixoModoGema() : rollForcado;
+  item.gems = item.gems.map((g) => {
+    if (!g || !g.type) return null;
+    const tierGema = Number(g.tier || item.gemTierPadrao || 5);
+    return criarGemaPreset(g.type, item.slot, tierGema, item.itemLevel || 100, rollUsar);
+  });
+}
+
+function recalcularGemasBuildComModo(rollForcado = undefined) {
+  estadoSimulador.itens.forEach((item) => {
+    recalcularGemasItem(item, rollForcado);
+  });
+}
+
+function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250) {
+  const idxRaridade = Math.min(7, Math.max(0, Number(raridade) || 0));
+  const multRar = multiplicadoresRaridadeItem[idxRaridade] ?? 1.0;
+  const nv = Math.max(1, Number(itemLevel) || 1);
+
+  if (slot === "weapon") {
+    return {
+      atk: Math.round(nv * 10.9 * multRar),
+      def: Math.round(nv * 2.78 * multRar),
+      hp: Math.round(nv * 12.1 * multRar),
+      crit: Math.round(nv * 0.455 * multRar),
+      spd: Math.max(4, Math.round(11 * multRar)),
+    };
+  }
+  if (slot === "helmet") {
+    return {
+      atk: Math.round(nv * 3.63 * multRar),
+      def: Math.round(nv * 3.64 * multRar),
+      hp: Math.round(nv * 15.8 * multRar),
+      crit: Math.round(nv * 0.455 * multRar),
+      spd: Math.max(4, Math.round(10 * multRar)),
+    };
+  }
+  if (slot === "armor") {
+    return {
+      atk: Math.round(nv * 3.63 * multRar),
+      def: Math.round(nv * 6.38 * multRar),
+      hp: Math.round(nv * 22.8 * multRar),
+      crit: Math.round(nv * 0.455 * multRar),
+      spd: Math.max(4, Math.round(9 * multRar)),
+    };
+  }
+  return {
+    atk: Math.round(nv * 3.68 * multRar),
+    def: Math.round(nv * 2.40 * multRar),
+    hp: Math.round(nv * 14.5 * multRar),
+    crit: Math.round(nv * 0.60 * multRar),
+    spd: Math.max(5, Math.round(15 * multRar)),
+  };
+}
+
+function aplicarAtributosPadraoNoItem(item, recalcularGemas = true) {
+  if (!item) return;
+  const stats = calcularAtributosPadraoPeca(item.slot, estadoSimulador.cls, item.rarity, item.itemLevel);
+  item.atk = stats.atk;
+  item.def = stats.def;
+  item.hp = stats.hp;
+  item.crit = stats.crit;
+  item.spd = stats.spd;
+  if (recalcularGemas) {
+    recalcularGemasItem(item);
+  }
+}
+
+function obterNomeOficialPecaConjunto(setKey, slot) {
+  const info = catalogoConjuntos[setKey];
+  if (!info) return `Peça (${nomesSlots[slot] || slot})`;
+  if (slot === "weapon") return info.armaNome || catalogoArmas[info.armaKind]?.nome || `Arma (${info.nome})`;
+  if (slot === "helmet") return info.elmoNome || `Elmo (${info.nome})`;
+  if (slot === "armor") return info.armaduraNome || `Armadura (${info.nome})`;
+  return `Peça (${info.nome})`;
+}
+
+function formatarBonusConjuntoCurto(bonusObj) {
+  if (!bonusObj) return "—";
+  const partes = [];
+  if (bonusObj.atk) partes.push(`+${Math.round(bonusObj.atk * 100)}% ATK`);
+  if (bonusObj.hp) partes.push(`+${Math.round(bonusObj.hp * 100)}% HP`);
+  if (bonusObj.def) partes.push(`+${Math.round(bonusObj.def * 100)}% DEF`);
+  if (bonusObj.spd) partes.push(`+${Math.round(bonusObj.spd * 100)}% VEL`);
+  if (bonusObj.crit) partes.push(`+${bonusObj.crit}% CRÍT`);
+  return partes.join(" · ") || "—";
+}
+
 function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300) {
   if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return "";
   const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
   const t = Math.min(5, Math.max(1, Number(tier) || 5));
+  const rollModo = obterRollFixoModoGema();
 
-  const fmtRange = (st, pct) => {
+  const fmtTexto = (st, pct) => {
     const rot = rotulosStats[st] || st.toUpperCase();
+    if (typeof rollModo === "number") {
+      const val = calcularValorGemaOficial(st, t, itemLevel, pct, rollModo);
+      if (pct) {
+        return `+${(val / 10).toFixed(1).replace(".", ",")}% ${rot}`;
+      }
+      return `+${val} ${rot}`;
+    }
     const min = calcularValorGemaOficial(st, t, itemLevel, pct, 0.85);
     const max = calcularValorGemaOficial(st, t, itemLevel, pct, 1.15);
     if (pct) {
@@ -2902,9 +3021,9 @@ function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300) {
     return `+${min} a +${max} ${rot}`;
   };
 
-  let txt = fmtRange(spec.stat, spec.pct);
+  let txt = fmtTexto(spec.stat, spec.pct);
   if (t >= 5 && spec.stat2) {
-    txt += ` · ${fmtRange(spec.stat2, spec.pct2)}`;
+    txt += ` · ${fmtTexto(spec.stat2, spec.pct2)}`;
   }
   return txt;
 }
@@ -3288,11 +3407,785 @@ function renderizarCompararMelhorias() {
 }
 
 const slotsAbertosSimulador = new Set([0]);
+const iconesSlotsSimulador = { weapon: "🗡️", helmet: "🪖", armor: "🛡️", ring: "💍" };
+
+function equiparConjuntoCompletoSimulador(setKey) {
+  const infoSet = catalogoConjuntos[setKey];
+  if (!infoSet) return;
+  [0, 1, 2].forEach((idx) => {
+    const it = estadoSimulador.itens[idx];
+    if (!it) return;
+    it.set = setKey;
+    if (idx === 0) {
+      it.kind = infoSet.armaKind || it.kind || "";
+      it.name = infoSet.armaNome || catalogoArmas[infoSet.armaKind]?.nome || it.name;
+    } else if (idx === 1) {
+      it.kind = infoSet.elmoKind || it.kind || "";
+      it.name = infoSet.elmoNome || `Elmo (${infoSet.nome})`;
+    } else if (idx === 2) {
+      it.kind = infoSet.armaduraKind || it.kind || "";
+      it.name = infoSet.armaduraNome || `Armadura (${infoSet.nome})`;
+    }
+    if (autoCalcularStatsItemSimulador) {
+      if (typeof infoSet.raridadePadrao === "number") {
+        it.rarity = infoSet.raridadePadrao;
+      }
+      aplicarAtributosPadraoNoItem(it);
+    }
+  });
+}
+
+function obterResumoPassivasBuildSimulador() {
+  const contagemSets = {};
+  estadoSimulador.itens.forEach((it) => {
+    if (!it || it.slot === "cosmetic" || !it.set || !catalogoConjuntos[it.set]) return;
+    contagemSets[it.set] = (contagemSets[it.set] || 0) + 1;
+  });
+
+  const setsDetectados = Object.entries(contagemSets).map(([chave, qtd]) => ({
+    chave,
+    qtd,
+    info: catalogoConjuntos[chave],
+  }));
+
+  const armaItem = estadoSimulador.itens[0];
+  const anelItem = estadoSimulador.itens[3];
+  const armaInfo = armaItem?.kind ? catalogoArmas[armaItem.kind] : null;
+  const anelInfo = Number(anelItem?.look) ? catalogoAneis[Number(anelItem.look)] : null;
+
+  const contagemGemas = {};
+  let totalGemas = 0;
+  estadoSimulador.itens.forEach((it) => {
+    (it?.gems || []).slice(0, Number(it?.sockets ?? 6)).forEach((g) => {
+      if (g && g.type) {
+        contagemGemas[g.type] = (contagemGemas[g.type] || 0) + 1;
+        totalGemas += 1;
+      }
+    });
+  });
+
+  return { setsDetectados, armaInfo, anelInfo, contagemGemas, totalGemas };
+}
+
+function construirBarraModoCriativoHtml() {
+  const modRollTexto = {
+    max: "Teto Oficial (115% fixo)",
+    media: "Média Neutra (100%)",
+    sorteio: "Sorteio Real (85%–115%)",
+  }[modoRolagemGemaSimulador] || "";
+
+  return `
+    <div class="sim-barra-modo">
+      <div class="sim-barra-grupo">
+        <span class="sim-barra-rotulo">Modo do Simulador:</span>
+        <div class="sim-seg-controle" role="group" aria-label="Modo de visualização do simulador">
+          <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "ficha" ? "ativo" : ""}" data-sim-modo-vis="ficha">
+            🎮 Ficha Oficial (/character)
+          </button>
+          <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "lista" ? "ativo" : ""}" data-sim-modo-vis="lista">
+            📋 Lista Completa
+          </button>
+        </div>
+      </div>
+
+      <div class="sim-barra-grupo">
+        <span class="sim-barra-rotulo">Rolagem das Pedras (${modRollTexto}):</span>
+        <div class="sim-seg-controle" role="group" aria-label="Modo de rolagem das gemas">
+          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "max" ? "ativo" : ""}" data-sim-modo-roll="max" title="Todas as novas pedras vêm com rolagem máxima de 115%">
+            🔥 Teto 115%
+          </button>
+          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "media" ? "ativo" : ""}" data-sim-modo-roll="media" title="Todas as novas pedras vêm na média exata de 100%">
+            ⚖️ Média 100%
+          </button>
+          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "sorteio" ? "ativo" : ""}" data-sim-modo-roll="sorteio" title="Sorteia cada pedra entre 85% e 115% como na forja do jogo">
+            🎲 Sorteio
+          </button>
+        </div>
+        <button type="button" class="btn-mini" data-sim-aplicar-roll-todas="1" title="Recalcula todas as pedras já engastadas nas 4 peças usando o modo acima">
+          🔄 Aplicar nas 24 pedras
+        </button>
+      </div>
+
+      <div class="sim-barra-grupo sim-barra-presets">
+        <label class="sim-check-auto" title="Quando ativo, trocar a peça, raridade ou itemLevel calcula os atributos base estimados automaticamente (você ainda pode editar os números manualmente depois)">
+          <input type="checkbox" data-sim-toggle-autostats="1" ${autoCalcularStatsItemSimulador ? "checked" : ""}>
+          <span>Auto-stats por Nv.</span>
+        </label>
+        <button type="button" class="btn-mini" data-sim-preset-criativo="max330" title="Coloca as 4 peças em Arcano Nível 330 e recalcula os atributos base e gemas">
+          ⚡ Tudo Arcano Nv.330
+        </button>
+        <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_safira" title="Engasta 6 Safiras T5 Suprema em todas as 4 peças (24 pedras no total)">
+          💎 24× Safira T5
+        </button>
+        <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_rubi" title="Engasta 6 Rubis T5 Suprema em todas as 4 peças (24 pedras no total)">
+          ❤️ 24× Rubi T5
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOrig) {
+  const deltaFc = fcOrig !== null ? fcSim - fcOrig : 0;
+  const classeBanner = deltaFc > 0 ? "up" : deltaFc < 0 ? "down" : "eq";
+  const textoDelta = fcOrig !== null
+    ? `${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} FC (${((deltaFc / Math.max(1, fcOrig)) * 100).toFixed(1)}%)`
+    : "Sem jogador base carregado (modo criativo livre)";
+
+  const passivas = obterResumoPassivasBuildSimulador();
+
+  const setsHtml = passivas.setsDetectados.length > 0
+    ? passivas.setsDetectados.map(({ qtd, info }) => {
+        const b2Ativo = qtd >= 2;
+        const b3Ativo = qtd >= 3;
+        return `
+          <div class="sim-bonus-item">
+            <div class="sim-bonus-titulo">
+              <span>${b3Ativo ? "🟢" : b2Ativo ? "🟡" : "⚪"} ${escaparHtml(info.nome)}</span>
+              <strong>${qtd}/3 peças</strong>
+            </div>
+            <div class="sim-bonus-detalhe ${b2Ativo ? "ativo" : "inativo"}">2p: ${escaparHtml(formatarBonusConjuntoCurto(info.b2))}</div>
+            <div class="sim-bonus-detalhe ${b3Ativo ? "ativo" : "inativo"}">3p: ${escaparHtml(formatarBonusConjuntoCurto(info.b3))}</div>
+          </div>
+        `;
+      }).join("")
+    : `<div class="small muted">Nenhum item de conjunto equipado.</div>`;
+
+  const textoArmaPassiva = passivas.armaInfo?.efeito?.texto || passivas.armaInfo?.notaSkill || "Ataque básico e habilidade padrão da classe.";
+  const textoAnelPassiva = passivas.anelInfo?.efeito || "Sem efeito especial de anel.";
+  const resumoGemasHtml = passivas.totalGemas > 0
+    ? Object.entries(passivas.contagemGemas)
+        .map(([tipo, qtd]) => {
+          const g = catalogoGemas[tipo];
+          return `<span class="sim-chip-gema-resumo"><i style="background:${g?.cor || "#ccc"};"></i>${qtd}× ${escaparHtml(g?.nome || tipo)}</span>`;
+        })
+        .join("")
+    : `<span class="small muted">Nenhuma pedra engastada (0/24).</span>`;
+
+  return `
+    <div class="sim-bloco sim-painel-resultado">
+      <h4>Resumo do Personagem</h4>
+      <div class="sim-fc-comparativo">
+        <div>
+          <span class="small muted">${fcOrig !== null ? "ORIGINAL" : "REFERÊNCIA"}</span>
+          <strong>${fcOrig !== null ? formatadorInteiro.format(fcOrig) : "—"}</strong>
+        </div>
+        <span aria-hidden="true">→</span>
+        <div>
+          <span class="small muted">SIMULADO</span>
+          <strong>${formatadorInteiro.format(fcSim)}</strong>
+        </div>
+      </div>
+      <div class="sim-delta-banner ${classeBanner}">${textoDelta}</div>
+
+      <div class="card-info">
+        <h4>Status Finais &amp; Combate</h4>
+        <div class="card-info-linha"><span>ATK / DEF</span><strong>${formatadorDecimal1.format(stSim.atk)} / ${formatadorDecimal1.format(stSim.def)}</strong></div>
+        <div class="card-info-linha"><span>Vida Máxima / EHP</span><strong>${formatarNumeroCompacto(stSim.maxHp)} / ${formatarNumeroCompacto(metSim.ehp)}</strong></div>
+        <div class="card-info-linha"><span>ASPD (Cadência Real)</span><strong>${stSim.aspd.toFixed(2)} (${metSim.cadenciaReal.toFixed(2)}/s)</strong></div>
+        <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
+        <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
+        <div class="card-info-linha"><span>DPS Real em Combate</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s ${metOrig ? `(${metSim.dpsCombateMedio >= metOrig.dpsCombateMedio ? "+" : ""}${formatarNumeroCompacto(metSim.dpsCombateMedio - metOrig.dpsCombateMedio)})` : ""}</strong></div>
+        ${estadoSimulador.cls === "cleric" ? `<div class="card-info-linha"><span>Poder de Cura (Luz Divina)</span><strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></div>` : ""}
+        <div class="card-info-linha"><span>Mitigação de Defesa</span><strong>${(metSim.reducaoDefesa * 100).toFixed(1)}%</strong></div>
+      </div>
+
+      <div class="sim-resumo-bonus-ativos">
+        <h4>Bônus &amp; Efeitos Ativos</h4>
+        ${setsHtml}
+        <div class="sim-passiva-linha">
+          <strong>🗡️ Arma:</strong> <span>${escaparHtml(passivas.armaInfo?.nome || estadoSimulador.itens[0]?.name || "Padrão")}</span>
+          <small>${escaparHtml(textoArmaPassiva)}</small>
+        </div>
+        <div class="sim-passiva-linha">
+          <strong>💍 Anel:</strong> <span>${escaparHtml(passivas.anelInfo?.nome || "Anel Comum")}</span>
+          <small>${escaparHtml(textoAnelPassiva)}</small>
+        </div>
+        <div class="sim-passiva-linha">
+          <strong>💎 Pedras (${passivas.totalGemas}/24):</strong>
+          <div class="sim-chips-gemas-resumo">${resumoGemasHtml}</div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-fantasma" id="btn-sim-ir-boss" style="width:100%;">🐉 Testar Build Simulada contra Boss</button>
+    </div>
+  `;
+}
+
+function construirModoFichaVisualHtml(
+  linhasAttrsHtml,
+  melhorAttr,
+  melhorGanho,
+  conjuntosDaClasse,
+  setAtivo3Pecas,
+  resumoPainelDireitoHtml,
+  stSim,
+  fcSim,
+  metSim,
+  fcOrig,
+  metOrig
+) {
+  const idxAtivo = Math.min(3, Math.max(0, Number(slotSelecionadoSimulador) || 0));
+  const itemAtivo = estadoSimulador.itens[idxAtivo] || estadoSimulador.itens[0];
+  const maxGemasAtivo = Math.max(0, Math.min(6, Number(itemAtivo.sockets ?? 6)));
+  const tierSlotAtivo = Number(itemAtivo.gemTierPadrao || 5);
+  const qtdGemasAtivas = (itemAtivo.gems || []).slice(0, maxGemasAtivo).filter(Boolean).length;
+  const ehArma = itemAtivo.slot === "weapon";
+  const ehAnel = itemAtivo.slot === "ring";
+
+  const coresOficiaisClasse = {
+    warrior: "#ff7456",
+    cleric: "#ffe27a",
+    archer: "#5fe6a0",
+  };
+  const corClasseHeroi = coresOficiaisClasse[estadoSimulador.cls] || "#ffe27a";
+  const nomeClasseHeroi = (nomesClasses[estadoSimulador.cls] || "Clérigo").toUpperCase();
+
+  // Abas de classe estilo oficial /character
+  const abasClasseOficialHtml = Object.entries(nomesClasses).map(([k, n]) => {
+    const ativa = estadoSimulador.cls === k;
+    return `
+      <button
+        type="button"
+        class="rs-tab-cls ${ativa ? "active" : ""}"
+        style="${ativa ? "" : `color:${coresOficiaisClasse[k] || "#eae6ff"};`}"
+        data-sim-classe-btn="${k}"
+      >
+        ${n.toUpperCase()}
+      </button>
+    `;
+  }).join("");
+
+  // Conjuntos equipados (exatamente como no painel esquerdo de /character)
+  const passivas = obterResumoPassivasBuildSimulador();
+  const caixasSetsEquipadosHtml = passivas.setsDetectados.length > 0
+    ? passivas.setsDetectados.map(({ chave, qtd, info }) => {
+        const b2Texto = window.RiftSprites?.catalogoConjuntosOficial?.[chave]?.b2 || formatarBonusConjuntoCurto(info.b2);
+        const b3Texto = window.RiftSprites?.catalogoConjuntosOficial?.[chave]?.b3 || formatarBonusConjuntoCurto(info.b3);
+        return `
+          <div class="rs-set-box">
+            <div class="rs-set-head">
+              <b>${escaparHtml(info.nome)}</b>
+              <span class="muted">${qtd}/3</span>
+            </div>
+            <div class="small ${qtd >= 2 ? "on" : "muted"}">2 peças: ${escaparHtml(b2Texto)}</div>
+            <div class="small ${qtd >= 3 ? "on" : "muted"}">3 peças: ${escaparHtml(b3Texto)}</div>
+          </div>
+        `;
+      }).join("")
+    : `
+      <div class="rs-set-box">
+        <div class="rs-set-head"><b>Sem conjunto</b> <span class="muted">0/3</span></div>
+        <div class="small muted">Equipe peças de conjunto abaixo para ativar bônus 2/3 e 3/3.</div>
+      </div>
+    `;
+
+  // Os 4 quadrados EQUIPADO (idênticos ao .slots4 > .ibox.rbg-X de /character)
+  const quadradosEquipadoHtml = estadoSimulador.itens.map((item, idxSlot) => {
+    const rarIdx = Math.max(0, Math.min(7, Number(item.rarity) || 0));
+    const maxSock = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
+    const qtdGemas = (item.gems || []).slice(0, maxSock).filter((g) => g && g.type).length;
+    const selecionado = idxSlot === idxAtivo;
+    return `
+      <button
+        type="button"
+        class="rs-ibox rs-rbg-${rarIdx} ${selecionado ? "sel" : ""}"
+        data-sim-selecionar-slot="${idxSlot}"
+        title="${escaparHtml(`${nomesSlots[item.slot]}: ${item.name || "Peça"} (${nomesRaridade[rarIdx]} · Nv.${item.itemLevel || 1}) — Clique para editar`)}"
+      >
+        <canvas class="rs-canvas-equipado" data-sim-canvas-equipado="${idxSlot}" width="48" height="48"></canvas>
+        ${qtdGemas > 0 ? `<span class="rs-gem-mark">${qtdGemas}</span>` : ""}
+        <span class="rs-lv">${item.itemLevel || 1}</span>
+      </button>
+    `;
+  }).join("");
+
+  // Barra rápida de Set 3/3 da classe
+  const pillsSetsRapidosHtml = conjuntosDaClasse.map(([k, v]) => {
+    const corRar = coresRaridade[v.raridadePadrao ?? 4] || "#c9c5d8";
+    return `
+      <button type="button" class="btn-mini ${setAtivo3Pecas === k ? "ativo" : ""}" style="border-left:3px solid ${corRar};" data-sim-set-rapido="${k}">
+        ${escaparHtml(v.nome)}
+      </button>
+    `;
+  }).join("");
+
+  // Linhas de GASTAR OURO (idênticas ao .upg > .urow de /character)
+  const descricoesAtributosOficiais = [
+    { chave: "str", rotulo: "FORÇA", desc: "+1.5 de ataque e +1,5% do ataque total por nível" },
+    { chave: "vit", rotulo: "VITALIDADE", desc: "+10 de vida e +1,5% da vida total por nível" },
+    { chave: "def", rotulo: "DEFESA", desc: "+0.8 de defesa e +1,5% da defesa total por nível" },
+    { chave: "agi", rotulo: "AGILIDADE", desc: "+2% de velocidade de ataque" },
+    {
+      chave: "luk",
+      rotulo: "SORTE",
+      desc: "+0,4% crítico e mais drops (drops até o nv 100). Acima de 60% de crítico, cada 1% vira +3% de dano crítico, sem limite",
+    },
+  ];
+
+  const linhasGastarOuroHtml = descricoesAtributosOficiais.map(({ chave, rotulo, desc }) => {
+    const ehMelhor = melhorAttr.chave === chave;
+    return `
+      <div class="rs-urow ${ehMelhor ? "melhor-fc" : ""}">
+        <div>
+          <b>${rotulo} ${ehMelhor ? `<span class="rs-badge-melhor-attr" title="Maior ganho de FC por ponto agora">★ +${formatadorInteiro.format(melhorGanho)} FC</span>` : ""}</b>
+          <div class="muted small">${desc}</div>
+        </div>
+        <label class="rs-lv-wrap" for="sim-attr-${chave}">
+          <span>nv</span>
+          <input id="sim-attr-${chave}" type="number" min="0" max="5000" value="${estadoSimulador.atributos[chave]}" data-sim-attr="${chave}" class="rs-attr-input">
+        </label>
+        <div class="rs-urow-btns">
+          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-10" title="-10 níveis">-10</button>
+          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-1" title="-1 nível">-1</button>
+          <button type="button" class="rs-btn gold sm" data-attr-btn="${chave}" data-delta="1" title="+1 nível">+1</button>
+          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="10" title="+10 níveis">+10</button>
+          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="100" title="+100 níveis">+100</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Galeria de itens possíveis para o slot selecionado (Mochila visual com ícones pixel-art!)
+  let galeriaSlotHtml = "";
+  if (ehAnel) {
+    const anelComumAtivo = !Number(itemAtivo.look);
+    const listaAneis = [
+      { look: 0, nome: "Anel Comum", raridadeMin: 5, efeito: "Apenas atributos base e 6 engastes de gemas." },
+      ...Object.entries(catalogoAneis)
+        .sort((a, b) => (b[1].raridadeMin || 6) - (a[1].raridadeMin || 6) || Number(b[0]) - Number(a[0]))
+        .map(([k, v]) => ({ look: Number(k), nome: v.nome, raridadeMin: v.raridadeMin || 7, efeito: v.efeito })),
+    ];
+
+    const cardsAneisHtml = listaAneis.map((an) => {
+      const equipado = an.look === 0 ? anelComumAtivo : Number(itemAtivo.look) === an.look;
+      const rarIdx = Math.max(0, Math.min(7, an.raridadeMin || 6));
+      const corRar = coresRaridade[rarIdx] || "#eb34b1";
+      return `
+        <button
+          type="button"
+          class="rs-bag-card ${equipado ? "sel" : ""}"
+          data-sim-equipar-anel="${an.look}"
+          title="${escaparHtml(an.efeito)}"
+        >
+          <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
+            <canvas
+              class="rs-canvas-catalogo"
+              data-sim-canvas-catalogo="ring|${estadoSimulador.cls}|${an.look}|${rarIdx}||0"
+              width="48"
+              height="48"
+            ></canvas>
+          </div>
+          <div class="rs-bag-card-info">
+            <strong style="color:${corRar};">${escaparHtml(an.nome)}</strong>
+            <span class="small muted">${nomesRaridade[rarIdx]}</span>
+            <small>${escaparHtml(an.efeito)}</small>
+          </div>
+        </button>
+      `;
+    }).join("");
+
+    galeriaSlotHtml = `<div class="rs-bag-list sim-galeria-itens">${cardsAneisHtml}</div>`;
+  } else {
+    const setsFiltrados = Object.entries(catalogoConjuntos)
+      .filter(([, v]) => filtroConjuntoSlotSimulador === "todos" || v.classe === estadoSimulador.cls)
+      .sort((a, b) => (b[1].raridadePadrao || 4) - (a[1].raridadePadrao || 4));
+
+    const cardsSetsHtml = setsFiltrados.map(([k, v]) => {
+      const nomePeca = obterNomeOficialPecaConjunto(k, itemAtivo.slot);
+      const kindPeca =
+        itemAtivo.slot === "weapon" ? v.armaKind : itemAtivo.slot === "helmet" ? v.elmoKind : v.armaduraKind;
+      const equipado = itemAtivo.set === k;
+      const rarIdx = Math.max(0, Math.min(7, v.raridadePadrao ?? 4));
+      const corRar = coresRaridade[rarIdx] || "#ffb62e";
+      const infoKindOficial = window.RiftSprites?.catalogoKindsOficial?.[kindPeca];
+      const infoArma = ehArma && v.armaKind ? catalogoArmas[v.armaKind] : null;
+      const textoEfeito = infoArma?.efeito?.texto || infoArma?.notaSkill || infoKindOficial?.effect || "";
+      const b2Texto = window.RiftSprites?.catalogoConjuntosOficial?.[k]?.b2 || formatarBonusConjuntoCurto(v.b2);
+      const b3Texto = window.RiftSprites?.catalogoConjuntosOficial?.[k]?.b3 || formatarBonusConjuntoCurto(v.b3);
+
+      return `
+        <div class="rs-bag-card ${equipado ? "sel" : ""}">
+          <button
+            type="button"
+            class="rs-bag-card-main"
+            data-sim-equipar-peca-set="${idxAtivo}:${k}"
+            title="Clique para equipar ${escaparHtml(nomePeca)}"
+          >
+            <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
+              <canvas
+                class="rs-canvas-catalogo"
+                data-sim-canvas-catalogo="${itemAtivo.slot}|${v.classe}|0|${rarIdx}|${kindPeca || ""}|0"
+                width="48"
+                height="48"
+              ></canvas>
+            </div>
+            <div class="rs-bag-card-info">
+              <div class="rs-bag-card-head">
+                <strong style="color:${corRar};">${escaparHtml(nomePeca)}</strong>
+                <span class="rs-rar-tag" style="color:${corRar};">${nomesRaridade[rarIdx]}</span>
+              </div>
+              <div class="rs-bag-card-set">Conjunto ${escaparHtml(v.nome)} ${v.classe !== estadoSimulador.cls ? `(${nomesClasses[v.classe]})` : ""}</div>
+              <small class="rs-bag-card-bonus">2p: ${escaparHtml(b2Texto)} · 3p: ${escaparHtml(b3Texto)}</small>
+              ${textoEfeito ? `<small class="rs-bag-card-ef">${escaparHtml(textoEfeito)}</small>` : ""}
+            </div>
+          </button>
+          <button
+            type="button"
+            class="rs-btn ghost sm rs-btn-set3"
+            data-sim-set-rapido="${k}"
+            title="Equipar Arma, Elmo e Armadura deste conjunto de uma vez"
+          >
+            ⚡ Set 3/3
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    let armasAvulsasHtml = "";
+    if (ehArma) {
+      const kindsDeSet = new Set(Object.values(catalogoConjuntos).map((s) => s.armaKind));
+      const avulsas = Object.entries(catalogoArmas).filter(
+        ([k, v]) => !kindsDeSet.has(k) && (filtroConjuntoSlotSimulador === "todos" || v.classe === estadoSimulador.cls)
+      );
+      if (avulsas.length > 0) {
+        armasAvulsasHtml = `
+          <div class="rs-avulsas-wrap">
+            <span class="small muted">Armas avulsas (sem conjunto):</span>
+            <div class="rs-avulsas-grid">
+              ${avulsas.map(([k, v]) => {
+                const ativa = itemAtivo.kind === k && !itemAtivo.set;
+                return `
+                  <button
+                    type="button"
+                    class="rs-avulsa-btn ${ativa ? "sel" : ""}"
+                    data-sim-equipar-arma-avulsa="${k}"
+                    title="${escaparHtml(v.notaSkill || "")}"
+                  >
+                    <canvas
+                      class="rs-canvas-catalogo"
+                      data-sim-canvas-catalogo="weapon|${v.classe}|0|4|${k}|0"
+                      width="32"
+                      height="32"
+                    ></canvas>
+                    <span>${escaparHtml(v.nome)}</span>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    galeriaSlotHtml = `
+      <div class="rs-bag-list sim-galeria-itens">${cardsSetsHtml}</div>
+      ${armasAvulsasHtml}
+    `;
+  }
+
+  // Pills de raridade & nível rápido do slot
+  const pillsRaridadeHtml = [0, 3, 4, 5, 6, 7].map((rIdx) => {
+    const cor = coresRaridade[rIdx];
+    const ativa = Number(itemAtivo.rarity) === rIdx;
+    return `
+      <button
+        type="button"
+        class="btn-mini ${ativa ? "ativo" : ""}"
+        style="border-color:${ativa ? cor : "var(--line)"}; color:${cor};"
+        data-sim-raridade-rapida="${idxAtivo}:${rIdx}"
+      >
+        ${nomesRaridade[rIdx]}
+      </button>
+    `;
+  }).join("");
+
+  const niveisRapidosPecaHtml = [150, 200, 250, 300, 330].map((nv) => `
+    <button type="button" class="btn-mini ${Number(itemAtivo.itemLevel) === nv ? "ativo" : ""}" data-sim-nivel-peca-rapido="${idxAtivo}:${nv}">
+      Nv.${nv}
+    </button>
+  `).join("");
+
+  // Botões Tier e engastes de pedras do slot
+  const botoesTierHtml = [1, 2, 3, 4, 5].map((t) => `
+    <button type="button" class="btn-tier-gema ${tierSlotAtivo === t ? "ativa" : ""}" data-sim-slot-tier="${idxAtivo}:${t}">
+      T${t}${t === 5 ? " Suprema" : ""}
+    </button>
+  `).join("");
+
+  const btnsPreencher6Html = Object.entries(catalogoGemas).map(([tk, tv]) => `
+    <button type="button" class="btn-mini rs-btn-gema-fill" data-sim-preencher-gema-peca="${idxAtivo}:${tk}" title="Engastar 6× ${tv.nome} T${tierSlotAtivo} nesta peça">
+      <canvas class="rs-canvas-gema-mini" data-sim-canvas-gema="${tk}:${tierSlotAtivo}:1" width="16" height="16"></canvas>
+      <span>6× ${tv.nome}</span>
+    </button>
+  `).join("");
+
+  const linhasGemasHtml = Array.from({ length: maxGemasAtivo }, (_, idxGema) => {
+    const gemaAtual = itemAtivo.gems[idxGema] || null;
+    const tipoAtual = gemaAtual?.type || null;
+
+    const botoesOpcoesHtml = Object.entries(catalogoGemas).map(([tk, tv]) => {
+      const estaSelecionada = tipoAtual === tk;
+      const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlotAtivo : tierSlotAtivo;
+      const subtexto = estaSelecionada
+        ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
+        : resumoCurtoGemaBotao(tk, itemAtivo.slot, tierExibicao, itemAtivo.itemLevel);
+      return `
+        <button
+          type="button"
+          class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
+          data-sim-gem-btn="${idxAtivo}:${idxGema}:${tk}"
+          aria-pressed="${estaSelecionada ? "true" : "false"}"
+          title="${estaSelecionada ? "Clique para remover esta gema" : `Engastar ${tv.nome} T${tierSlotAtivo}`}"
+        >
+          <strong class="gema-titulo-btn">
+            <canvas class="rs-canvas-gema-mini" data-sim-canvas-gema="${tk}:${tierExibicao}:1" width="16" height="16"></canvas>
+            ${tv.nome}
+          </strong>
+          <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
+        </button>
+      `;
+    }).join("");
+
+    return `
+      <div class="sim-gema-linha">
+        <span class="sim-gema-indice">#${idxGema + 1}</span>
+        ${botoesOpcoesHtml}
+      </div>
+    `;
+  }).join("");
+
+  const rarAtivoIdx = Math.max(0, Math.min(7, Number(itemAtivo.rarity) || 0));
+  const corRarAtivo = coresRaridade[rarAtivoIdx] || "#eb34b1";
+  const danoCritTotalPct = Math.round((1.75 + (stSim.critDmg || 0)) * 100);
+  const danoCritExtraPct = Math.round((stSim.critDmg || 0) * 100);
+  const deltaFc = fcOrig !== null ? fcSim - fcOrig : null;
+
+  return `
+    <!-- Abas de Classe idênticas ao topo de https://riftstream.com.br/character -->
+    <div class="rs-top-row">
+      <div class="rs-tabs">
+        ${abasClasseOficialHtml}
+      </div>
+      <!-- Select oculto para compatibilidade com scripts/atalhos -->
+      <select id="sim-classe" hidden aria-hidden="true">
+        ${Object.entries(nomesClasses).map(([k, n]) => `<option value="${k}" ${estadoSimulador.cls === k ? "selected" : ""}>${n}</option>`).join("")}
+      </select>
+      <div class="rs-top-sets-bar">
+        <span class="small muted">Equipar Set 3/3:</span>
+        ${pillsSetsRapidosHtml}
+      </div>
+    </div>
+
+    <!-- Layout de 2 Colunas idêntico ao .sheet de /character -->
+    <div class="rs-sheet">
+      <!-- COLUNA ESQUERDA: section.panel.hero -->
+      <section class="rs-panel rs-hero">
+        <div class="rs-stage-box big">
+          <canvas id="sim-canvas-heroi" width="192" height="192"></canvas>
+        </div>
+
+        <div class="rs-hero-head">
+          <h2 style="color:${corClasseHeroi};">${nomeClasseHeroi}</h2>
+          <label class="rs-lvl" for="sim-nivel" title="Clique para alterar o nível do herói">
+            NÍVEL
+            <input id="sim-nivel" type="number" min="1" max="2000" value="${estadoSimulador.level}" class="rs-lvl-input">
+          </label>
+        </div>
+
+        <div class="rs-bar tall" title="Modo Criativo de Build">
+          <i style="width:94%;"></i>
+          <span>SIMULADOR CRIATIVO · NÍVEL ${estadoSimulador.level}</span>
+        </div>
+
+        <div class="rs-hero-tiles">
+          <div class="rs-htile fc">
+            <span>FC</span>
+            <b>${formatadorInteiro.format(fcSim)}</b>
+            ${deltaFc !== null ? `<small class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} vs atual</small>` : ""}
+          </div>
+          <div class="rs-htile">
+            <span>${estadoSimulador.cls === "cleric" ? "LUZ DIVINA (CURA)" : "DPS EM COMBATE"}</span>
+            <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio))}</b>
+            ${fcOrig !== null ? `<small class="muted">Original: ${formatadorInteiro.format(fcOrig)} FC</small>` : `<small class="muted">EHP: ${formatarNumeroCompacto(metSim.ehp)}</small>`}
+          </div>
+        </div>
+
+        ${caixasSetsEquipadosHtml}
+
+        <h3 class="rs-equipado-title">EQUIPADO</h3>
+        <div class="rs-slots4">
+          ${quadradosEquipadoHtml}
+        </div>
+        <p class="rs-equipado-hint">👆 Clique em qualquer equipamento acima para trocar a peça ou editar as gemas abaixo</p>
+      </section>
+
+      <!-- COLUNA DIREITA: section.panel.attrs -->
+      <section class="rs-panel rs-attrs">
+        <h2>ATRIBUTOS</h2>
+        <div class="rs-tiles">
+          <div class="rs-tile">
+            <span>VIDA</span>
+            <b>${Math.round(stSim.maxHp)}</b>
+          </div>
+          <div class="rs-tile">
+            <span>ATAQUE</span>
+            <b>${stSim.atk.toFixed(1)}</b>
+          </div>
+          <div class="rs-tile">
+            <span>DEFESA</span>
+            <b>${stSim.def.toFixed(1)}</b>
+          </div>
+          <div class="rs-tile">
+            <span>VEL.</span>
+            <b>${stSim.aspd.toFixed(2)}</b>
+          </div>
+          <div class="rs-tile">
+            <span>CRÍT.</span>
+            <b>${stSim.crit.toFixed(1)}%</b>
+          </div>
+          <div class="rs-tile">
+            <span>DANO CRÍT.</span>
+            <b>${danoCritTotalPct}%</b>
+            ${danoCritExtraPct > 0 ? `<small>(+${danoCritExtraPct}%)</small>` : ""}
+          </div>
+          <div class="rs-tile">
+            <span>DPS REAL</span>
+            <b style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s</b>
+            <small>Cadência ${metSim.cadenciaReal.toFixed(2)}/s</small>
+          </div>
+          <div class="rs-tile">
+            <span>GOLPE CRÍT.</span>
+            <b>${formatarNumeroCompacto(metSim.golpeCritBruto)}</b>
+            <small>Normal ${formatarNumeroCompacto(metSim.golpeNormalBruto)}</small>
+          </div>
+          <div class="rs-tile">
+            <span>EHP (TANQUE)</span>
+            <b>${formatarNumeroCompacto(metSim.ehp)}</b>
+            <small>Mitig. ${(metSim.reducaoDefesa * 100).toFixed(1)}%</small>
+          </div>
+          <div class="rs-tile">
+            <span>${estadoSimulador.cls === "cleric" ? "PODER DE CURA" : "DANO DA SKILL"}</span>
+            <b style="color:${estadoSimulador.cls === "cleric" ? "var(--green)" : "var(--cyan)"};">${formatarNumeroCompacto(estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.skillDanoTotal)}</b>
+            <small>Recarga ${metSim.cdSkillReal.toFixed(1)}s</small>
+          </div>
+        </div>
+
+        <div class="rs-attrs-head">
+          <h3>GASTAR OURO</h3>
+          <span class="rs-gold">💡 Recomendado para FC: +1 em ${melhorAttr.nome.toUpperCase()} (+${formatadorInteiro.format(melhorGanho)} FC)</span>
+        </div>
+
+        <div class="rs-upg">
+          ${linhasGastarOuroHtml}
+        </div>
+      </section>
+    </div>
+
+    <!-- PAINEL INFERIOR: MOCHILA CRIATIVA DO SLOT & FICHA DA PEÇA (idêntico a section.panel.full de /character) -->
+    <section class="rs-panel rs-full" id="sim-bancada-slot-oficial">
+      <div class="rs-inv-head">
+        <div class="rs-inv-title-group">
+          <h2>EDITANDO SLOT: ${nomesSlots[itemAtivo.slot].toUpperCase()}</h2>
+          <div class="rs-tabs">
+            ${estadoSimulador.itens.map((it, idx) => `
+              <button type="button" class="rs-tab-cls sm ${idx === idxAtivo ? "active" : ""}" data-sim-selecionar-slot="${idx}">
+                ${nomesSlots[it.slot].toUpperCase()}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+        ${!ehAnel ? `
+          <div class="rs-bag-filters">
+            <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "classe" ? "sel" : ""}" data-sim-filtro-galeria="classe">
+              Apenas ${nomesClasses[estadoSimulador.cls]}
+            </button>
+            <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "todos" ? "sel" : ""}" data-sim-filtro-galeria="todos">
+              Todas as Classes
+            </button>
+          </div>
+        ` : ""}
+      </div>
+
+      <div class="rs-inv-body">
+        <!-- Esquerda: Galeria de peças possíveis para este slot com ícones pixel-art -->
+        <div class="rs-bag-col">
+          <div class="rs-subhead">CLIQUE EM UM ITEM PARA EQUIPAR NO SLOT (${nomesSlots[itemAtivo.slot].toUpperCase()}):</div>
+          ${galeriaSlotHtml}
+        </div>
+
+        <!-- Direita: Ficha oficial .icard da peça equipada + Atributos + 6 Gemas -->
+        <aside class="rs-detail">
+          <div class="rs-icard rs-rbg-${rarAtivoIdx}">
+            <div class="rs-icard-top">
+              <div class="rs-icard-icon">
+                <canvas class="rs-canvas-equipado" data-sim-canvas-equipado="${idxAtivo}" width="48" height="48"></canvas>
+              </div>
+              <div style="min-width:0; flex:1;">
+                <b style="color:${corRarAtivo}; font-size:15px; display:block;">${escaparHtml(itemAtivo.name || "Peça")}</b>
+                <div class="muted small">
+                  <span style="color:${corRarAtivo};">${nomesRaridade[rarAtivoIdx]}</span>
+                  · ${nomesSlots[itemAtivo.slot]} · Nv. ${itemAtivo.itemLevel || 1}
+                </div>
+                ${itemAtivo.set && catalogoConjuntos[itemAtivo.set] ? `<div class="small" style="color:var(--gold); margin-top:2px;">Conjunto ${escaparHtml(catalogoConjuntos[itemAtivo.set].nome)}</div>` : ""}
+              </div>
+              <span class="rs-gem-badge-top">💎 ${qtdGemasAtivas}/${maxGemasAtivo}</span>
+            </div>
+
+            <div class="sim-bancada-atributos-box">
+              <div class="sim-rar-nivel-row">
+                <div class="sim-pills-raridade">
+                  <span class="small muted">Raridade:</span>
+                  ${pillsRaridadeHtml}
+                </div>
+                <div class="sim-nivel-peca-box">
+                  <label class="small muted" for="sim-input-nv-peca">Nv.:</label>
+                  <input id="sim-input-nv-peca" type="number" min="1" max="999" value="${itemAtivo.itemLevel || 1}" data-sim-item-campo="${idxAtivo}:itemLevel">
+                  ${niveisRapidosPecaHtml}
+                  <button type="button" class="btn-mini btn-atalho-ativo" data-sim-recalc-peca="${idxAtivo}" title="Recalcula ATK, DEF, HP, CRÍT e VEL da peça para o nível e raridade atuais">
+                    ⚡ Auto-Stats
+                  </button>
+                </div>
+              </div>
+
+              <div class="sim-slot-stats">
+                <label>ATK <input type="number" value="${itemAtivo.atk || 0}" data-sim-item-stat="${idxAtivo}:atk"></label>
+                <label>DEF <input type="number" value="${itemAtivo.def || 0}" data-sim-item-stat="${idxAtivo}:def"></label>
+                <label>HP <input type="number" value="${itemAtivo.hp || 0}" data-sim-item-stat="${idxAtivo}:hp"></label>
+                <label>CRÍT% <input type="number" value="${itemAtivo.crit || 0}" data-sim-item-stat="${idxAtivo}:crit"></label>
+                <label>VEL% <input type="number" value="${itemAtivo.spd || 0}" data-sim-item-stat="${idxAtivo}:spd"></label>
+              </div>
+            </div>
+
+            <div class="sim-gemas-bloco">
+              <div class="sim-gemas-topo">
+                <div>
+                  <span>ENGASTES DE GEMAS (${qtdGemasAtivas}/${maxGemasAtivo})</span>
+                  <p class="small muted" style="margin:2px 0 0 0; font-size:0.74rem;">Roll atual: ${modoRolagemGemaSimulador === "max" ? "Teto 115%" : modoRolagemGemaSimulador === "media" ? "Média 100%" : "Sorteio 85%–115%"}</p>
+                </div>
+                <div class="sim-tier-bar">
+                  ${botoesTierHtml}
+                  <button type="button" class="btn-mini" data-sim-gem-reroll="${idxAtivo}" title="Recalcula as gemas desta peça">🎲 Re-rolar</button>
+                  <button type="button" class="btn-mini" data-sim-gem-limpar="${idxAtivo}" title="Remove todas as gemas desta peça">Limpar</button>
+                </div>
+              </div>
+              <div class="sim-barra-preencher-gemas">
+                <span class="small muted">6 iguais:</span>
+                ${btnsPreencher6Html}
+              </div>
+              ${linhasGemasHtml}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  `;
+}
 
 function renderizarSimulador() {
   if (!containerSimulador) return;
 
-  // Preserva estado dos cards expansíveis abertos
+  // Preserva estado dos cards expansíveis abertos e scroll interno da galeria
   const cardsExistentes = containerSimulador.querySelectorAll(".sim-slot-card");
   if (cardsExistentes.length > 0) {
     cardsExistentes.forEach((d) => {
@@ -3306,6 +4199,8 @@ function renderizarSimulador() {
       }
     });
   }
+  const galeriaAnterior = containerSimulador.querySelector(".sim-galeria-itens");
+  const scrollGaleriaAnterior = galeriaAnterior ? galeriaAnterior.scrollTop : 0;
 
   // Preserva rolagem e elemento com foco ativo
   const scrollYAnterior = typeof window !== "undefined" ? window.scrollY : 0;
@@ -3317,6 +4212,9 @@ function renderizarSimulador() {
       seletorFocoRestaurar = `[data-sim-gem-btn="${elementoFocadoAtivo.dataset.simGemBtn}"]`;
     } else if (elementoFocadoAtivo.dataset?.simSlotTier) {
       seletorFocoRestaurar = `[data-sim-slot-tier="${elementoFocadoAtivo.dataset.simSlotTier}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simSelecaoSlot || elementoFocadoAtivo.dataset?.simSelecionarSlot) {
+      const v = elementoFocadoAtivo.dataset.simSelecionarSlot;
+      if (v !== undefined) seletorFocoRestaurar = `[data-sim-selecionar-slot="${v}"]`;
     } else if (elementoFocadoAtivo.dataset?.simAttr) {
       seletorFocoRestaurar = `[data-sim-attr="${elementoFocadoAtivo.dataset.simAttr}"]`;
     } else if (elementoFocadoAtivo.dataset?.simItemStat) {
@@ -3363,12 +4261,6 @@ function renderizarSimulador() {
     fcOrig = calcularFc(perfilCarregadoP1.cls, stOrig);
     metOrig = calcularMetricasCombate(perfilCarregadoP1.cls, perfilCarregadoP1.level, stOrig, perfilCarregadoP1.equipped || []);
   }
-
-  const deltaFc = fcOrig !== null ? fcSim - fcOrig : 0;
-  const classeBanner = deltaFc > 0 ? "up" : deltaFc < 0 ? "down" : "eq";
-  const textoDelta = fcOrig !== null
-    ? `${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} FC (${((deltaFc / Math.max(1, fcOrig)) * 100).toFixed(1)}%)`
-    : "Sem jogador base carregado (modo sandbox)";
 
   const linhasAttrsHtml = mapaNomesAttrs.map(({ chave, nome }) => `
     <div class="sim-atributo-linha">
@@ -3429,198 +4321,198 @@ function renderizarSimulador() {
       ? estadoSimulador.itens[0].set
       : "";
 
-  const barraConjuntoRapidoHtml = `
-    <div class="barra-atalhos">
-      <span class="rotulo-atalho">⚡ Equipar Set Completo (${nomesClasses[estadoSimulador.cls]}):</span>
-      ${conjuntosDaClasse
+  const barraModoHtml = construirBarraModoCriativoHtml();
+  const resumoPainelDireitoHtml = construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOrig);
+
+  if (modoVisualizacaoSimulador === "ficha") {
+    const fichaHtml = construirModoFichaVisualHtml(
+      linhasAttrsHtml,
+      melhorAttr,
+      melhorGanho,
+      conjuntosDaClasse,
+      setAtivo3Pecas,
+      resumoPainelDireitoHtml,
+      stSim,
+      fcSim,
+      metSim,
+      fcOrig,
+      metOrig
+    );
+    containerSimulador.innerHTML = `${barraModoHtml}${fichaHtml}`;
+  } else {
+    const barraConjuntoRapidoHtml = `
+      <div class="barra-atalhos">
+        <span class="rotulo-atalho">⚡ Equipar Set Completo (${nomesClasses[estadoSimulador.cls]}):</span>
+        ${conjuntosDaClasse
+          .map(
+            ([k, v]) => `
+          <button type="button" class="btn-mini ${setAtivo3Pecas === k ? "ativo" : ""}" data-sim-set-rapido="${k}">
+            ${escaparHtml(v.nome)}
+          </button>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+
+    const slotsHtml = estadoSimulador.itens.map((item, idxSlot) => {
+      const ehArma = item.slot === "weapon";
+      const ehAnel = item.slot === "ring";
+      const maxGemas = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
+      if (!Array.isArray(item.gems) || item.gems.length < 6) {
+        const antigas = Array.isArray(item.gems) ? item.gems : [];
+        item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
+      }
+      const tierSlot = Number(item.gemTierPadrao || 5);
+      const qtdGemasAtivas = item.gems.slice(0, maxGemas).filter(Boolean).length;
+
+      const botoesTierHtml = [1, 2, 3, 4, 5]
         .map(
-          ([k, v]) => `
-        <button type="button" class="btn-mini ${setAtivo3Pecas === k ? "ativo" : ""}" data-sim-set-rapido="${k}">
-          ${escaparHtml(v.nome)}
-        </button>
-      `
+          (t) => `
+          <button type="button" class="btn-tier-gema ${tierSlot === t ? "ativa" : ""}" data-sim-slot-tier="${idxSlot}:${t}">
+            T${t}${t === 5 ? " Suprema" : ""}
+          </button>
+        `
         )
-        .join("")}
-    </div>
-  `;
-
-  const slotsHtml = estadoSimulador.itens.map((item, idxSlot) => {
-    const ehArma = item.slot === "weapon";
-    const ehAnel = item.slot === "ring";
-    const maxGemas = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
-    if (!Array.isArray(item.gems) || item.gems.length < 6) {
-      const antigas = Array.isArray(item.gems) ? item.gems : [];
-      item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
-    }
-    const tierSlot = Number(item.gemTierPadrao || 5);
-    const qtdGemasAtivas = item.gems.slice(0, maxGemas).filter(Boolean).length;
-
-    const botoesTierHtml = [1, 2, 3, 4, 5]
-      .map(
-        (t) => `
-        <button type="button" class="btn-tier-gema ${tierSlot === t ? "ativa" : ""}" data-sim-slot-tier="${idxSlot}:${t}">
-          T${t}${t === 5 ? " Suprema" : ""}
-        </button>
-      `
-      )
-      .join("");
-
-    const linhasGemasHtml = Array.from({ length: maxGemas }, (_, idxGema) => {
-      const gemaAtual = item.gems[idxGema] || null;
-      const tipoAtual = gemaAtual?.type || null;
-
-      const botoesOpcoesHtml = Object.entries(catalogoGemas)
-        .map(([tk, tv]) => {
-          const estaSelecionada = tipoAtual === tk;
-          const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlot : tierSlot;
-          const subtexto = estaSelecionada
-            ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
-            : resumoCurtoGemaBotao(tk, item.slot, tierExibicao, item.itemLevel);
-          return `
-            <button
-              type="button"
-              class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
-              data-sim-gem-btn="${idxSlot}:${idxGema}:${tk}"
-              aria-pressed="${estaSelecionada ? "true" : "false"}"
-              title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Engastar ${tv.nome} T${tierSlot} (sorteia nova rolagem oficial)`}"
-            >
-              <strong class="gema-titulo-btn"><span class="gema-ponto-cor" style="background:${tv.cor};"></span>${tv.nome}</strong>
-              <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
-            </button>
-          `;
-        })
         .join("");
 
+      const linhasGemasHtml = Array.from({ length: maxGemas }, (_, idxGema) => {
+        const gemaAtual = item.gems[idxGema] || null;
+        const tipoAtual = gemaAtual?.type || null;
+
+        const botoesOpcoesHtml = Object.entries(catalogoGemas)
+          .map(([tk, tv]) => {
+            const estaSelecionada = tipoAtual === tk;
+            const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlot : tierSlot;
+            const subtexto = estaSelecionada
+              ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
+              : resumoCurtoGemaBotao(tk, item.slot, tierExibicao, item.itemLevel);
+            return `
+              <button
+                type="button"
+                class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
+                data-sim-gem-btn="${idxSlot}:${idxGema}:${tk}"
+                aria-pressed="${estaSelecionada ? "true" : "false"}"
+                title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Engastar ${tv.nome} T${tierSlot}`}"
+              >
+                <strong class="gema-titulo-btn"><span class="gema-ponto-cor" style="background:${tv.cor};"></span>${tv.nome}</strong>
+                <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
+              </button>
+            `;
+          })
+          .join("");
+
+        return `
+          <div class="sim-gema-linha">
+            <span class="sim-gema-indice">#${idxGema + 1}</span>
+            ${botoesOpcoesHtml}
+          </div>
+        `;
+      }).join("");
+
       return `
-        <div class="sim-gema-linha">
-          <span class="sim-gema-indice">#${idxGema + 1}</span>
-          ${botoesOpcoesHtml}
-        </div>
+        <details class="sim-slot-card sim-slot-card-expansivel" data-slot-index="${idxSlot}" ${slotsAbertosSimulador.has(idxSlot) ? "open" : ""}>
+          <summary class="sim-slot-head sumario-expansivel">
+            <span>
+              <strong>${nomesSlots[item.slot]} · ${escaparHtml(item.name || "Peça")}</strong>
+              <span class="small muted">${nomesRaridade[item.rarity] || "Comum"} · Nv.${item.itemLevel || 1}${item.set && catalogoConjuntos[item.set] ? ` · ${escaparHtml(catalogoConjuntos[item.set].nome)}` : ""}</span>
+            </span>
+            <span class="badge-gemas-resumo" style="font-size:0.8rem; color:var(--cyan); font-weight:600;">💎 ${qtdGemasAtivas}/${maxGemas} gemas ▾</span>
+          </summary>
+          <div class="sim-slot-conteudo" style="display:grid; gap:8px; margin-top:8px;">
+            <div class="sim-slot-selects">
+              <select data-sim-item-campo="${idxSlot}:set" title="Conjunto da Peça">
+                ${construirOptsConjunto(item.set || "")}
+              </select>
+              <select data-sim-item-campo="${idxSlot}:rarity" title="Raridade">
+                ${nomesRaridade.map((nr, rIdx) => `<option value="${rIdx}" ${Number(item.rarity) === rIdx ? "selected" : ""}>${nr}</option>`).join("")}
+              </select>
+              <input type="number" min="1" max="999" value="${item.itemLevel || 1}" title="Item Level" data-sim-item-campo="${idxSlot}:itemLevel">
+            </div>
+            ${
+              ehArma
+                ? `<select data-sim-item-campo="${idxSlot}:kind" title="Tipo de Arma">${construirOptsArma(item.kind || "")}</select>`
+                : ehAnel
+                  ? `<select data-sim-item-campo="${idxSlot}:look" title="Anel Especial">${construirOptsAnel(item.look || 0)}</select>`
+                  : ""
+            }
+            <div class="sim-slot-stats">
+              <label>ATK <input type="number" value="${item.atk || 0}" data-sim-item-stat="${idxSlot}:atk"></label>
+              <label>DEF <input type="number" value="${item.def || 0}" data-sim-item-stat="${idxSlot}:def"></label>
+              <label>HP <input type="number" value="${item.hp || 0}" data-sim-item-stat="${idxSlot}:hp"></label>
+              <label>CRÍT% <input type="number" value="${item.crit || 0}" data-sim-item-stat="${idxSlot}:crit"></label>
+              <label>VEL% <input type="number" value="${item.spd || 0}" data-sim-item-stat="${idxSlot}:spd"></label>
+            </div>
+            <div class="sim-gemas-bloco">
+              <div class="sim-gemas-topo">
+                <div>
+                  <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
+                  <p class="small muted" style="margin:2px 0 0 0; font-size:0.75rem;">Modo: ${modoRolagemGemaSimulador === "max" ? "Teto 115%" : modoRolagemGemaSimulador === "media" ? "Média 100%" : "Sorteio 85% a 115%"}. Não altera o jogo.</p>
+                </div>
+                <div class="sim-tier-bar">
+                  ${botoesTierHtml}
+                  <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Recalcula as gemas engastadas nesta peça">🎲 Re-rolar</button>
+                  <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
+                  <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
+                </div>
+              </div>
+              ${linhasGemasHtml}
+            </div>
+          </div>
+        </details>
       `;
     }).join("");
 
-    return `
-      <details class="sim-slot-card sim-slot-card-expansivel" data-slot-index="${idxSlot}" ${slotsAbertosSimulador.has(idxSlot) ? "open" : ""}>
-        <summary class="sim-slot-head sumario-expansivel">
-          <span>
-            <strong>${nomesSlots[item.slot]} · ${escaparHtml(item.name || "Peça")}</strong>
-            <span class="small muted">${nomesRaridade[item.rarity] || "Comum"} · Nv.${item.itemLevel || 1}${item.set && catalogoConjuntos[item.set] ? ` · ${escaparHtml(catalogoConjuntos[item.set].nome)}` : ""}</span>
-          </span>
-          <span class="badge-gemas-resumo" style="font-size:0.8rem; color:var(--cyan); font-weight:600;">💎 ${qtdGemasAtivas}/${maxGemas} gemas ▾</span>
-        </summary>
-        <div class="sim-slot-conteudo" style="display:grid; gap:8px; margin-top:8px;">
-          <div class="sim-slot-selects">
-            <select data-sim-item-campo="${idxSlot}:set" title="Conjunto da Peça">
-              ${construirOptsConjunto(item.set || "")}
-            </select>
-            <select data-sim-item-campo="${idxSlot}:rarity" title="Raridade">
-              ${nomesRaridade.map((nr, rIdx) => `<option value="${rIdx}" ${Number(item.rarity) === rIdx ? "selected" : ""}>${nr}</option>`).join("")}
-            </select>
-            <input type="number" min="1" max="999" value="${item.itemLevel || 1}" title="Item Level" data-sim-item-campo="${idxSlot}:itemLevel">
-          </div>
-          ${
-            ehArma
-              ? `<select data-sim-item-campo="${idxSlot}:kind" title="Tipo de Arma">${construirOptsArma(item.kind || "")}</select>`
-              : ehAnel
-                ? `<select data-sim-item-campo="${idxSlot}:look" title="Anel Especial">${construirOptsAnel(item.look || 0)}</select>`
-                : ""
-          }
-          <div class="sim-slot-stats">
-            <label>ATK <input type="number" value="${item.atk || 0}" data-sim-item-stat="${idxSlot}:atk"></label>
-            <label>DEF <input type="number" value="${item.def || 0}" data-sim-item-stat="${idxSlot}:def"></label>
-            <label>HP <input type="number" value="${item.hp || 0}" data-sim-item-stat="${idxSlot}:hp"></label>
-            <label>CRÍT% <input type="number" value="${item.crit || 0}" data-sim-item-stat="${idxSlot}:crit"></label>
-            <label>VEL% <input type="number" value="${item.spd || 0}" data-sim-item-stat="${idxSlot}:spd"></label>
-          </div>
-          <div class="sim-gemas-bloco">
-            <div class="sim-gemas-topo">
-              <div>
-                <span>💎 Gemas (${qtdGemasAtivas}/${maxGemas}) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
-                <p class="small muted" style="margin:2px 0 0 0; font-size:0.75rem;">Rolagem sorteada na hora (85% a 115%). Não altera o jogo.</p>
-              </div>
-              <div class="sim-tier-bar">
-                ${botoesTierHtml}
-                <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Sorteia novas rolagens na hora (85% a 115%) para todas as gemas engastadas nesta peça">🎲 Re-rolar</button>
-                <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
-                <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
-              </div>
+    containerSimulador.innerHTML = `
+      ${barraModoHtml}
+      <div class="sim-layout">
+        <div class="sim-bloco">
+          <h4>Personagem &amp; Pontos de Ouro</h4>
+          <div class="sim-campos-topo">
+            <div class="campo">
+              <label for="sim-classe">Classe</label>
+              <select id="sim-classe">
+                ${Object.entries(nomesClasses).map(([k, n]) => `<option value="${k}" ${estadoSimulador.cls === k ? "selected" : ""}>${n}</option>`).join("")}
+              </select>
             </div>
-            ${linhasGemasHtml}
+            <div class="campo">
+              <label for="sim-nivel">Nível</label>
+              <input id="sim-nivel" type="number" min="1" max="2000" value="${estadoSimulador.level}">
+            </div>
           </div>
+
+          ${linhasAttrsHtml}
+          <div class="sim-dica-melhor" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <span>💡 Melhor atributo agora: <strong>+1 em ${melhorAttr.nome}</strong> (+${formatadorInteiro.format(melhorGanho)} FC)</span>
+            <span style="display:inline-flex;gap:6px;">
+              <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="1">+1 ${melhorAttr.chave.toUpperCase()}</button>
+              <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="10">+10 ${melhorAttr.chave.toUpperCase()}</button>
+            </span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:-2px;">
+            <h4 style="margin:0;">Equipamentos &amp; Gemas</h4>
+            <span style="display:inline-flex; gap:6px;">
+              <button type="button" class="btn-mini" id="btn-sim-expandir-todos" title="Expandir todas as peças para editar gemas">Expandir Todas</button>
+              <button type="button" class="btn-mini" id="btn-sim-recolher-todos" title="Recolher todas as peças">Recolher</button>
+            </span>
+          </div>
+          ${barraConjuntoRapidoHtml}
+          ${slotsHtml}
         </div>
-      </details>
+
+        ${resumoPainelDireitoHtml}
+      </div>
     `;
-  }).join("");
-
-  containerSimulador.innerHTML = `
-    <div class="sim-layout">
-      <div class="sim-bloco">
-        <h4>Personagem &amp; Pontos de Ouro</h4>
-        <div class="sim-campos-topo">
-          <div class="campo">
-            <label for="sim-classe">Classe</label>
-            <select id="sim-classe">
-              ${Object.entries(nomesClasses).map(([k, n]) => `<option value="${k}" ${estadoSimulador.cls === k ? "selected" : ""}>${n}</option>`).join("")}
-            </select>
-          </div>
-          <div class="campo">
-            <label for="sim-nivel">Nível</label>
-            <input id="sim-nivel" type="number" min="1" max="2000" value="${estadoSimulador.level}">
-          </div>
-        </div>
-
-        ${linhasAttrsHtml}
-        <div class="sim-dica-melhor" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-          <span>💡 Melhor atributo agora: <strong>+1 em ${melhorAttr.nome}</strong> (+${formatadorInteiro.format(melhorGanho)} FC)</span>
-          <span style="display:inline-flex;gap:6px;">
-            <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="1">+1 ${melhorAttr.chave.toUpperCase()}</button>
-            <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="10">+10 ${melhorAttr.chave.toUpperCase()}</button>
-          </span>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:-2px;">
-          <h4 style="margin:0;">Equipamentos &amp; Gemas</h4>
-          <span style="display:inline-flex; gap:6px;">
-            <button type="button" class="btn-mini" id="btn-sim-expandir-todos" title="Expandir todas as peças para editar gemas">Expandir Todas</button>
-            <button type="button" class="btn-mini" id="btn-sim-recolher-todos" title="Recolher todas as peças">Recolher</button>
-          </span>
-        </div>
-        ${barraConjuntoRapidoHtml}
-        ${slotsHtml}
-      </div>
-
-      <div class="sim-bloco sim-painel-resultado">
-        <h4>Resultado Simulado em Tempo Real</h4>
-        <div class="sim-fc-comparativo">
-          <div>
-            <span class="small muted">${fcOrig !== null ? "ORIGINAL" : "REFERÊNCIA"}</span>
-            <strong>${fcOrig !== null ? formatadorInteiro.format(fcOrig) : "—"}</strong>
-          </div>
-          <span aria-hidden="true">→</span>
-          <div>
-            <span class="small muted">SIMULADO</span>
-            <strong>${formatadorInteiro.format(fcSim)}</strong>
-          </div>
-        </div>
-        <div class="sim-delta-banner ${classeBanner}">${textoDelta}</div>
-
-        <div class="card-info">
-          <h4>Status Finais &amp; Combate</h4>
-          <div class="card-info-linha"><span>ATK / DEF</span><strong>${formatadorDecimal1.format(stSim.atk)} / ${formatadorDecimal1.format(stSim.def)}</strong></div>
-          <div class="card-info-linha"><span>Vida Máxima / EHP</span><strong>${formatarNumeroCompacto(stSim.maxHp)} / ${formatarNumeroCompacto(metSim.ehp)}</strong></div>
-          <div class="card-info-linha"><span>ASPD (Cadência Real)</span><strong>${stSim.aspd.toFixed(2)} (${metSim.cadenciaReal.toFixed(2)}/s)</strong></div>
-          <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
-          <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
-          <div class="card-info-linha"><span>DPS Real em Combate</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s ${metOrig ? `(${metSim.dpsCombateMedio >= metOrig.dpsCombateMedio ? "+" : ""}${formatarNumeroCompacto(metSim.dpsCombateMedio - metOrig.dpsCombateMedio)})` : ""}</strong></div>
-          ${estadoSimulador.cls === "cleric" ? `<div class="card-info-linha"><span>Poder de Cura (Luz Divina)</span><strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></div>` : ""}
-          <div class="card-info-linha"><span>Mitigação de Defesa</span><strong>${(metSim.reducaoDefesa * 100).toFixed(1)}%</strong></div>
-        </div>
-        <button type="button" class="btn-fantasma" id="btn-sim-ir-boss" style="width:100%;">🐉 Testar Build Simulada contra Boss</button>
-      </div>
-    </div>
-  `;
+  }
 
   vincularEventosSimulador();
+  renderizarCanvasesFichaSimulador();
+
+  const novaGaleria = containerSimulador.querySelector(".sim-galeria-itens");
+  if (novaGaleria && scrollGaleriaAnterior > 0) {
+    novaGaleria.scrollTop = scrollGaleriaAnterior;
+  }
 
   // Restaura o foco sem disparar auto-scroll do navegador
   if (seletorFocoRestaurar) {
@@ -3643,10 +4535,266 @@ function renderizarSimulador() {
   }
 }
 
+function normalizarItemParaSprite(item) {
+  if (!item) return item;
+  const copia = { ...item };
+  if (!copia.kind && copia.set && catalogoConjuntos[copia.set]) {
+    const infoSet = catalogoConjuntos[copia.set];
+    if (copia.slot === "weapon") copia.kind = infoSet.armaKind || "";
+    else if (copia.slot === "helmet") copia.kind = infoSet.elmoKind || "";
+    else if (copia.slot === "armor") copia.kind = infoSet.armaduraKind || "";
+  }
+  return copia;
+}
+
+function renderizarCanvasesFichaSimulador() {
+  if (!containerSimulador || !window.RiftSprites) return;
+
+  // 1. Palco animado do herói (idêntico a /character)
+  const canvasHeroi = containerSimulador.querySelector("#sim-canvas-heroi");
+  if (canvasHeroi) {
+    const itensSprite = (estadoSimulador.itens || []).map(normalizarItemParaSprite);
+    window.RiftSprites.iniciarPalcoHeroi(canvasHeroi, estadoSimulador.cls, itensSprite, 6);
+  }
+
+  // 2. Ícones dos itens equipados (nos 4 slots de EQUIPADO e no topo do card .rs-icard)
+  containerSimulador.querySelectorAll("[data-sim-canvas-equipado]").forEach((cv) => {
+    const idx = Number(cv.dataset.simCanvasEquipado);
+    const item = normalizarItemParaSprite(estadoSimulador.itens[idx]);
+    if (item) {
+      window.RiftSprites.desenharIconeItem(cv, item, estadoSimulador.cls, 3);
+    }
+  });
+
+  // 3. Ícones da galeria do slot (Mochila criativa)
+  containerSimulador.querySelectorAll("[data-sim-canvas-catalogo]").forEach((cv) => {
+    const [slot, cls, lookStr, rarStr, kind, tierStr] = (cv.dataset.simCanvasCatalogo || "").split("|");
+    const escala = cv.width === 32 ? 2 : 3;
+    window.RiftSprites.desenharIconeItem(
+      cv,
+      {
+        slot: slot || "weapon",
+        look: Number(lookStr) || 0,
+        rarity: Number(rarStr) || 0,
+        kind: kind || "",
+        tier: Number(tierStr) || 0,
+      },
+      cls || estadoSimulador.cls,
+      escala
+    );
+  });
+
+  // 4. Ícones das gemas
+  containerSimulador.querySelectorAll("[data-sim-canvas-gema]").forEach((cv) => {
+    const [tipo, tierStr, escalaStr] = (cv.dataset.simCanvasGema || "").split(":");
+    if (tipo) {
+      window.RiftSprites.desenharIconeGema(cv, tipo, Number(tierStr) || 5, Number(escalaStr) || 1);
+    }
+  });
+}
+
 function vincularEventosSimulador() {
   if (!containerSimulador) return;
 
-  // Monitora abertura/fechamento dos slots para manter abertos durante qualquer simulação
+  // Controles da Barra Superior do Modo Criativo
+  containerSimulador.querySelectorAll("[data-sim-modo-vis]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      modoVisualizacaoSimulador = e.currentTarget.dataset.simModoVis === "lista" ? "lista" : "ficha";
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-modo-roll]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const modo = e.currentTarget.dataset.simModoRoll;
+      if (modo === "max" || modo === "media" || modo === "sorteio") {
+        modoRolagemGemaSimulador = modo;
+        renderizarSimulador();
+      }
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-aplicar-roll-todas]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      simuladorEditadoManual = true;
+      recalcularGemasBuildComModo();
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-toggle-autostats]").forEach((chk) => {
+    chk.addEventListener("change", (e) => {
+      autoCalcularStatsItemSimulador = Boolean(e.target.checked);
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-preset-criativo]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const preset = e.currentTarget.dataset.simPresetCriativo;
+      if (preset === "max330") {
+        estadoSimulador.itens.forEach((it) => {
+          it.rarity = 7;
+          it.itemLevel = 330;
+          aplicarAtributosPadraoNoItem(it, true);
+        });
+      } else if (preset === "gemas_safira" || preset === "gemas_rubi") {
+        const tipoGema = preset === "gemas_safira" ? "sapphire" : "ruby";
+        estadoSimulador.itens.forEach((it) => {
+          const t = Number(it.gemTierPadrao || 5);
+          it.gems = Array.from({ length: 6 }, () => criarGemaPreset(tipoGema, it.slot, t, it.itemLevel || 300));
+        });
+      }
+      renderizarSimulador();
+    });
+  });
+
+  // Navegação dos slots no Paperdoll
+  containerSimulador.querySelectorAll("[data-sim-selecionar-slot]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const idx = Number(e.currentTarget.dataset.simSelecionarSlot);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < estadoSimulador.itens.length) {
+        slotSelecionadoSimulador = idx;
+        renderizarSimulador();
+      }
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-classe-btn]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      estadoSimulador.cls = e.currentTarget.dataset.simClasseBtn;
+      renderizarSimulador();
+      if (abaAtualAtiva === "monstros") renderizarSimuladorMonstros();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-filtro-galeria]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      filtroConjuntoSlotSimulador = e.currentTarget.dataset.simFiltroGaleria === "todos" ? "todos" : "classe";
+      renderizarSimulador();
+    });
+  });
+
+  // Troca de peça individual de conjunto no slot ativo (Paperdoll Bancada)
+  containerSimulador.querySelectorAll("[data-sim-equipar-peca-set]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const [idxStr, setKey] = e.currentTarget.dataset.simEquiparPecaSet.split(":");
+      const item = estadoSimulador.itens[Number(idxStr)];
+      const infoSet = catalogoConjuntos[setKey];
+      if (!item || !infoSet) return;
+      item.set = setKey;
+      if (item.slot === "weapon") {
+        item.kind = infoSet.armaKind || item.kind;
+        item.name = infoSet.armaNome || catalogoArmas[infoSet.armaKind]?.nome || item.name;
+      } else if (item.slot === "helmet") {
+        item.kind = infoSet.elmoKind || item.kind;
+        item.name = infoSet.elmoNome || `Elmo (${infoSet.nome})`;
+      } else if (item.slot === "armor") {
+        item.kind = infoSet.armaduraKind || item.kind;
+        item.name = infoSet.armaduraNome || `Armadura (${infoSet.nome})`;
+      }
+      if (autoCalcularStatsItemSimulador) {
+        if (typeof infoSet.raridadePadrao === "number") {
+          item.rarity = infoSet.raridadePadrao;
+        }
+        aplicarAtributosPadraoNoItem(item);
+      }
+      renderizarSimulador();
+    });
+  });
+
+  // Troca para arma avulsa (sem conjunto)
+  containerSimulador.querySelectorAll("[data-sim-equipar-arma-avulsa]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const kind = e.currentTarget.dataset.simEquiparArmaAvulsa;
+      const arma = estadoSimulador.itens[0];
+      if (!arma) return;
+      arma.set = "";
+      arma.kind = kind;
+      arma.name = catalogoArmas[kind]?.nome || "Arma";
+      if (autoCalcularStatsItemSimulador) {
+        aplicarAtributosPadraoNoItem(arma);
+      }
+      renderizarSimulador();
+    });
+  });
+
+  // Troca de anel na galeria visual
+  containerSimulador.querySelectorAll("[data-sim-equipar-anel]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const look = Number(e.currentTarget.dataset.simEquiparAnel) || 0;
+      const anel = estadoSimulador.itens[3];
+      if (!anel) return;
+      anel.look = look;
+      anel.name = catalogoAneis[look]?.nome || "Anel Comum";
+      if (autoCalcularStatsItemSimulador && catalogoAneis[look]?.raridadeMin) {
+        anel.rarity = catalogoAneis[look].raridadeMin;
+        aplicarAtributosPadraoNoItem(anel);
+      }
+      renderizarSimulador();
+    });
+  });
+
+  // Raridade rápida e nível rápido da peça selecionada
+  containerSimulador.querySelectorAll("[data-sim-raridade-rapida]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const [idxStr, rarStr] = e.currentTarget.dataset.simRaridadeRapida.split(":");
+      const item = estadoSimulador.itens[Number(idxStr)];
+      if (!item) return;
+      item.rarity = Number(rarStr) || 0;
+      if (autoCalcularStatsItemSimulador) {
+        aplicarAtributosPadraoNoItem(item, false);
+      }
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-nivel-peca-rapido]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const [idxStr, nvStr] = e.currentTarget.dataset.simNivelPecaRapido.split(":");
+      const item = estadoSimulador.itens[Number(idxStr)];
+      if (!item) return;
+      item.itemLevel = Math.max(1, Math.min(999, Number(nvStr) || 1));
+      if (autoCalcularStatsItemSimulador) {
+        aplicarAtributosPadraoNoItem(item, true);
+      } else {
+        recalcularGemasItem(item);
+      }
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-recalc-peca]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const idx = Number(e.currentTarget.dataset.simRecalcPeca);
+      const item = estadoSimulador.itens[idx];
+      if (!item) return;
+      aplicarAtributosPadraoNoItem(item, true);
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-preencher-gema-peca]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      simuladorEditadoManual = true;
+      const [idxStr, tipoGema] = e.currentTarget.dataset.simPreencherGemaPeca.split(":");
+      const item = estadoSimulador.itens[Number(idxStr)];
+      if (!item) return;
+      const tierSlot = Number(item.gemTierPadrao || 5);
+      item.gems = Array.from({ length: 6 }, () => criarGemaPreset(tipoGema, item.slot, tierSlot, item.itemLevel || 300));
+      renderizarSimulador();
+    });
+  });
+
+  // Monitora abertura/fechamento dos slots para manter abertos durante qualquer simulação (Modo Lista)
   containerSimulador.querySelectorAll(".sim-slot-card").forEach((details) => {
     details.addEventListener("toggle", () => {
       const idx = Number(details.dataset.slotIndex);
@@ -3727,22 +4875,7 @@ function vincularEventosSimulador() {
   containerSimulador.querySelectorAll("[data-sim-set-rapido]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       simuladorEditadoManual = true;
-      const setKey = e.currentTarget.dataset.simSetRapido;
-      const infoSet = catalogoConjuntos[setKey];
-      if (!infoSet) return;
-      [0, 1, 2].forEach((idx) => {
-        const it = estadoSimulador.itens[idx];
-        if (!it) return;
-        it.set = setKey;
-        if (idx === 0 && infoSet.armaKind) {
-          it.kind = infoSet.armaKind;
-          it.name = catalogoArmas[infoSet.armaKind]?.nome || it.name;
-        } else if (idx === 1) {
-          it.name = `Elmo (${infoSet.nome})`;
-        } else if (idx === 2) {
-          it.name = `Armadura (${infoSet.nome})`;
-        }
-      });
+      equiparConjuntoCompletoSimulador(e.currentTarget.dataset.simSetRapido);
       renderizarSimulador();
     });
   });
@@ -3758,10 +4891,23 @@ function vincularEventosSimulador() {
         if (campo === "look") {
           item.name = catalogoAneis[item.look]?.nome || "Anel Comum";
         }
+        if (autoCalcularStatsItemSimulador && (campo === "rarity" || campo === "itemLevel")) {
+          aplicarAtributosPadraoNoItem(item, campo === "itemLevel");
+        }
       } else {
         item[campo] = e.target.value;
         if (campo === "kind") {
           item.name = catalogoArmas[item.kind]?.nome || "Arma";
+        } else if (campo === "set") {
+          if (item.set && catalogoConjuntos[item.set]) {
+            item.name = obterNomeOficialPecaConjunto(item.set, item.slot);
+            if (item.slot === "weapon" && catalogoConjuntos[item.set].armaKind) {
+              item.kind = catalogoConjuntos[item.set].armaKind;
+            }
+          }
+          if (autoCalcularStatsItemSimulador) {
+            aplicarAtributosPadraoNoItem(item, false);
+          }
         }
       }
       renderizarSimulador();
@@ -3799,21 +4945,21 @@ function vincularEventosSimulador() {
         // Desseleciona se já estava selecionada (ao clicar novamente, o espaço fica vazio)
         item.gems[idxGema] = null;
       } else {
-        // Engasta uma nova gema sorteando rolagem dinâmica oficial na hora (85% a 115%)
+        // Engasta uma nova gema respeitando o modo de rolagem atual
         item.gems[idxGema] = criarGemaPreset(tipoClicado, item.slot, tierSlot, item.itemLevel);
       }
       renderizarSimulador();
     });
   });
 
-  // Botão "Re-rolar" todas as gemas engastadas na peça (sorteia novas rolagens oficiais entre 85% e 115%)
+  // Botão "Re-rolar" todas as gemas engastadas na peça
   containerSimulador.querySelectorAll("[data-sim-gem-reroll]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       simuladorEditadoManual = true;
       const idxSlot = Number(e.currentTarget.dataset.simGemReroll);
       const item = estadoSimulador.itens[idxSlot];
       if (!item || !Array.isArray(item.gems)) return;
-      item.gems = item.gems.map((g) => (g && g.type ? criarGemaPreset(g.type, item.slot, g.tier || item.gemTierPadrao || 5, item.itemLevel) : null));
+      recalcularGemasItem(item);
       renderizarSimulador();
     });
   });
@@ -5466,7 +6612,7 @@ formularioBusca.addEventListener("submit", (evento) => {
     requisicaoAtiva?.abort();
     requisicaoAtiva = undefined;
     statusConsulta.dataset.error = "true";
-    statusConsulta.textContent = `Informe um nick válido (ex. ${top1GeralDinamico.nick} ou nando_sts).`;
+    statusConsulta.textContent = `Informe um nick válido (ex. ${top1GeralDinamico.nick}).`;
     return;
   }
 
