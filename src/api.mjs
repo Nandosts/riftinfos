@@ -36,7 +36,7 @@ async function buscarRespostaApi(caminhoApi, sinalAborto, timeoutMs = 9500) {
         const dados = await resposta.json();
         if (sinalAborto?.aborted) throw sinalAborto.reason;
         if (resposta.ok || (typeof dados?.error === "string" && caminhoApi.startsWith("/api/profile/"))) {
-          return { resposta, dados, urlPublica: new URL(urlAws) };
+          return { resposta, dados };
         }
       }
       if (resposta.status >= 500 && (rota === urlAws || rota === rotas[0])) {

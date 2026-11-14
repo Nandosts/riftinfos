@@ -30,7 +30,6 @@ const statusConsulta = document.querySelector("#status-consulta");
 const cabecalhoPerfil = document.querySelector("#cabecalho-perfil");
 const avisoSemPerfil = document.querySelector("#aviso-sem-perfil");
 
-const rodapePainel = document.querySelector("#rodape-painel");
 const imgAvatar = document.querySelector("#avatar-jogador");
 const selectPersonagem = document.querySelector("#select-personagem");
 
@@ -68,7 +67,6 @@ function atualizarEstadoVazioOuPerfil(temPerfil) {
   if (cabecalhoPerfil) cabecalhoPerfil.hidden = !temPerfil;
   if (btnSimImportar) btnSimImportar.disabled = !temPerfil;
   if (avisoSemPerfil) avisoSemPerfil.hidden = temPerfil;
-  if (rodapePainel) rodapePainel.hidden = !temPerfil;
 
   if (conteudoResumoVazio) conteudoResumoVazio.hidden = temPerfil;
   if (conteudoResumoPerfil) conteudoResumoPerfil.hidden = !temPerfil;
@@ -81,13 +79,12 @@ function atualizarEstadoVazioOuPerfil(temPerfil) {
   if (conteudoComparacaoPerfil) conteudoComparacaoPerfil.hidden = !temPerfil;
 }
 
-function renderizarPerfil(perfil, urlPublica, plataforma) {
+function renderizarPerfil(perfil, plataforma) {
   limparComparacao();
   const nomeExibicao = perfil.displayName || perfil.login;
   document.querySelector("#nome-jogador").textContent = nomeExibicao;
   document.querySelector("#plataforma-jogador").textContent =
     plataforma === "kick" ? "KICK" : "TWITCH";
-  document.querySelector("#link-json").href = urlPublica.href;
 
   if (imgAvatar) {
     if (perfil.avatar) {
@@ -164,7 +161,7 @@ async function consultarPerfil(jogador, classeDesejada) {
   estadoPerfil.status = "loading";
 
   try {
-    const { resposta, dados, urlPublica } = await buscarRespostaPerfil(
+    const { resposta, dados } = await buscarRespostaPerfil(
       loginApi,
       classeDesejada,
       controlador.signal
@@ -179,7 +176,7 @@ async function consultarPerfil(jogador, classeDesejada) {
 
     if (requisicaoAtiva !== controlador) return;
     const perfil = validarPerfilApi(dados, loginApi, classeDesejada);
-    renderizarPerfil(perfil, urlPublica, jogador.plataforma);
+    renderizarPerfil(perfil, jogador.plataforma);
 
     estadoPerfil.data = perfil;
     estadoPerfil.status = "success";

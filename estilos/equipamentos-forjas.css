@@ -56,7 +56,6 @@ tr[data-forge="arc"] { --rarity: #ff8de6; }
 .gema-fc { color: var(--gold); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
 .gema-fc-perda { font-size: 0.72rem; color: #ff9b90; white-space: nowrap; }
 
-.rodape-painel { margin-top: 16px; }
 a { color: var(--cyan); }
 .note { margin: 16px 0 4px; font-size: 0.85rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
