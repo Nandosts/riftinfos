@@ -26,9 +26,9 @@ import { containerSimulador } from "./tela.mjs";
 
 function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3Pecas = "") {
   const modRollTexto = {
-    max: "Teto Oficial (115% fixo)",
+    max: "Cenário de teto (115%)",
     media: "Média Neutra (100%)",
-    sorteio: "Sorteio Real (85%–115%)",
+    sorteio: "Sorteio simulado (85%–115%)",
   }[simulacao.modoRolagemGemaSimulador] || "";
 
   const pillsSetsHtml = conjuntosDaClasse.length > 0
@@ -62,7 +62,7 @@ function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3
             <button type="button" class="btn-seg ${simulacao.modoRolagemGemaSimulador === "media" ? "ativo" : ""}" data-sim-modo-roll="media" title="Todas as novas pedras vêm na média exata de 100%">
               ⚖️ Média 100%
             </button>
-            <button type="button" class="btn-seg ${simulacao.modoRolagemGemaSimulador === "sorteio" ? "ativo" : ""}" data-sim-modo-roll="sorteio" title="Sorteia cada pedra entre 85% e 115% como na forja do jogo">
+            <button type="button" class="btn-seg ${simulacao.modoRolagemGemaSimulador === "sorteio" ? "ativo" : ""}" data-sim-modo-roll="sorteio" title="Simula uma rolagem entre 85% e 115%">
               🎲 Sorteio
             </button>
           </div>
@@ -74,7 +74,7 @@ function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3
         <div class="sim-barra-grupo sim-barra-presets">
           <label class="sim-check-auto" title="Quando ativo, trocar a peça, raridade ou itemLevel calcula os atributos base estimados automaticamente">
             <input type="checkbox" data-sim-toggle-autostats="1" ${simulacao.autoCalcularStatsItemSimulador ? "checked" : ""}>
-            <span>Auto-stats por Nv.</span>
+            <span>Estimar atributos por nível</span>
           </label>
           <button type="button" class="btn-mini" data-sim-preset-criativo="max330" title="Coloca as 4 peças em Arcano Nível 330 e recalcula os atributos base e gemas">
             ⚡ Tudo Arcano Nv.330
@@ -819,8 +819,8 @@ function construirModoFichaVisualHtml(
                   <label class="small muted" for="sim-input-nv-peca">Nv.:</label>
                   <input id="sim-input-nv-peca" type="number" min="1" max="999" value="${itemAtivo.itemLevel || 1}" data-sim-item-campo="${idxAtivo}:itemLevel">
                   ${niveisRapidosPecaHtml}
-                  <button type="button" class="btn-mini btn-atalho-ativo" data-sim-recalc-peca="${idxAtivo}" title="Recalcula ATK, DEF, HP, CRÍT e VEL da peça para o nível e raridade atuais">
-                    ⚡ Auto-Stats
+                  <button type="button" class="btn-mini btn-atalho-ativo" data-sim-recalc-peca="${idxAtivo}" title="Estima ATK, DEF, HP, CRÍT e VEL pelo nível e raridade. Você pode editar os valores.">
+                    Estimar atributos
                   </button>
                 </div>
               </div>

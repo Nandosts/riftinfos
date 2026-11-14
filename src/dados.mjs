@@ -24,7 +24,7 @@ const dadosClasses = {
     nomeSkill: "Luz Divina",
   },
   archer: {
-    k: 0.72,
+    k: 0.75,
     base: { hp: 70, atk: 11, def: 1.5, aspd: 1.1 },
     growth: { hp: 8, atk: 1.9, def: 0.4 },
     cor: "#7be07b",

@@ -3,7 +3,6 @@
 
 import argparse
 import json
-import math
 import os
 import re
 import subprocess
@@ -18,64 +17,6 @@ DIRETORIO_BASE = os.path.dirname(os.path.abspath(__file__))
 URL_API_BASE = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
 URL_SITE_JOGO = "https://riftstream.com.br/"
 BUNDLE_REFERENCIA = "index-Bw4Xm9JJ.js"
-
-DADOS_CLASSES = {
-    "warrior": {
-        "k": 0.6,
-        "base": {"hp": 120.0, "atk": 9.0, "def": 4.0, "aspd": 0.95},
-        "growth": {"hp": 19.0, "atk": 1.6, "def": 1.1},
-    },
-    "cleric": {
-        "k": 0.84,
-        "base": {"hp": 85.0, "atk": 6.0, "def": 2.0, "aspd": 0.8},
-        "growth": {"hp": 9.0, "atk": 1.1, "def": 0.5},
-    },
-    "archer": {
-        "k": 0.75,
-        "base": {"hp": 70.0, "atk": 11.0, "def": 1.5, "aspd": 1.1},
-        "growth": {"hp": 8.0, "atk": 1.9, "def": 0.4},
-    },
-}
-
-BONUS_CONJUNTOS = {
-    "berserker": ({"atk": 0.12}, {"hp": 0.15, "crit": 6}),
-    "lunar": ({"hp": 0.12, "def": 0.1}, {"atk": 0.15, "spd": 0.1}),
-    "wind": ({"atk": 0.1, "spd": 0.05}, {"crit": 6, "spd": 0.1}),
-    "volcano": ({"atk": 0.15, "def": 0.1}, {"hp": 0.2, "atk": 0.12, "crit": 5}),
-    "reaperset": ({"atk": 0.1, "crit": 6}, {"atk": 0.2, "spd": 0.1}),
-    "dawn": ({"hp": 0.18, "def": 0.1}, {"atk": 0.25, "hp": 0.12}),
-    "abyss": ({"atk": 0.15, "crit": 5}, {"atk": 0.2, "spd": 0.12}),
-    "stellar": ({"atk": 0.12, "spd": 0.08}, {"crit": 8, "atk": 0.15}),
-    "cosmicvan": ({"atk": 0.1, "def": 0.08}, {"hp": 0.15, "atk": 0.1}),
-    "oracle": ({"hp": 0.12, "atk": 0.08}, {"atk": 0.15, "spd": 0.1}),
-    "etehunter": ({"atk": 0.1, "crit": 5}, {"crit": 8, "spd": 0.1}),
-    "prism": ({"atk": 0.12, "crit": 6}, {"hp": 0.1, "atk": 0.2, "spd": 0.1}),
-    "ember": ({"hp": 0.2, "def": 0.15}, {"atk": 0.3, "hp": 0.25}),
-    "gore": ({"atk": 0.25, "crit": 8}, {"atk": 0.4, "spd": 0.15}),
-    "echo": ({"hp": 0.2, "atk": 0.15}, {"atk": 0.35, "spd": 0.2}),
-    "communion": ({"hp": 0.25, "def": 0.15}, {"atk": 0.3, "hp": 0.25}),
-    "predator": ({"atk": 0.2, "crit": 8}, {"atk": 0.3, "crit": 10, "spd": 0.1}),
-    "tempest": ({"atk": 0.2, "spd": 0.12}, {"atk": 0.3, "spd": 0.25}),
-    "chrono": ({"def": 0.15, "spd": 0.12}, {"atk": 0.3, "spd": 0.2, "hp": 0.15}),
-    "singular": ({"atk": 0.25, "crit": 6}, {"atk": 0.4, "hp": 0.2, "crit": 10}),
-    "constel": ({"hp": 0.22, "def": 0.15}, {"atk": 0.3, "hp": 0.25, "spd": 0.1}),
-    "worldtree": ({"hp": 0.3, "atk": 0.1}, {"atk": 0.4, "atk": 0.25}),
-    "luna": ({"atk": 0.22, "spd": 0.1}, {"atk": 0.35, "crit": 8, "spd": 0.1}),
-    "dragon": ({"atk": 0.2, "crit": 8}, {"atk": 0.4, "hp": 0.15, "crit": 10}),
-    "tamer": ({"atk": 0.3, "hp": 0.2}, {"atk": 0.55, "hp": 0.25, "spd": 0.15}),
-    "strongman": ({"hp": 0.35, "def": 0.25}, {"atk": 0.5, "hp": 0.4, "crit": 10}),
-    "illusion": ({"hp": 0.3, "atk": 0.25}, {"atk": 0.5, "hp": 0.3, "spd": 0.2}),
-    "fortune": ({"hp": 0.35, "def": 0.2}, {"atk": 0.35, "hp": 0.55}),
-    "trapeze": ({"atk": 0.3, "spd": 0.15}, {"atk": 0.5, "crit": 12, "spd": 0.25}),
-    "firework": ({"atk": 0.3, "crit": 10}, {"atk": 0.6, "crit": 15, "hp": 0.15}),
-    "obsidian": ({"hp": 0.3, "def": 0.3}, {"atk": 0.45, "hp": 0.45, "def": 0.15}),
-    "thunderlord": ({"atk": 0.35, "crit": 10}, {"atk": 0.6, "crit": 15, "spd": 0.15}),
-    "seraphgold": ({"hp": 0.35, "atk": 0.25}, {"hp": 0.55, "atk": 0.4, "spd": 0.1}),
-    "eclipsepriest": ({"atk": 0.3, "def": 0.2}, {"atk": 0.55, "hp": 0.3, "spd": 0.2}),
-    "auroraborealis": ({"atk": 0.25, "spd": 0.2}, {"atk": 0.45, "spd": 0.2, "hp": 0.2}),
-    "abysshunter": ({"atk": 0.35, "crit": 12}, {"atk": 0.6, "crit": 18, "hp": 0.1}),
-}
-
 
 def requisicao_http(url, timeout=12):
     """Executa GET HTTP retornando (status, corpo_texto, headers)."""
@@ -105,118 +46,27 @@ def buscar_json(caminho, base=URL_API_BASE):
         return status, None
 
 
-def inferir_e_calcular_fc(perfil):
-    """Replica exatamente inferirAtributosBase + calcularStatusSimulados + calcularFc de src/combate.mjs."""
-    cls = perfil["cls"]
-    dados = DADOS_CLASSES[cls]
-    nivel = perfil["level"]
-    r = max(0, nivel - 1)
-    st = perfil["stats"]
+def calcular_fc_no_simulador(perfil):
+    script = """
+import { readFileSync } from "node:fs";
+import { calcularFc, calcularStatusSimulados, inferirAtributosBase } from "./src/combate.mjs";
 
-    fixos = {"atk": 0.0, "def": 0.0, "hp": 0.0, "crit": 0.0, "spd": 0.0}
-    gemas_fixas = {"atk": 0.0, "def": 0.0, "hp": 0.0, "crit": 0.0, "spd": 0.0}
-    gemas_pct = {"atk": 0.0, "def": 0.0, "hp": 0.0, "crit": 0.0, "spd": 0.0}
-    contagem_sets = {}
-
-    for item in perfil.get("equipped") or []:
-        if not item or item.get("slot") == "cosmetic":
-            continue
-        for k in fixos:
-            fixos[k] += float(item.get(k) or 0)
-        s = item.get("set")
-        if s:
-            contagem_sets[s] = contagem_sets.get(s, 0) + 1
-        for gema in item.get("gems") or []:
-            for k_stat, k_val, k_pct in [("stat", "value", "pct"), ("stat2", "value2", "pct2")]:
-                gs = gema.get(k_stat)
-                gv = float(gema.get(k_val) or 0)
-                if gs in fixos:
-                    if gema.get(k_pct):
-                        gemas_pct[gs] += gv
-                    else:
-                        gemas_fixas[gs] += gv
-
-    mult_sets = {"atk": 1.0, "def": 1.0, "hp": 1.0, "spd": 1.0}
-    crit_set = 0.0
-    for chave_set, qtd in contagem_sets.items():
-        if chave_set not in BONUS_CONJUNTOS:
-            continue
-        b2, b3 = BONUS_CONJUNTOS[chave_set]
-        if qtd >= 2:
-            for k in mult_sets:
-                mult_sets[k] *= 1.0 + b2.get(k, 0.0)
-            crit_set += b2.get("crit", 0.0)
-        if qtd >= 3:
-            for k in mult_sets:
-                mult_sets[k] *= 1.0 + b3.get(k, 0.0)
-            crit_set += b3.get("crit", 0.0)
-
-    def resolver_quad(base, ganho, mult, alvo):
-        a = 0.015 * ganho
-        b = ganho + 0.015 * base
-        c = base - alvo / max(0.0001, mult)
-        disc = max(0.0, b * b - 4 * a * c)
-        x = (-b + math.sqrt(disc)) / (2 * a)
-        return max(0, round(x))
-
-    forca = resolver_quad(
-        dados["base"]["atk"] + dados["growth"]["atk"] * r + fixos["atk"] + gemas_fixas["atk"],
-        1.5,
-        mult_sets["atk"] * (1.0 + gemas_pct["atk"] / 1000.0),
-        st["atk"],
+const perfil = JSON.parse(readFileSync(0, "utf8"));
+const { cls, level, equipped } = perfil;
+const atributos = inferirAtributosBase(perfil);
+const stats = calcularStatusSimulados(cls, level, atributos, equipped);
+console.log(calcularFc(cls, stats));
+"""
+    processo = subprocess.run(
+        ["node", "--input-type=module", "-e", script],
+        cwd=DIRETORIO_BASE,
+        input=json.dumps(perfil),
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True,
     )
-    vit = resolver_quad(
-        dados["base"]["hp"] + dados["growth"]["hp"] * r + fixos["hp"] + gemas_fixas["hp"],
-        10.0,
-        mult_sets["hp"] * (1.0 + gemas_pct["hp"] / 1000.0),
-        st["maxHp"],
-    )
-    defesa = resolver_quad(
-        dados["base"]["def"] + dados["growth"]["def"] * r + fixos["def"] + gemas_fixas["def"],
-        0.8,
-        mult_sets["def"] * (1.0 + gemas_pct["def"] / 1000.0),
-        st["def"],
-    )
-    spd_mult = (1.0 + (fixos["spd"] + gemas_fixas["spd"]) / 100.0) * mult_sets["spd"]
-    agi = max(0, round(((st["aspd"] / (dados["base"]["aspd"] * spd_mult)) - 1.0) / 0.02))
-    crit_total = st["crit"] + (st.get("critDmg") or 0.0) / 0.03
-    luk = max(0, round((crit_total - 5.0 - fixos["crit"] - gemas_fixas["crit"] - crit_set) / 0.4))
-
-    atk_sim = round(
-        (dados["base"]["atk"] + dados["growth"]["atk"] * r + forca * 1.5 + fixos["atk"] + gemas_fixas["atk"])
-        * (1.0 + forca * 0.015)
-        * mult_sets["atk"]
-        * (1.0 + gemas_pct["atk"] / 1000.0)
-        * 10
-    ) / 10.0
-    hp_sim = round(
-        (dados["base"]["hp"] + dados["growth"]["hp"] * r + vit * 10.0 + fixos["hp"] + gemas_fixas["hp"])
-        * (1.0 + vit * 0.015)
-        * mult_sets["hp"]
-        * (1.0 + gemas_pct["hp"] / 1000.0)
-    )
-    def_sim = round(
-        (dados["base"]["def"] + dados["growth"]["def"] * r + defesa * 0.8 + fixos["def"] + gemas_fixas["def"])
-        * (1.0 + defesa * 0.015)
-        * mult_sets["def"]
-        * (1.0 + gemas_pct["def"] / 1000.0)
-        * 10
-    ) / 10.0
-    aspd_sim = round(
-        dados["base"]["aspd"]
-        * (1.0 + agi * 0.02)
-        * (1.0 + (fixos["spd"] + gemas_fixas["spd"]) / 100.0)
-        * mult_sets["spd"]
-        * 100
-    ) / 100.0
-    crit_bruto = 5.0 + luk * 0.4 + fixos["crit"] + gemas_fixas["crit"] + crit_set
-    crit_sim = min(60.0, round(crit_bruto * 10) / 10.0)
-    crit_dmg_sim = round(max(0.0, crit_bruto - 60.0) * 0.03 * 1000) / 1000.0
-
-    dps = atk_sim * aspd_sim * (1.0 + (crit_sim / 100.0) * (0.5 + crit_dmg_sim))
-    ehp = hp_sim * (1.0 + def_sim * 0.04)
-    fc_sim = round(dados["k"] * math.sqrt(max(0.0, dps * ehp)))
-    return fc_sim, {"str": forca, "vit": vit, "def": defesa, "agi": agi, "luk": luk}
+    return int(processo.stdout)
 
 
 class ExecutorTestes:
@@ -335,7 +185,14 @@ def executar_suite_perfis_e_matematica(ex):
             f"Perfil {login} ({cls}) possui counters de forja e lista equipped",
         )
 
-        fc_calc, _ = inferir_e_calcular_fc(perfil)
+        try:
+            fc_calc = calcular_fc_no_simulador(perfil)
+        except FileNotFoundError:
+            ex.avisar("Node.js não encontrado. Não foi possível validar o cálculo de FC.")
+            continue
+        except (subprocess.SubprocessError, ValueError) as erro:
+            ex.afirmar(False, f"Cálculo de FC no simulador para {login} ({cls})", str(erro))
+            continue
         fc_api = float(perfil.get("power") or 0)
         erro_rel = abs(fc_calc - fc_api) / max(1.0, fc_api)
         ex.afirmar(
