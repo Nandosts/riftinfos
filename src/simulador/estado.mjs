@@ -16,7 +16,7 @@ const simulacao = {
   termoBuscaSlotSimulador: "",
   opcoesAvancadasAbertasSimulador: false,
   modoRolagemGemaSimulador: "max",
-  autoCalcularStatsItemSimulador: true,
+  autoCalcularStatsItemSimulador: false,
   filtroConjuntoSlotSimulador: "classe",
   estadoSimulador: criarModeloSimuladorPadrao(),
   historicoDesfazerSimulador: [],
@@ -263,30 +263,34 @@ function importarPerfilParaSimulador(perfil) {
 const slotsAbertosSimulador = new Set([0]);
 const iconesSlotsSimulador = { weapon: "🗡️", helmet: "🪖", armor: "🛡️", ring: "💍" };
 
+function limparVisualImportado(item) {
+  delete item.vKind;
+  delete item.vLook;
+  delete item.vTier;
+}
+
+function equiparPecaConjuntoSimulador(item, setKey) {
+  const info = catalogoConjuntos[setKey];
+  if (!item || !info) return;
+  const campoKind = { weapon: "armaKind", helmet: "elmoKind", armor: "armaduraKind" }[item.slot];
+  if (!campoKind) return;
+
+  const kind = info[campoKind] || "";
+  if (item.set !== setKey || item.kind !== kind) {
+    limparVisualImportado(item);
+    item.look = 0;
+  }
+  item.set = setKey;
+  item.kind = kind;
+  item.name = obterNomeOficialPecaConjunto(setKey, item.slot);
+  if (simulacao.autoCalcularStatsItemSimulador) {
+    if (typeof info.raridadePadrao === "number") item.rarity = info.raridadePadrao;
+    aplicarAtributosPadraoNoItem(item, false);
+  }
+}
+
 function equiparConjuntoCompletoSimulador(setKey) {
-  const infoSet = catalogoConjuntos[setKey];
-  if (!infoSet) return;
-  [0, 1, 2].forEach((idx) => {
-    const it = simulacao.estadoSimulador.itens[idx];
-    if (!it) return;
-    it.set = setKey;
-    if (idx === 0) {
-      it.kind = infoSet.armaKind || it.kind || "";
-      it.name = infoSet.armaNome || catalogoArmas[infoSet.armaKind]?.nome || it.name;
-    } else if (idx === 1) {
-      it.kind = infoSet.elmoKind || it.kind || "";
-      it.name = infoSet.elmoNome || `Elmo (${infoSet.nome})`;
-    } else if (idx === 2) {
-      it.kind = infoSet.armaduraKind || it.kind || "";
-      it.name = infoSet.armaduraNome || `Armadura (${infoSet.nome})`;
-    }
-    if (simulacao.autoCalcularStatsItemSimulador) {
-      if (typeof infoSet.raridadePadrao === "number") {
-        it.rarity = infoSet.raridadePadrao;
-      }
-      aplicarAtributosPadraoNoItem(it);
-    }
-  });
+  simulacao.estadoSimulador.itens.forEach((item) => equiparPecaConjuntoSimulador(item, setKey));
 }
 
 function obterResumoPassivasBuildSimulador() {
@@ -326,6 +330,8 @@ export {
   criarGemaPreset,
   criarModeloSimuladorPadrao,
   equiparConjuntoCompletoSimulador,
+  equiparPecaConjuntoSimulador,
+  limparVisualImportado,
   formatarBonusConjuntoCurto,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,

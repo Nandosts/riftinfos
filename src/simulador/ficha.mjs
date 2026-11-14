@@ -656,7 +656,7 @@ function construirModoFichaVisualHtml(
 
         <div class="rs-hero-tiles">
           <div class="rs-htile fc">
-            <span>FC</span>
+            <span>FC SIMULADO</span>
             <b>${formatadorInteiro.format(fcSim)}</b>
             ${deltaFc !== null ? `<small class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} vs atual</small>` : ""}
           </div>
@@ -706,7 +706,7 @@ function construirModoFichaVisualHtml(
             ${danoCritExtraPct > 0 ? `<small>(+${danoCritExtraPct}%)</small>` : ""}
           </div>
           <div class="rs-tile">
-            <span>DPS REAL</span>
+            <span>DPS ESTIMADO</span>
             <b style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s</b>
             <small>Cadência ${metSim.cadenciaReal.toFixed(2)}/s</small>
           </div>
@@ -754,7 +754,7 @@ function construirModoFichaVisualHtml(
 
         <!-- Resumo instantâneo visível enquanto edita a peça e as gemas -->
         <div class="rs-live-summary-bar" aria-live="polite">
-          <span>FC: <strong style="color:var(--gold); font-family:var(--pix);">${formatadorInteiro.format(fcSim)}</strong></span>
+          <span>FC simulado: <strong style="color:var(--gold); font-family:var(--pix);">${formatadorInteiro.format(fcSim)}</strong></span>
           ${deltaFc !== null ? `<span class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">(${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)})</span>` : ""}
           <span>·</span>
           <span>${simulacao.estadoSimulador.cls === "cleric" ? "Cura" : "DPS"}: <strong style="color:var(--cyan);">${formatarNumeroCompacto(simulacao.estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio)}${simulacao.estadoSimulador.cls === "cleric" ? "" : "/s"}</strong></span>
@@ -762,6 +762,8 @@ function construirModoFichaVisualHtml(
           <span>HP: <strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></span>
         </div>
       </div>
+
+      <p class="small muted">Ao trocar a peça, a simulação reaproveita as gemas. Com a estimativa automática desligada, também mantém os atributos do slot. Para prever seu FC, informe os valores da peça que você pretende equipar.</p>
 
       <div class="rs-inv-body">
         <!-- Esquerda: Seletor compacto de peças com busca e filtro -->

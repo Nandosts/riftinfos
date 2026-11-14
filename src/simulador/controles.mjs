@@ -12,6 +12,8 @@ import {
   criarGemaPreset,
   criarModeloSimuladorPadrao,
   equiparConjuntoCompletoSimulador,
+  equiparPecaConjuntoSimulador,
+  limparVisualImportado,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,
   recalcularGemasBuildComModo,
@@ -164,25 +166,7 @@ function vincularEventosSimulador() {
       simulacao.simuladorEditadoManual = true;
       const [idxStr, setKey] = e.currentTarget.dataset.simEquiparPecaSet.split(":");
       const item = simulacao.estadoSimulador.itens[Number(idxStr)];
-      const infoSet = catalogoConjuntos[setKey];
-      if (!item || !infoSet) return;
-      item.set = setKey;
-      if (item.slot === "weapon") {
-        item.kind = infoSet.armaKind || item.kind;
-        item.name = infoSet.armaNome || catalogoArmas[infoSet.armaKind]?.nome || item.name;
-      } else if (item.slot === "helmet") {
-        item.kind = infoSet.elmoKind || item.kind;
-        item.name = infoSet.elmoNome || `Elmo (${infoSet.nome})`;
-      } else if (item.slot === "armor") {
-        item.kind = infoSet.armaduraKind || item.kind;
-        item.name = infoSet.armaduraNome || `Armadura (${infoSet.nome})`;
-      }
-      if (simulacao.autoCalcularStatsItemSimulador) {
-        if (typeof infoSet.raridadePadrao === "number") {
-          item.rarity = infoSet.raridadePadrao;
-        }
-        aplicarAtributosPadraoNoItem(item);
-      }
+      equiparPecaConjuntoSimulador(item, setKey);
       renderizarSimulador();
     });
   });
@@ -194,11 +178,15 @@ function vincularEventosSimulador() {
       const kind = e.currentTarget.dataset.simEquiparArmaAvulsa;
       const arma = simulacao.estadoSimulador.itens[0];
       if (!arma) return;
+      if (arma.kind !== kind || arma.set) {
+        limparVisualImportado(arma);
+        arma.look = 0;
+      }
       arma.set = "";
       arma.kind = kind;
       arma.name = catalogoArmas[kind]?.nome || "Arma";
       if (simulacao.autoCalcularStatsItemSimulador) {
-        aplicarAtributosPadraoNoItem(arma);
+        aplicarAtributosPadraoNoItem(arma, false);
       }
       renderizarSimulador();
     });
@@ -211,11 +199,12 @@ function vincularEventosSimulador() {
       const look = Number(e.currentTarget.dataset.simEquiparAnel) || 0;
       const anel = simulacao.estadoSimulador.itens[3];
       if (!anel) return;
+      if (Number(anel.look) !== look) limparVisualImportado(anel);
       anel.look = look;
       anel.name = catalogoAneis[look]?.nome || "Anel Comum";
       if (simulacao.autoCalcularStatsItemSimulador && catalogoAneis[look]?.raridadeMin) {
         anel.rarity = catalogoAneis[look].raridadeMin;
-        aplicarAtributosPadraoNoItem(anel);
+        aplicarAtributosPadraoNoItem(anel, false);
       }
       renderizarSimulador();
     });
@@ -367,6 +356,10 @@ function vincularEventosSimulador() {
       const [idxStr, campo] = e.target.dataset.simItemCampo.split(":");
       const item = simulacao.estadoSimulador.itens[Number(idxStr)];
       if (!item) return;
+      if (campo === "look" || campo === "kind" || campo === "set") {
+        limparVisualImportado(item);
+        if (campo !== "look") item.look = 0;
+      }
       if (campo === "rarity" || campo === "itemLevel" || campo === "look") {
         item[campo] = Number(e.target.value) || 0;
         if (campo === "look") {
@@ -379,12 +372,13 @@ function vincularEventosSimulador() {
         item[campo] = e.target.value;
         if (campo === "kind") {
           item.name = catalogoArmas[item.kind]?.nome || "Arma";
+          if (catalogoConjuntos[item.set]?.armaKind !== item.kind) item.set = "";
         } else if (campo === "set") {
           if (item.set && catalogoConjuntos[item.set]) {
             item.name = obterNomeOficialPecaConjunto(item.set, item.slot);
-            if (item.slot === "weapon" && catalogoConjuntos[item.set].armaKind) {
-              item.kind = catalogoConjuntos[item.set].armaKind;
-            }
+            const info = catalogoConjuntos[item.set];
+            const campoKind = { weapon: "armaKind", helmet: "elmoKind", armor: "armaduraKind" }[item.slot];
+            if (campoKind) item.kind = info[campoKind] || "";
           }
           if (simulacao.autoCalcularStatsItemSimulador) {
             aplicarAtributosPadraoNoItem(item, false);
