@@ -1944,15 +1944,9 @@ function renderizarResumoGeloFogoTopo(perfil) {
   if (!resumoGeloFogoTopo || !perfil) return;
   const counters = perfil.counters || {};
 
-  const slotsPity = [
-    { chave: "wpn", rotulo: "Arma", idx: 0 },
-    { chave: "helm", rotulo: "Elmo", idx: 1 },
-    { chave: "chest", rotulo: "Armadura", idx: 2 },
-    { chave: "legs", rotulo: "Calça", idx: 3 },
-    { chave: "boots", rotulo: "Botas", idx: 4 },
-    { chave: "neck", rotulo: "Colar", idx: 5 },
-    { chave: "ring", rotulo: "Anel", idx: 6 },
-  ];
+  const slotsPity = indicesPecaPity.map(({ idx, slot, rotulo }) => ({
+    idx, rotulo, chave: { weapon: "wpn", helmet: "helm", armor: "chest", ring: "ring" }[slot]
+  }));
 
   let maxGelo = { slot: "Arma", raridade: "Arcano", valor: 0, slotChave: "wpn", raridadeChave: "arc" };
   for (const s of slotsPity) {
@@ -1999,20 +1993,14 @@ function renderizarPlanejadorForjas(perfil) {
   if (!planejadorProximaForja) return;
 
   const counters = perfil?.counters || {};
-  const slotsPity = [
-    { chave: "wpn", rotulo: "Arma", idx: 0 },
-    { chave: "helm", rotulo: "Elmo", idx: 1 },
-    { chave: "chest", rotulo: "Armadura", idx: 2 },
-    { chave: "legs", rotulo: "Calça", idx: 3 },
-    { chave: "boots", rotulo: "Botas", idx: 4 },
-    { chave: "neck", rotulo: "Colar", idx: 5 },
-    { chave: "ring", rotulo: "Anel", idx: 6 },
-  ];
+  const slotsPity = indicesPecaPity.map(({ idx, slot, rotulo }) => ({
+    idx, rotulo, chave: { weapon: "wpn", helmet: "helm", armor: "chest", ring: "ring" }[slot]
+  }));
 
   const raridades = [
-    { chave: "arc", rotulo: "Arcano", base: 25, idRarity: 7, custoOuro: 500000, custoMin: 30 },
-    { chave: "imm", rotulo: "Imortal", base: 35, idRarity: 6, custoOuro: 100000, custoMin: 15 },
-    { chave: "epic", rotulo: "Épico", base: 50, idRarity: 4, custoOuro: 25000, custoMin: 5 },
+    { chave: "arc", rotulo: "Arcano", base: 25, idRarity: 7 },
+    { chave: "imm", rotulo: "Imortal", base: 35, idRarity: 6 },
+    { chave: "epic", rotulo: "Épico", base: 50, idRarity: 4 },
   ];
 
   if (!window._estadoPlanejador) {
@@ -2049,8 +2037,7 @@ function renderizarPlanejadorForjas(perfil) {
   }
   const chanceEmNTentativas = (1 - probTodasFalharem) * 100;
 
-  const custoOuroTotal = cfgRaridade.custoOuro * N;
-  const custoMinTotal = cfgRaridade.custoMin * N;
+  const materiaisTotal = 4 * N;
 
   const composicaoTexto = `Base ${cfgRaridade.base}% + Gelo ${bonusGeloPP >= 0 ? "+" : ""}${bonusGeloPP} p.p. + Pergaminho +${pergaminhoPP} p.p. + Evento +${eventoPP} p.p. = ${chanceProxima.toFixed(1)}%`;
 
@@ -2059,7 +2046,7 @@ function renderizarPlanejadorForjas(perfil) {
 
   planejadorProximaForja.innerHTML = `
     <h3 class="titulo-bloco-secao">Planejador da Próxima Forja</h3>
-    <p class="note-compacto">Preveja a probabilidade exata da próxima tentativa ou de uma sequência de tentativas com progressão de Gelo (Pity).</p>
+    <p class="note-compacto">Simule a próxima tentativa e a progressão de Gelo. As chances base são referências; eventos ativos podem alterar as regras do servidor.</p>
     
     <div class="grid-planejador-inputs">
       <div class="campo">
@@ -2113,10 +2100,10 @@ function renderizarPlanejadorForjas(perfil) {
         </div>
         <div class="item-comparacao-fc">
           <span class="muted small">Orçamento Estimado (${N} tentativa${N > 1 ? "s" : ""}) ${badgeEst}</span>
-          <strong>~${formatadorInteiro.format(custoOuroTotal)} Ouro · ${custoMinTotal} Minérios</strong>
+          <strong>${materiaisTotal} equipamentos compatíveis · ouro depende dos níveis</strong>
         </div>
       </div>
-      <p class="note" style="margin:0;">* O orçamento para ${N} tentativa(s) representa o montante para executar as tentativas no cenário selecionado, e não custo garantido de obter sucesso.</p>
+      <p class="note" style="margin:0;">* São materiais para executar ${N} tentativa(s), sem reutilizar resultados. O custo em ouro é calculado pelo jogo conforme o nível e a raridade; consulte a confirmação da forja. Não garante sucesso.</p>
     </div>
   `;
 

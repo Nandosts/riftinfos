@@ -51,7 +51,7 @@
     },
     cura: {
       termo: "Poder de Cura",
-      curto: "Cura estimada da habilidade Luz Divina e pulsos por segundo. Escala com ATK, nível e cajado equipado.",
+      curto: "Cura estimada da habilidade Luz Divina. Escala com ATK, nível e os multiplicadores considerados no cenário.",
       detalhes: "A fórmula de cura do clérigo utiliza (ATK × 2,4 + Nível × 1,5 + 6) multiplicado pelo bônus de velocidade da arma e pelo multiplicador de cura do cajado equipado.",
       categoria: "combate"
     },
@@ -76,7 +76,7 @@
     crit_dano: {
       termo: "Dano crítico",
       curto: "Multiplicador de dano aplicado quando ocorre um golpe crítico.",
-      detalhes: "O valor base é 150% (1,5×). Gemas de crítico e atributos aumentam esse multiplicador percentualmente.",
+      detalhes: "O crítico base causa 175% (1,75×) do dano. Cada ponto percentual de chance acima do limite de 60% contribui com 3 pontos percentuais de dano crítico.",
       categoria: "combate"
     },
     vida_efetiva: {
@@ -154,7 +154,7 @@
     origem_calculado: {
       termo: "Calculado",
       curto: "Transformação matemática direta de dados conhecidos (ex: sucessos ÷ tentativas).",
-      detalhes: "Usa fórmulas exatas sem necessidade de inferir atributos ou criar cenários hipotéticos.",
+      detalhes: "Resultado derivado dos dados recebidos. Quando depende de atributos inferidos ou condições hipotéticas, deve ser identificado como estimativa.",
       categoria: "origem"
     },
     origem_estimado: {
@@ -165,20 +165,20 @@
     },
     dot: {
       termo: "DoT (Damage over Time / Dano Contínuo)",
-      curto: "Dano contínuo aplicado a cada segundo (ex: Sangramento, Veneno ou Poça Ácida). No Rift, o DoT de chefes e monstros IGNORA a sua defesa física!",
-      detalhes: "Sigla para 'Damage over Time'. Em vez de um impacto único, causa dano cumulativo a cada segundo (ex: Sangramento por 4s). Em chefes de zona alta, o DoT ignora 100% da armadura do jogador e atinge o HP puro. Por essa razão, Vida pura e cura têm valor superior à armadura contra chefes com mecânicas de DoT.",
+      curto: "Dano contínuo aplicado a cada segundo (ex: Sangramento, Veneno ou Poça Ácida). O sangramento observado no frontend ignora defesa. Não se deve generalizar esse comportamento a todo efeito periódico.",
+      detalhes: "Sigla para 'Damage over Time'. Em vez de um impacto único, causa dano cumulativo a cada segundo (ex: Sangramento por 4s). O sangramento é processado sem a redução física, mas ainda passa por verificações de invulnerabilidade e absorção de escudo. Outros efeitos periódicos podem seguir regras diferentes.",
       categoria: "combate"
     },
     true_damage: {
       termo: "Dano Verdadeiro (True Damage)",
       curto: "Tipo de dano que ignora totalmente a armadura e redução de defesa do alvo, subtraindo vida diretamente.",
-      detalhes: "Enquanto golpes físicos convencionais são mitigados pela sua defesa em até 99%+, o Dano Verdadeiro não sofre nenhuma redução. Exemplos no Rift: Sangramento de Chefes e lacaios, proc percentual da Singularidade e o efeito do Anel da Sede Escarlate.",
+      detalhes: "Enquanto golpes físicos convencionais são mitigados pela sua defesa em até 99%+, dano que ignora defesa ainda pode ser absorvido por escudos e interagir com outras proteções. Exemplos no Rift: Sangramento de Chefes e lacaios, proc percentual da Singularidade e o efeito do Anel da Sede Escarlate.",
       categoria: "combate"
     },
     ehp: {
       termo: "EHP (Vida Efetiva Física)",
       curto: "Total de dano físico bruto que o personagem aguenta antes de zerar a vida, levando em conta a mitigação da armadura.",
-      detalhes: "Sigla para 'Effective Health Points'. Calculada como Vida / (1 - Mitigação de Defesa). Se você tem 100k HP e sua armadura reduz 90% do dano físico, seu EHP físico é de 1 milhão. Importante: DoT (sangramento) e dano verdadeiro anulam essa proteção.",
+      detalhes: "Sigla para 'Effective Health Points'. Calculada como Vida / (1 - Mitigação de Defesa). Se você tem 100k HP e sua armadura reduz 90% do dano físico, seu EHP físico é de 1 milhão. Importante: Essa vida efetiva física não representa proteção contra dano que ignora defesa; escudos e outras mecânicas são avaliados separadamente.",
       categoria: "combate"
     },
     hps: {
@@ -189,7 +189,7 @@
     },
     aspd: {
       termo: "ASPD (Velocidade de Ataque / Cadência)",
-      curto: "Frequência de ataques normais por segundo. No Rift, há um limite máximo (Cap) de 4,60 ataques por segundo.",
+      curto: "ASPD é a velocidade de ataque antes dos ajustes da arma. A cadência efetiva também depende do intervalo específico do ataque.",
       detalhes: "Sigla para 'Attack Speed'. Quando a cadência ultrapassa 4,60/s, o motor do jogo converte o excesso de velocidade em um multiplicador direto de dano (SpeedBonus = ASPD / 4,60), fazendo cada golpe bater mais pesado sem quebrar a animação visual.",
       categoria: "combate"
     },
@@ -202,7 +202,7 @@
     ttk: {
       termo: "TTK (Time to Kill / Tempo para Matar)",
       curto: "Tempo estimado em segundos necessário para derrotar um monstro ou chefe em combate solo.",
-      detalhes: "Calculado dividindo a vida total do inimigo (incluindo escalonamento de zona, onda e party) pelo seu DPS real contra ele, já considerando a defesa daquele alvo específico.",
+      detalhes: "Estimativa estática: vida do inimigo dividida pelo DPS estimado contra sua defesa. Não simula integralmente cura do chefe, movimento, interrupções, aliados nem mudanças ao longo da luta.",
       categoria: "chefes"
     },
     furia: {
@@ -214,13 +214,13 @@
     proc: {
       termo: "Proc (Ativação Especial)",
       curto: "Disparo automático de um efeito especial de arma ou anel programado por ciclo de tempo ou condição.",
-      detalhes: "Termo de RPG ('Programmed Random Occurrence') que descreve efeitos periódicos ativados pelo jogo: como o Eclipse a cada 15s, a Singularidade a cada 13s ou revives dos anéis da Fênix e Coração do Vazio.",
+      detalhes: "Ativação de um efeito especial por tempo ou condição. Nem toda ativação é aleatória: a Singularidade, por exemplo, tem um ciclo de 13s.",
       categoria: "equipamentos"
     },
     singularidade: {
       termo: "Singularidade (True Damage em % HP)",
       curto: "Passiva da Lâmina da Singularidade que remove uma porcentagem fixa da vida total do chefe a cada 13s, ignorando defesa.",
-      detalhes: "Causa 5% do HP máximo de monstros comuns e 4% de chefes como dano puro a cada 13 segundos. Com o Anel do Carrasco ou Eclipse Arcano, o dano em chefes pode atingir até 6,4% ou 8,0% do HP total.",
+      detalhes: "No frontend consultado, causa 25% da vida máxima de monstros comuns e 4% de chefes, após um atraso de 1,4s na ativação do ciclo de 13s. A compensação aplicada ao dano anula a redução por defesa; outros efeitos do alvo ainda podem interferir.",
       categoria: "equipamentos"
     },
     luz_divina: {
@@ -238,13 +238,13 @@
     rolagem_gema: {
       termo: "Rolagem de Gemas (Roll 85% a 115%)",
       curto: "Variação de sorte nos atributos das gemas ao serem forjadas, oscilando entre 85% e 115% do valor base.",
-      detalhes: "Duas gemas do mesmo nível podem conceder atributos diferentes devido ao sorteio aleatório entre 0,85 e 1,15 na criação. Essa variação de sorte é a principal causa de pequenas diferenças entre o FC oficial gravado e a reconstrução teórica.",
+      detalhes: "Duas gemas do mesmo nível podem conceder atributos diferentes devido ao sorteio aleatório entre 0,85 e 1,15 na criação. As rolagens já presentes no perfil devem ser preservadas na reconstrução. Uma diferença de FC, isoladamente, não permite atribuir sua causa à sorte.",
       categoria: "equipamentos"
     },
     k_classe: {
       termo: "Coeficiente de Classe (k)",
       curto: "Constante oficial de Força de Combate da classe: Clérigo (0,84), Arqueiro (0,75) e Guerreiro (0,60).",
-      detalhes: "Determina o peso relativo dos atributos brutos no FC. O Clérigo possui k = 0,84, recebendo mais FC por ponto de atributo que as outras classes.",
+      detalhes: "Determina o peso relativo dos atributos brutos no FC. O Clérigo usa k = 0,84. O ganho de FC por ponto de atributo também depende das demais estatísticas; o coeficiente isolado não determina esse ganho.",
       categoria: "combate"
     },
     mitigacao_defesa: {

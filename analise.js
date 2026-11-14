@@ -139,7 +139,7 @@
       unidade: "HP",
       origem: "calculado",
       resumo: `Vida total com ${redDefPct.toFixed(1)}% de redução física pela defesa.`,
-      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp || 0).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: dano que ignora defesa não recebe essa redução e atingem a vida pura (${Math.round(hpMax || 0).toLocaleString("pt-BR")}).`
+      detalhes: `Vida Efetiva Física (EHP): ~${Math.round(ehp || 0).toLocaleString("pt-BR")} de dano físico bruto suportado. Importante: dano que ignora defesa não recebe essa redução e atinge a vida (${Math.round(hpMax || 0).toLocaleString("pt-BR")}).`
     });
 
     // 4. Indicador de classe
