@@ -650,6 +650,19 @@ const topPillValCleric = document.querySelector("#top-pill-val-cleric");
 const topPillValArcher = document.querySelector("#top-pill-val-archer");
 const topPillValLevel = document.querySelector("#top-pill-val-level");
 
+const modalEscolhaLive = document.querySelector("#modal-escolha-live");
+const modalLiveTitulo = document.querySelector("#modal-live-titulo");
+const modalLiveSubtitulo = document.querySelector("#modal-live-subtitulo");
+const modalLiveZonaOnda = document.querySelector("#modal-live-zona-onda");
+const modalLiveJogadores = document.querySelector("#modal-live-jogadores");
+const linkLiveTwitch = document.querySelector("#link-live-twitch");
+const linkLiveKick = document.querySelector("#link-live-kick");
+const subLiveTwitch = document.querySelector("#sub-live-twitch");
+const subLiveKick = document.querySelector("#sub-live-kick");
+const btnFecharModalLive = document.querySelector("#btn-fechar-modal-live");
+const btnModalRadarLive = document.querySelector("#btn-modal-radar-live");
+const btnModalSimularChefe = document.querySelector("#btn-modal-simular-chefe");
+
 // Estado da aplicação com envelopes de consulta
 const estadoPerfil = Analise.criarEnvelopeConsulta
   ? Analise.criarEnvelopeConsulta()
@@ -1300,6 +1313,87 @@ function formatarTempoRelativoCriacao(isoString) {
   }
 }
 
+function abrirModalEscolhaLive(dadosLive, subtitulo = "Live ao Vivo") {
+  if (!modalEscolhaLive || !dadosLive) return;
+
+  const canalOriginal = String(dadosLive.canal || dadosLive.login || "").trim();
+  const ehKick = /^kick:/i.test(canalOriginal);
+  const nickLimpo = canalOriginal.replace(/^kick:/i, "");
+  const nomeDisplay = dadosLive.nome || nickLimpo || "Canal ao Vivo";
+  const zone = Number(dadosLive.zone) || 1;
+  const wave = Number(dadosLive.wave) || 1;
+  const players = Number(dadosLive.playersNow) || 0;
+
+  if (modalLiveTitulo) modalLiveTitulo.textContent = nomeDisplay;
+  if (modalLiveSubtitulo) modalLiveSubtitulo.textContent = subtitulo;
+  if (modalLiveZonaOnda) modalLiveZonaOnda.textContent = `📍 Z${zone} · Onda ${wave}`;
+  if (modalLiveJogadores) modalLiveJogadores.textContent = `👥 ${formatadorInteiro.format(players)} jogando agora`;
+
+  if (linkLiveTwitch) {
+    linkLiveTwitch.href = `https://www.twitch.tv/${encodeURIComponent(nickLimpo)}`;
+  }
+  if (subLiveTwitch) {
+    subLiveTwitch.textContent = `twitch.tv/${nickLimpo}`;
+  }
+
+  if (linkLiveKick) {
+    linkLiveKick.href = `https://kick.com/${encodeURIComponent(nickLimpo)}`;
+  }
+  if (subLiveKick) {
+    subLiveKick.textContent = `kick.com/${nickLimpo}`;
+  }
+
+  if (btnModalRadarLive) {
+    btnModalRadarLive.onclick = () => {
+      if (typeof modalEscolhaLive.close === "function") modalEscolhaLive.close();
+      if (selectRadarLives) selectRadarLives.value = canalOriginal;
+      alternarVisibilidadeAba("radar-live");
+      void inspecionarLiveRadar(canalOriginal);
+    };
+  }
+
+  if (btnModalSimularChefe) {
+    btnModalSimularChefe.onclick = () => {
+      if (typeof modalEscolhaLive.close === "function") modalEscolhaLive.close();
+      if (selectMonstroLiveSync) selectMonstroLiveSync.value = canalOriginal;
+      if (inputMonstroZona) inputMonstroZona.value = zone;
+      if (inputMonstroOnda) inputMonstroOnda.value = wave;
+      if (inputMonstroJogadores) inputMonstroJogadores.value = players || 1;
+      renderizarSimuladorMonstros();
+      alternarVisibilidadeAba("monstros");
+    };
+  }
+
+  if (btnFecharModalLive && !btnFecharModalLive.dataset.ouvinteAtivo) {
+    btnFecharModalLive.dataset.ouvinteAtivo = "true";
+    btnFecharModalLive.addEventListener("click", () => {
+      if (typeof modalEscolhaLive.close === "function") modalEscolhaLive.close();
+    });
+  }
+
+  if (modalEscolhaLive && !modalEscolhaLive.dataset.ouvinteAtivo) {
+    modalEscolhaLive.dataset.ouvinteAtivo = "true";
+    modalEscolhaLive.addEventListener("click", (e) => {
+      const rect = modalEscolhaLive.getBoundingClientRect();
+      const fora = (
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom
+      );
+      if (fora && typeof modalEscolhaLive.close === "function") {
+        modalEscolhaLive.close();
+      }
+    });
+  }
+
+  if (typeof modalEscolhaLive.showModal === "function") {
+    modalEscolhaLive.showModal();
+  } else {
+    modalEscolhaLive.setAttribute("open", "");
+  }
+}
+
 function vincularEventosGradePanorama() {
   if (!gradeRecordesGlobais) return;
   gradeRecordesGlobais.querySelectorAll("[data-panorama-acao]").forEach((el) => {
@@ -1308,26 +1402,17 @@ function vincularEventosGradePanorama() {
       if (acao === "live-melhor-zona") {
         const live = ultimosDadosPanorama.melhorZonaLive;
         if (live && live.canal) {
-          if (selectMonstroLiveSync) selectMonstroLiveSync.value = live.canal;
-          if (inputMonstroZona) inputMonstroZona.value = live.zone || 1;
-          if (inputMonstroOnda) inputMonstroOnda.value = live.wave || 1;
-          if (inputMonstroJogadores) inputMonstroJogadores.value = live.playersNow || 1;
-          renderizarSimuladorMonstros();
-          alternarVisibilidadeAba("monstros");
+          abrirModalEscolhaLive(live, "🔥 Melhor Zona-Onda Agora");
         }
       } else if (acao === "live-maior") {
         const live = ultimosDadosPanorama.maiorLive;
         if (live && live.canal) {
-          if (selectRadarLives) selectRadarLives.value = live.canal;
-          alternarVisibilidadeAba("radar-live");
-          void inspecionarLiveRadar(live.canal);
+          abrirModalEscolhaLive(live, "👥 Maior Live Agora");
         }
       } else if (acao === "live-mais-nova") {
         const live = ultimosDadosPanorama.liveMaisNova;
         if (live && live.canal) {
-          if (selectRadarLives) selectRadarLives.value = live.canal;
-          alternarVisibilidadeAba("radar-live");
-          void inspecionarLiveRadar(live.canal);
+          abrirModalEscolhaLive(live, "✨ Live Mais Nova Online");
         }
       } else if (acao === "consultar-top1") {
         carregarAtalhoTop("top1");
@@ -1354,17 +1439,17 @@ function renderizarGradePanorama() {
   const descTop1 = top1GeralDinamico?.rotulo ? `${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})` : "Sincronizando rankings…";
 
   gradeRecordesGlobais.innerHTML = `
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para assistir à transmissão ou simular esta Zona (Twitch / Kick)">
       <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
       <strong>${labelZona}</strong>
       <small>${descZona}</small>
     </button>
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para inspecionar no Radar de Lives">
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
       <span>👥 Maior Live Agora</span>
       <strong>${labelMaior}</strong>
       <small>${descMaior}</small>
     </button>
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para inspecionar canal recente no Radar">
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
       <span>✨ Live Mais Nova Online</span>
       <strong>${labelNova}</strong>
       <small>${descNova}</small>
@@ -4356,6 +4441,7 @@ function renderizarResultadoRadar() {
         <div class="small muted">Filtro: ${escaparHtml(descFiltro)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn-mini btn-secundario" id="btn-radar-assistir-live" title="Abrir transmissão do canal na Twitch ou Kick">📺 Assistir Transmissão ↗</button>
         <strong>${filtrados.length} de ${totalEscaneados} jogadores (${pctCorrespondencia.toFixed(1).replace(".", ",")}%)</strong>
         ${temFiltroAtivo ? `<button type="button" class="btn-mini btn-atalho-ativo" id="btn-radar-limpar-filtros">✕ Limpar Filtros</button>` : ""}
       </div>
@@ -4439,6 +4525,19 @@ function renderizarResultadoRadar() {
       if (selectRadarItem) selectRadarItem.value = "";
       if (inputRadarBusca) inputRadarBusca.value = "";
       renderizarResultadoRadar();
+    });
+  }
+
+  const btnAssistirRadar = containerResultadoRadar.querySelector("#btn-radar-assistir-live");
+  if (btnAssistirRadar) {
+    btnAssistirRadar.addEventListener("click", () => {
+      abrirModalEscolhaLive({
+        canal: canalInfo.login,
+        nome: canalInfo.displayName || canalInfo.login,
+        zone: canalInfo.zone,
+        wave: canalInfo.wave,
+        playersNow: playersOnlineCanal,
+      }, "Radar de Lives");
     });
   }
 

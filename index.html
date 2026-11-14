@@ -428,5 +428,56 @@
       </div>
     </footer>
   </main>
+
+  <!-- Modal de Escolha de Live (Twitch / Kick) -->
+  <dialog id="modal-escolha-live" class="modal-escolha-live" aria-labelledby="modal-live-titulo">
+    <div class="modal-live-caixa">
+      <header class="modal-live-topo">
+        <div class="modal-live-titulos">
+          <span id="modal-live-subtitulo" class="modal-live-subtitulo">Live ao Vivo</span>
+          <h3 id="modal-live-titulo" class="modal-live-titulo">Nome do Canal</h3>
+        </div>
+        <button type="button" id="btn-fechar-modal-live" class="btn-fechar-modal" aria-label="Fechar janela">✕</button>
+      </header>
+
+      <div class="modal-live-corpo">
+        <div class="modal-live-status-linha">
+          <span id="modal-live-zona-onda" class="badge-modal-stat">📍 Z1 · Onda 1</span>
+          <span id="modal-live-jogadores" class="badge-modal-stat">👥 0 jogando agora</span>
+        </div>
+
+        <p class="modal-live-chamada">Escolha onde deseja assistir à transmissão ao vivo:</p>
+
+        <div class="modal-live-links">
+          <a id="link-live-twitch" href="#" target="_blank" rel="noopener noreferrer" class="btn-live-opcao twitch">
+            <span class="icone-live-plat" aria-hidden="true">🟣</span>
+            <div class="dados-live-plat">
+              <span class="nome-live-plat">Assistir na Twitch</span>
+              <small id="sub-live-twitch" class="url-live-plat">twitch.tv/canal</small>
+            </div>
+            <span class="seta-live-link" aria-hidden="true">↗</span>
+          </a>
+
+          <a id="link-live-kick" href="#" target="_blank" rel="noopener noreferrer" class="btn-live-opcao kick">
+            <span class="icone-live-plat" aria-hidden="true">🟢</span>
+            <div class="dados-live-plat">
+              <span class="nome-live-plat">Assistir na Kick</span>
+              <small id="sub-live-kick" class="url-live-plat">kick.com/canal</small>
+            </div>
+            <span class="seta-live-link" aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <div class="modal-live-acoes-secundarias">
+          <button type="button" id="btn-modal-radar-live" class="btn-secundario btn-compacto">
+            📡 Inspecionar no Radar de Lives
+          </button>
+          <button type="button" id="btn-modal-simular-chefe" class="btn-secundario btn-compacto">
+            ⚔️ Simular Chefe desta Zona
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>
