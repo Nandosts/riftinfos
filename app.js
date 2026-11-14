@@ -655,6 +655,7 @@ const modalLiveTitulo = document.querySelector("#modal-live-titulo");
 const modalLiveSubtitulo = document.querySelector("#modal-live-subtitulo");
 const modalLiveZonaOnda = document.querySelector("#modal-live-zona-onda");
 const modalLiveJogadores = document.querySelector("#modal-live-jogadores");
+const modalLiveChamada = document.querySelector("#modal-live-chamada");
 const linkLiveTwitch = document.querySelector("#link-live-twitch");
 const linkLiveKick = document.querySelector("#link-live-kick");
 const subLiveTwitch = document.querySelector("#sub-live-twitch");
@@ -662,6 +663,8 @@ const subLiveKick = document.querySelector("#sub-live-kick");
 const btnFecharModalLive = document.querySelector("#btn-fechar-modal-live");
 const btnModalRadarLive = document.querySelector("#btn-modal-radar-live");
 const btnModalSimularChefe = document.querySelector("#btn-modal-simular-chefe");
+
+const cacheDetalhesCanais = new Map();
 
 // Estado da aplicação com envelopes de consulta
 const estadoPerfil = Analise.criarEnvelopeConsulta
@@ -1317,6 +1320,7 @@ function abrirModalEscolhaLive(dadosLive, subtitulo = "Live ao Vivo") {
   if (!modalEscolhaLive || !dadosLive) return;
 
   const canalOriginal = String(dadosLive.canal || dadosLive.login || "").trim();
+  const canalKey = canalOriginal.toLowerCase();
   const ehKick = /^kick:/i.test(canalOriginal);
   const nickLimpo = canalOriginal.replace(/^kick:/i, "");
   const nomeDisplay = dadosLive.nome || nickLimpo || "Canal ao Vivo";
@@ -1324,31 +1328,93 @@ function abrirModalEscolhaLive(dadosLive, subtitulo = "Live ao Vivo") {
   const wave = Number(dadosLive.wave) || 1;
   const players = Number(dadosLive.playersNow) || 0;
 
+  modalEscolhaLive.dataset.canalAberto = canalKey;
+
   if (modalLiveTitulo) modalLiveTitulo.textContent = nomeDisplay;
   if (modalLiveSubtitulo) modalLiveSubtitulo.textContent = subtitulo;
   if (modalLiveZonaOnda) modalLiveZonaOnda.textContent = `📍 Z${zone} · Onda ${wave}`;
   if (modalLiveJogadores) modalLiveJogadores.textContent = `👥 ${formatadorInteiro.format(players)} jogando agora`;
 
-  if (linkLiveTwitch) {
-    linkLiveTwitch.href = `https://www.twitch.tv/${encodeURIComponent(nickLimpo)}`;
-  }
-  if (subLiveTwitch) {
-    subLiveTwitch.textContent = `twitch.tv/${nickLimpo}`;
+  function aplicarBotoesPlataforma(twLogin, kcLogin) {
+    const temTwitch = Boolean(twLogin && String(twLogin).trim() !== "" && String(twLogin).trim().toLowerCase() !== "null");
+    const temKick = Boolean(kcLogin && String(kcLogin).trim() !== "" && String(kcLogin).trim().toLowerCase() !== "null");
+
+    const exibirTwitch = temTwitch || (!temKick && !ehKick);
+    const exibirKick = temKick || (!temTwitch && ehKick);
+
+    if (linkLiveTwitch) {
+      if (exibirTwitch) {
+        linkLiveTwitch.style.display = "flex";
+        const nickTw = temTwitch ? twLogin : nickLimpo;
+        linkLiveTwitch.href = `https://www.twitch.tv/${encodeURIComponent(nickTw)}`;
+        if (subLiveTwitch) subLiveTwitch.textContent = `twitch.tv/${nickTw}`;
+      } else {
+        linkLiveTwitch.style.display = "none";
+      }
+    }
+
+    if (linkLiveKick) {
+      if (exibirKick) {
+        linkLiveKick.style.display = "flex";
+        const nickKc = temKick ? kcLogin : nickLimpo;
+        linkLiveKick.href = `https://kick.com/${encodeURIComponent(nickKc)}`;
+        if (subLiveKick) subLiveKick.textContent = `kick.com/${nickKc}`;
+      } else {
+        linkLiveKick.style.display = "none";
+      }
+    }
+
+    if (modalLiveChamada) {
+      if (exibirTwitch && exibirKick) {
+        modalLiveChamada.textContent = "Disponível na Twitch e na Kick. Escolha onde assistir:";
+      } else if (exibirTwitch) {
+        modalLiveChamada.textContent = "Canal transmitindo ao vivo na Twitch:";
+      } else if (exibirKick) {
+        modalLiveChamada.textContent = "Canal transmitindo ao vivo na Kick:";
+      } else {
+        modalLiveChamada.textContent = "Acesse a transmissão oficial do canal:";
+      }
+    }
   }
 
-  if (linkLiveKick) {
-    linkLiveKick.href = `https://kick.com/${encodeURIComponent(nickLimpo)}`;
-  }
-  if (subLiveKick) {
-    subLiveKick.textContent = `kick.com/${nickLimpo}`;
+  // Prioriza dados explícitos passados ou em cache
+  const emCache = cacheDetalhesCanais.get(canalKey);
+  const twConhecido = dadosLive.twitchLogin !== undefined ? dadosLive.twitchLogin : emCache?.twitchLogin;
+  const kcConhecido = dadosLive.kickLogin !== undefined ? dadosLive.kickLogin : emCache?.kickLogin;
+
+  if (twConhecido !== undefined || kcConhecido !== undefined) {
+    aplicarBotoesPlataforma(twConhecido, kcConhecido);
+  } else {
+    // Configuração inicial rápida pelo identificador
+    aplicarBotoesPlataforma(ehKick ? null : nickLimpo, ehKick ? nickLimpo : null);
+
+    // Consulta assíncrona para confirmar disponibilidade real das plataformas
+    void buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(canalOriginal)}`, undefined, 5000)
+      .then((ch) => {
+        if (!ch) return;
+        const tw = ch.twitchLogin || (ehKick ? null : nickLimpo);
+        const kc = ch.kickLogin || (ehKick ? nickLimpo : null);
+        cacheDetalhesCanais.set(canalKey, {
+          twitchLogin: tw,
+          kickLogin: kc,
+          displayName: ch.displayName || nomeDisplay,
+        });
+        if (modalEscolhaLive.dataset.canalAberto === canalKey) {
+          aplicarBotoesPlataforma(tw, kc);
+        }
+      })
+      .catch(() => {});
   }
 
   if (btnModalRadarLive) {
     btnModalRadarLive.onclick = () => {
       if (typeof modalEscolhaLive.close === "function") modalEscolhaLive.close();
       if (selectRadarLives) selectRadarLives.value = canalOriginal;
+      if (inputRadarCanal) inputRadarCanal.value = canalOriginal;
       alternarVisibilidadeAba("radar-live");
-      void inspecionarLiveRadar(canalOriginal);
+      if (typeof escanearLiveSelecionada === "function") {
+        void escanearLiveSelecionada();
+      }
     };
   }
 
@@ -1482,6 +1548,16 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
       alvos.map(async (it) => {
         const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(it.login)}`, undefined, 5000);
         const playersEfetivos = Math.max(Number(it.playersNow) || 0, Number(ch?.playersNow) || 0);
+        const ehKick = /^kick:/i.test(it.login);
+        const tw = ch?.twitchLogin !== undefined ? ch.twitchLogin : (ehKick ? null : it.login);
+        const kc = ch?.kickLogin !== undefined ? ch.kickLogin : (ehKick ? it.login.replace(/^kick:/i, "") : null);
+        if (ch) {
+          cacheDetalhesCanais.set(it.login.toLowerCase(), {
+            twitchLogin: tw,
+            kickLogin: kc,
+            displayName: ch?.displayName || it.name,
+          });
+        }
         return {
           name: it.name,
           login: it.login,
@@ -1489,6 +1565,8 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
           wave: Number(ch?.wave) || Number(it.bestWave) || 1,
           playersNow: playersEfetivos,
           createdAt: ch?.createdAt || "",
+          twitchLogin: tw,
+          kickLogin: kc,
         };
       })
     );
@@ -1513,6 +1591,8 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
           zone: melhorZona.zone,
           wave: melhorZona.wave,
           playersNow: playersEfetivos,
+          twitchLogin: melhorZona.twitchLogin,
+          kickLogin: melhorZona.kickLogin,
         };
       }
 
@@ -1529,7 +1609,17 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
           zone: maisNova.zone,
           wave: maisNova.wave,
           playersNow: playersEfetivos,
+          twitchLogin: maisNova.twitchLogin,
+          kickLogin: maisNova.kickLogin,
         };
+      }
+
+      if (ultimosDadosPanorama.maiorLive?.canal) {
+        const chMaior = cacheDetalhesCanais.get(ultimosDadosPanorama.maiorLive.canal.toLowerCase());
+        if (chMaior) {
+          ultimosDadosPanorama.maiorLive.twitchLogin = chMaior.twitchLogin;
+          ultimosDadosPanorama.maiorLive.kickLogin = chMaior.kickLogin;
+        }
       }
 
       renderizarGradePanorama();
@@ -4235,6 +4325,15 @@ async function escanearLiveSelecionada() {
 
     if (requisicaoRadarAtiva !== controlador) return;
 
+    if (canalInfo) {
+      const ehKick = /^kick:/i.test(canalAlvo);
+      cacheDetalhesCanais.set(canalAlvo.toLowerCase(), {
+        twitchLogin: canalInfo.twitchLogin !== undefined ? canalInfo.twitchLogin : (ehKick ? null : canalAlvo),
+        kickLogin: canalInfo.kickLogin !== undefined ? canalInfo.kickLogin : (ehKick ? canalAlvo.replace(/^kick:/i, "") : null),
+        displayName: canalInfo.displayName || canalInfo.login,
+      });
+    }
+
     const totalBoard = primeiraPagina?.total || (primeiraPagina?.items || []).length;
     const totalPaginas = Math.min(12, Math.max(1, Math.ceil(totalBoard / 50)));
     const jogadoresBoard = [...(primeiraPagina?.items || [])];
@@ -4631,6 +4730,8 @@ function renderizarResultadoRadar() {
         zone: canalInfo.zone,
         wave: canalInfo.wave,
         playersNow: playersOnlineCanal,
+        twitchLogin: canalInfo.twitchLogin !== undefined ? canalInfo.twitchLogin : (canalInfo.login?.startsWith("kick:") ? null : canalInfo.login),
+        kickLogin: canalInfo.kickLogin !== undefined ? canalInfo.kickLogin : (canalInfo.login?.startsWith("kick:") ? canalInfo.login.replace(/^kick:/i, "") : null),
       }, "Radar de Lives");
     });
   }
