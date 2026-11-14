@@ -18,11 +18,6 @@ const Compartilhamento =
 const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.1";
 
 const apiRemota = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com";
-const proxiesPublicos = [
-  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-];
-
 const nomesClasses = {
   warrior: "Guerreiro",
   cleric: "Clérigo",
@@ -694,10 +689,14 @@ let perfilCarregadoP1;
 let plataformaCarregadaP1;
 let requisicaoAtiva;
 let requisicaoRadarAtiva;
+let requisicaoComparacaoAtiva;
 let abaAtualAtiva = "resumo";
 let simuladorEditadoManual = false;
-let modoVisualizacaoSimulador = "ficha"; // "ficha" (Modo Criativo / MyPers) ou "lista" (Lista Completa)
+let modoVisualizacaoSimulador = "ficha"; // "ficha" (Ficha visual) ou "lista" (Grade completa)
 let slotSelecionadoSimulador = 0; // 0 = weapon, 1 = helmet, 2 = armor, 3 = ring
+let engasteSelecionadoSimulador = 0; // 0..5 (engaste ativo na ficha da peça)
+let termoBuscaSlotSimulador = ""; // filtro textual compacto de peças no slot
+let opcoesAvancadasAbertasSimulador = false; // estado do painel "Opções avançadas"
 let modoRolagemGemaSimulador = "max"; // "max" (115%), "media" (100%), "sorteio" (85%-115%)
 let autoCalcularStatsItemSimulador = true;
 let filtroConjuntoSlotSimulador = "classe"; // "classe" ou "todos"
@@ -705,13 +704,15 @@ let estadoSimulador = criarModeloSimuladorPadrao();
 let historicoDesfazerSimulador = [];
 let ultimosDadosRadar = null;
 const cachePerfisApi = new Map();
+const rankingIndisponivel = { rotulo: "Indisponível", nick: "", power: null, level: null };
 const top1DinamicoPorClasse = {
-  cleric: { nick: "nando_sts", plataforma: "twitch", rotulo: "nando_sts", power: 31718512, cls: "cleric", level: 698 },
-  warrior: { nick: "halscriolo", plataforma: "twitch", rotulo: "halscriolo", power: 49864097, cls: "warrior", level: 691 },
-  archer: { nick: "philippato", plataforma: "twitch", rotulo: "philippato", power: 30357030, cls: "archer", level: 767 },
+  cleric: rankingIndisponivel,
+  warrior: rankingIndisponivel,
+  archer: rankingIndisponivel,
 };
-let topLevelDinamico = { nick: "boingzeraa", plataforma: "twitch", rotulo: "boingzeraa", level: 798, cls: "warrior" };
-let top1GeralDinamico = { ...top1DinamicoPorClasse.warrior };
+let topLevelDinamico = rankingIndisponivel;
+let top1GeralDinamico = rankingIndisponivel;
+let rankingsCarregando = true;
 
 /* ==========================================================================
    Utilitários e Rede
@@ -826,6 +827,7 @@ function configurarAbas() {
 
 function atualizarEstadoVazioOuPerfil(temPerfil) {
   if (cabecalhoPerfil) cabecalhoPerfil.hidden = !temPerfil;
+  if (btnSimImportar) btnSimImportar.disabled = !temPerfil;
   if (avisoSemPerfil) avisoSemPerfil.hidden = temPerfil;
   if (rodapePainel) rodapePainel.hidden = !temPerfil;
 
@@ -871,9 +873,6 @@ function montarRotasTentativa(caminhoApi) {
     rotas.push(`http://127.0.0.1:4173${caminhoLimpo}`);
   }
   rotas.push(urlAws);
-  for (const proxyFn of proxiesPublicos) {
-    rotas.push(proxyFn(urlAws));
-  }
   return { rotas, urlAws };
 }
 
@@ -884,27 +883,34 @@ async function buscarRespostaApi(caminhoApi, sinalAborto, timeoutMs = 9500) {
 
   for (const rota of rotas) {
     if (sinalAborto?.aborted) break;
+    const controlador = new AbortController();
+    const cancelar = () => controlador.abort(sinalAborto.reason);
+    const timer = setTimeout(() => controlador.abort(), timeoutMs);
+    sinalAborto?.addEventListener("abort", cancelar, { once: true });
     try {
-      const sinais = [AbortSignal.timeout(timeoutMs)];
-      if (sinalAborto) sinais.push(sinalAborto);
       const resposta = await fetch(rota, {
         credentials: "omit",
-        signal: AbortSignal.any(sinais),
+        signal: controlador.signal,
       });
-
-      if (resposta.status === 404) {
-        return { resposta, urlPublica: new URL(urlAws) };
-      }
-      if (resposta.ok) {
-        return { resposta, urlPublica: new URL(urlAws) };
+      if (resposta.ok || resposta.status === 404) {
+        const dados = await resposta.json();
+        if (sinalAborto?.aborted) throw sinalAborto.reason;
+        if (resposta.ok || (typeof dados?.error === "string" && caminhoApi.startsWith("/api/profile/"))) {
+          return { resposta, dados, urlPublica: new URL(urlAws) };
+        }
       }
       if (resposta.status >= 500 && (rota === urlAws || rota === rotas[0])) {
         statusServidor = resposta.status;
       }
     } catch (erro) {
       ultimoErro = erro;
+    } finally {
+      clearTimeout(timer);
+      sinalAborto?.removeEventListener("abort", cancelar);
     }
   }
+
+  if (sinalAborto?.aborted) throw sinalAborto.reason;
 
   if (statusServidor) {
     throw new Error(`A API do RiftStream está indisponível (HTTP ${statusServidor}). Tente novamente em instantes.`);
@@ -913,17 +919,37 @@ async function buscarRespostaApi(caminhoApi, sinalAborto, timeoutMs = 9500) {
 }
 
 async function buscarJsonApi(caminhoApi, sinalAborto, timeoutMs = 9500) {
-  const { resposta } = await buscarRespostaApi(caminhoApi, sinalAborto, timeoutMs);
+  const { resposta, dados } = await buscarRespostaApi(caminhoApi, sinalAborto, timeoutMs);
   if (!resposta.ok) {
     throw new Error(`HTTP ${resposta.status} em ${caminhoApi}`);
   }
-  return resposta.json();
+  return dados;
 }
 
 async function buscarRespostaPerfil(loginApi, classeDesejada, sinalAborto) {
   const params = classeDesejada ? `?cls=${encodeURIComponent(classeDesejada)}` : "";
   const loginCodificado = encodeURIComponent(loginApi);
   return buscarRespostaApi(`/api/profile/${loginCodificado}${params}`, sinalAborto);
+}
+
+function validarPerfilApi(perfil, login, classe) {
+  if (typeof perfil?.login !== "string" || perfil.login.toLowerCase() !== login.toLowerCase() ||
+      !Object.hasOwn(nomesClasses, perfil.cls) || (classe && perfil.cls !== classe)) {
+    throw new Error("O RiftStream retornou um personagem diferente do solicitado.");
+  }
+
+  const stats = perfil.stats;
+  if (!Number.isInteger(perfil.level) || perfil.level < 1 ||
+      !["maxHp", "atk", "def", "aspd", "crit"].every((stat) => Number.isFinite(stats?.[stat])) ||
+      !Array.isArray(perfil.equipped) ||
+      perfil.equipped.some((item) => !item || typeof item !== "object" ||
+        (item.gems != null && !Array.isArray(item.gems)) ||
+        ["atk", "def", "hp", "crit", "spd"].some((stat) => item[stat] != null && !Number.isFinite(item[stat]))) ||
+      (perfil.classes != null && (!Array.isArray(perfil.classes) ||
+        perfil.classes.some((item) => !item || !Object.hasOwn(nomesClasses, item.cls))))) {
+    throw new Error("O RiftStream enviou dados incompletos do personagem. Tente novamente em instantes.");
+  }
+  return perfil;
 }
 
 /* ==========================================================================
@@ -1309,6 +1335,8 @@ let ultimosDadosPanorama = {
   maiorLive: null,
   liveMaisNova: null,
   patch: null,
+  estadoLives: "carregando",
+  atualizadoEm: null,
 };
 
 function formatarTempoRelativoCriacao(isoString) {
@@ -1317,6 +1345,7 @@ function formatarTempoRelativoCriacao(isoString) {
     const data = new Date(isoString);
     const agora = new Date();
     const diffMs = Math.max(0, agora - data);
+    if (!Number.isFinite(diffMs)) return "Data indisponível";
     const diffMin = Math.floor(diffMs / 60000);
     if (diffMin < 60) return `Entrou há ${Math.max(1, diffMin)}min`;
     const diffHoras = Math.floor(diffMin / 60);
@@ -1501,34 +1530,43 @@ function vincularEventosGradePanorama() {
 
 function renderizarGradePanorama() {
   if (!gradeRecordesGlobais) return;
-  const { melhorZonaLive, maiorLive, liveMaisNova, patch } = ultimosDadosPanorama;
+  const { melhorZonaLive, maiorLive, liveMaisNova, patch, estadoLives, atualizadoEm } = ultimosDadosPanorama;
+  const acaoEmFoco = gradeRecordesGlobais.contains(document.activeElement)
+    ? document.activeElement.dataset.panoramaAcao
+    : null;
+  const labelVazio = {
+    carregando: "Carregando…",
+    erro: "Indisponível",
+    vazio: "Nenhuma live online",
+    pronto: "Sem dados",
+  }[estadoLives];
   const tempoCriacao = formatarTempoRelativoCriacao(liveMaisNova?.createdAt);
 
-  const labelZona = melhorZonaLive ? `Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}` : "Carregando…";
-  const descZona = melhorZonaLive ? `${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)` : "Sincronizando lives…";
+  const labelZona = melhorZonaLive ? `Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}` : labelVazio;
+  const descZona = melhorZonaLive ? `${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)` : estadoLives === "carregando" ? "Sincronizando lives…" : "";
 
-  const labelMaior = maiorLive ? `${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores` : "Carregando…";
-  const descMaior = maiorLive ? `${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais listados` : "Sincronizando canais…";
+  const labelMaior = maiorLive ? `${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores` : labelVazio;
+  const descMaior = maiorLive ? `${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais listados` : estadoLives === "carregando" ? "Sincronizando canais…" : "";
 
-  const labelNova = liveMaisNova ? escaparHtml(liveMaisNova.nome) : "Carregando…";
-  const descNova = liveMaisNova ? `${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}` : "Sincronizando…";
+  const labelNova = liveMaisNova ? escaparHtml(liveMaisNova.nome) : labelVazio;
+  const descNova = liveMaisNova ? `${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}` : estadoLives === "carregando" ? "Sincronizando…" : "";
 
-  const labelTop1 = top1GeralDinamico?.power ? `${formatarNumeroCompacto(top1GeralDinamico.power)} FC` : "Carregando…";
-  const descTop1 = top1GeralDinamico?.rotulo ? `${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || top1GeralDinamico.cls} Nv. ${top1GeralDinamico.level || "—"})` : "Sincronizando rankings…";
+  const labelTop1 = top1GeralDinamico.nick ? `${formatarNumeroCompacto(top1GeralDinamico.power)} FC` : rankingsCarregando ? "Carregando…" : "Indisponível";
+  const descTop1 = top1GeralDinamico.nick ? `${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || "Classe desconhecida"} Nv. ${formatadorInteiro.format(top1GeralDinamico.level || 0)})` : rankingsCarregando ? "Sincronizando rankings…" : "O ranking não respondeu.";
 
   gradeRecordesGlobais.innerHTML = `
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para assistir à transmissão ou simular esta Zona (Twitch / Kick)">
-      <span style="color:var(--cyan);">🔥 Melhor Zona-Onda Agora</span>
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" ${melhorZonaLive ? "" : "disabled"} title="Clique para assistir à transmissão ou simular esta Zona (Twitch / Kick)">
+      <span style="color:var(--cyan);">🔥 Maior zona entre lives consultadas</span>
       <strong>${labelZona}</strong>
       <small>${descZona}</small>
     </button>
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-maior" ${maiorLive ? "" : "disabled"} title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
       <span>👥 Maior Live Agora</span>
       <strong>${labelMaior}</strong>
       <small>${descMaior}</small>
     </button>
-    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
-      <span>✨ Live Mais Nova Online</span>
+    <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" ${liveMaisNova ? "" : "disabled"} title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
+      <span>✨ Canal mais novo entre os consultados</span>
       <strong>${labelNova}</strong>
       <small>${descNova}</small>
     </button>
@@ -1541,10 +1579,16 @@ function renderizarGradePanorama() {
 
   vincularEventosGradePanorama();
 
+  if (acaoEmFoco) {
+    [...gradeRecordesGlobais.querySelectorAll("[data-panorama-acao]")]
+      .find((botao) => botao.dataset.panoramaAcao === acaoEmFoco)?.focus({ preventScroll: true });
+  }
+
   if (panoramaAtualizacao) {
-    const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    const infoPatch = patch?.id ? `Último Patch: ${patch.id} · ` : "";
-    panoramaAtualizacao.textContent = `${infoPatch}Atualizado às ${agora}`;
+    const hora = atualizadoEm?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const partes = [patch?.id && `Último patch: ${patch.id}`, hora && `Lives consultadas às ${hora}`].filter(Boolean);
+    if (estadoLives === "erro") partes.push("API de lives indisponível");
+    panoramaAtualizacao.textContent = partes.join(" · ") || "Sincronizando lives…";
   }
 }
 
@@ -1559,7 +1603,7 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
     const resultados = await Promise.allSettled(
       alvos.map(async (it) => {
         const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(it.login)}`, undefined, 5000);
-        const playersEfetivos = Math.max(Number(it.playersNow) || 0, Number(ch?.playersNow) || 0);
+        const playersEfetivos = Number.isFinite(ch?.playersNow) ? ch.playersNow : Number(it.playersNow) || 0;
         const ehKick = /^kick:/i.test(it.login);
         const tw = ch?.twitchLogin !== undefined ? ch.twitchLogin : (ehKick ? null : it.login);
         const kc = ch?.kickLogin !== undefined ? ch.kickLogin : (ehKick ? it.login.replace(/^kick:/i, "") : null);
@@ -1573,8 +1617,8 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
         return {
           name: it.name,
           login: it.login,
-          zone: Number(ch?.zone) || Number(it.bestZone) || 1,
-          wave: Number(ch?.wave) || Number(it.bestWave) || 1,
+          zone: Number(ch?.zone) || null,
+          wave: Number(ch?.wave) || null,
           playersNow: playersEfetivos,
           createdAt: ch?.createdAt || "",
           twitchLogin: tw,
@@ -1588,39 +1632,37 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
       .map((r) => r.value);
 
     if (detalhes.length > 0) {
-      const melhorZona = detalhes.reduce((melhor, item) => {
+      const comZonaAtual = detalhes.filter((item) => item.zone && item.wave);
+      const melhorZona = comZonaAtual.reduce((melhor, item) => {
+        if (!melhor) return item;
         const scoreItem = (item.zone || 1) * 100 + (item.wave || 1);
         const scoreMelhor = (melhor.zone || 1) * 100 + (melhor.wave || 1);
         return scoreItem > scoreMelhor ? item : melhor;
-      }, detalhes[0]);
+      }, null);
 
       if (melhorZona) {
-        const liveOriginal = alvosMap.get(melhorZona.login);
-        const playersEfetivos = Math.max(Number(liveOriginal?.playersNow) || 0, Number(melhorZona.playersNow) || 0);
         ultimosDadosPanorama.melhorZonaLive = {
           canal: melhorZona.login,
           nome: melhorZona.name,
           zone: melhorZona.zone,
           wave: melhorZona.wave,
-          playersNow: playersEfetivos,
+          playersNow: melhorZona.playersNow,
           twitchLogin: melhorZona.twitchLogin,
           kickLogin: melhorZona.kickLogin,
         };
       }
 
-      const comCriacao = detalhes.filter((d) => d.createdAt);
+      const comCriacao = detalhes.filter((d) => d.zone && d.wave && Number.isFinite(Date.parse(d.createdAt)));
       if (comCriacao.length > 0) {
         comCriacao.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const maisNova = comCriacao[0];
-        const liveOriginal = alvosMap.get(maisNova.login);
-        const playersEfetivos = Math.max(Number(liveOriginal?.playersNow) || 0, Number(maisNova.playersNow) || 0);
         ultimosDadosPanorama.liveMaisNova = {
           canal: maisNova.login,
           nome: maisNova.name,
           createdAt: maisNova.createdAt,
           zone: maisNova.zone,
           wave: maisNova.wave,
-          playersNow: playersEfetivos,
+          playersNow: maisNova.playersNow,
           twitchLogin: maisNova.twitchLogin,
           kickLogin: maisNova.kickLogin,
         };
@@ -1646,13 +1688,16 @@ async function carregarPanoramaGlobal() {
   if (panoramaAtualizacao) panoramaAtualizacao.textContent = "Sincronizando dados globais…";
 
   try {
-    const [records, changelog, runs] = await Promise.all([
-      buscarJsonApi("/api/ranking/records").catch(() => null),
+    const [changelog, runs] = await Promise.all([
       buscarJsonApi("/api/changelog").catch(() => null),
       buscarJsonApi("/api/ranking/runs?page=1&size=50&online=true").catch(() => null),
     ]);
 
-    const livesOnline = Array.isArray(runs?.items) ? [...runs.items] : [];
+    const livesOnline = Array.isArray(runs?.items)
+      ? runs.items.filter((live) => typeof live?.login === "string" && typeof live.name === "string")
+      : [];
+    ultimosDadosPanorama.estadoLives = !Array.isArray(runs?.items) ? "erro" : livesOnline.length ? "pronto" : "vazio";
+    ultimosDadosPanorama.atualizadoEm = Array.isArray(runs?.items) ? new Date() : null;
     livesOnline.sort((a, b) => (b.playersNow || 0) - (a.playersNow || 0));
     preencherSelectsLivesOnline(livesOnline);
 
@@ -1671,17 +1716,6 @@ async function carregarPanoramaGlobal() {
         playersNow: topLive.playersNow || 0,
         totalLives: livesOnline.length,
       };
-
-      if (!ultimosDadosPanorama.melhorZonaLive?.canal) {
-        const liveComMelhorBestZone = [...livesOnline].sort((a, b) => ((b.bestZone || 1) * 100 + (b.bestWave || 1)) - ((a.bestZone || 1) * 100 + (a.bestWave || 1)))[0] || topLive;
-        ultimosDadosPanorama.melhorZonaLive = {
-          canal: liveComMelhorBestZone.login || liveComMelhorBestZone.name.toLowerCase(),
-          nome: liveComMelhorBestZone.name,
-          zone: liveComMelhorBestZone.bestZone || 1,
-          wave: liveComMelhorBestZone.bestWave || 1,
-          playersNow: liveComMelhorBestZone.playersNow || 0,
-        };
-      }
     }
 
     renderizarGradePanorama();
@@ -1689,131 +1723,72 @@ async function carregarPanoramaGlobal() {
     if (livesOnline.length > 0) {
       void refinarDetalhesLivesPanorama(livesOnline);
     }
-
-    // Buscar Top 1 atual de cada classe em paralelo (sem bloquear UI)
-    void atualizarTop1Dinamicos();
   } catch {
-    if (panoramaAtualizacao) panoramaAtualizacao.textContent = "Panorama parcial (API oscilando)";
+    ultimosDadosPanorama.estadoLives = "erro";
+    renderizarGradePanorama();
   }
 }
 
 function sincronizarTextosTopsUI() {
-  if (topPillValTop1) topPillValTop1.textContent = `${top1GeralDinamico.rotulo} (${formatarNumeroCompacto(top1GeralDinamico.power)} FC)`;
-  if (topPillValWarrior) topPillValWarrior.textContent = `${top1DinamicoPorClasse.warrior.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.warrior.power)} FC)`;
-  if (topPillValCleric) topPillValCleric.textContent = `${top1DinamicoPorClasse.cleric.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.cleric.power)} FC)`;
-  if (topPillValArcher) topPillValArcher.textContent = `${top1DinamicoPorClasse.archer.rotulo} (${formatarNumeroCompacto(top1DinamicoPorClasse.archer.power)} FC)`;
-  if (topPillValLevel) topPillValLevel.textContent = `${topLevelDinamico.rotulo} (Nv. ${topLevelDinamico.level})`;
+  const atalhos = [
+    ["top1", top1GeralDinamico, topPillValTop1, btnCarregarExemplo, "👑 Top 1 Geral"],
+    ["warrior", top1DinamicoPorClasse.warrior, topPillValWarrior, null, "🛡️ Top Guerreiro"],
+    ["cleric", top1DinamicoPorClasse.cleric, topPillValCleric, null, "✨ Top Clérigo"],
+    ["archer", top1DinamicoPorClasse.archer, topPillValArcher, null, "🏹 Top Arqueiro"],
+    ["level", topLevelDinamico, topPillValLevel, null, "⭐ Maior Nível"],
+  ];
+  for (const [id, item, valor, botao, rotulo] of atalhos) {
+    const disponivel = Boolean(item.nick);
+    const estado = rankingsCarregando ? "Carregando…" : "Indisponível";
+    const metrica = id === "level" ? `Nv. ${item.level}` : `${formatarNumeroCompacto(item.power)} FC`;
+    if (valor) {
+      valor.textContent = disponivel ? `${item.rotulo} (${metrica})` : estado;
+      const botaoRanking = document.querySelector(`[data-top-alvo="${id}"]`);
+      if (botaoRanking) botaoRanking.disabled = !disponivel;
+    }
+    const atalho = botao || document.querySelector(`[data-top-atalho="${id}"]`);
+    if (atalho) {
+      atalho.disabled = !disponivel;
+      atalho.textContent = `${rotulo} · ${disponivel ? item.rotulo : estado}`;
+    }
+  }
 
   renderizarGradePanorama();
-
-  if (btnCarregarExemplo) {
-    btnCarregarExemplo.textContent = `👑 Carregar Top 1 Geral (${top1GeralDinamico.rotulo})`;
-  }
-  const btnAtalhoWarrior = document.querySelector('[data-top-atalho="warrior"]');
-  if (btnAtalhoWarrior) btnAtalhoWarrior.textContent = `🛡️ Top Guerreiro (${top1DinamicoPorClasse.warrior.rotulo})`;
-  const btnAtalhoCleric = document.querySelector('[data-top-atalho="cleric"]');
-  if (btnAtalhoCleric) btnAtalhoCleric.textContent = `✨ Top Clérigo (${top1DinamicoPorClasse.cleric.rotulo})`;
-  const btnAtalhoArcher = document.querySelector('[data-top-atalho="archer"]');
-  if (btnAtalhoArcher) btnAtalhoArcher.textContent = `🏹 Top Arqueiro (${top1DinamicoPorClasse.archer.rotulo})`;
-  const btnAtalhoLevel = document.querySelector('[data-top-atalho="level"]');
-  if (btnAtalhoLevel) btnAtalhoLevel.textContent = `⭐ Maior Nível (${topLevelDinamico.rotulo} · Nv. ${topLevelDinamico.level})`;
-
-  if (inputNick && !inputNick.value) {
-    inputNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
-  }
-  if (inputCompararNick && !inputCompararNick.value) {
-    inputCompararNick.placeholder = `Ex. ${top1GeralDinamico.nick}`;
-  }
+  if (perfilCarregadoP1) atualizarCardP1Comparacao(perfilCarregadoP1, plataformaCarregadaP1);
 }
 
 async function atualizarTop1Dinamicos() {
+  const consultarTop = async (query, classe, porNivel = false) => {
+    try {
+      const dados = await buscarJsonApi(`/api/ranking/characters?page=1&size=5${query}`, undefined, 5000);
+      const top = dados?.items?.[0];
+      if (!/^(?:kick:)?[a-z0-9_.-]{1,40}$/i.test(top?.login || "") ||
+          !Object.hasOwn(nomesClasses, top.cls) || (classe && top.cls !== classe) ||
+          !Number.isFinite(porNivel ? top.level : top.power)) return rankingIndisponivel;
+      return {
+        nick: top.login.replace(/^kick:/i, ""),
+        plataforma: /^kick:/i.test(top.login) ? "kick" : "twitch",
+        rotulo: top.name || top.login,
+        power: top.power,
+        level: top.level,
+        cls: top.cls,
+      };
+    } catch {
+      return rankingIndisponivel;
+    }
+  };
+
+  const classes = Object.keys(top1DinamicoPorClasse);
+  const [geral, nivel, ...tops] = await Promise.all([
+    consultarTop(""),
+    consultarTop("&sort=level", undefined, true),
+    ...classes.map((classe) => consultarTop(`&cls=${classe}`, classe)),
+  ]);
+  top1GeralDinamico = geral;
+  topLevelDinamico = nivel;
+  classes.forEach((classe, idx) => { top1DinamicoPorClasse[classe] = tops[idx]; });
+  rankingsCarregando = false;
   sincronizarTextosTopsUI();
-
-  // Atualização progressiva: cada chamada atualiza a UI imediatamente assim que responde
-  const promessas = [
-    ...["warrior", "cleric", "archer"].map(async (cls) => {
-      try {
-        const res = await buscarJsonApi(`/api/ranking/characters?page=1&size=1&cls=${cls}`, undefined, 5000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          top1DinamicoPorClasse[cls] = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            power: top.power || 0,
-            level: top.level || 0,
-            cls,
-          };
-          sincronizarTextosTopsUI();
-          if (cls === top1GeralDinamico.cls && top.power > top1GeralDinamico.power) {
-            top1GeralDinamico = { ...top1DinamicoPorClasse[cls] };
-            sincronizarTextosTopsUI();
-            renderizarGradePanorama();
-          }
-        }
-      } catch {
-        // Mantém fallback
-      }
-    }),
-    (async () => {
-      try {
-        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1&sort=level", undefined, 5000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          topLevelDinamico = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            level: top.level || 0,
-            cls: top.cls || "warrior",
-          };
-          sincronizarTextosTopsUI();
-          renderizarGradePanorama();
-        }
-      } catch {
-        // Mantém fallback
-      }
-    })(),
-    (async () => {
-      try {
-        const res = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 5000);
-        const top = res?.items?.[0];
-        if (top?.login) {
-          const ehKick = /^kick:/i.test(top.login);
-          top1GeralDinamico = {
-            nick: top.login.replace(/^kick:/i, ""),
-            plataforma: ehKick ? "kick" : "twitch",
-            rotulo: top.name || top.login,
-            power: top.power || 0,
-            level: top.level || 0,
-            cls: top.cls || "warrior",
-          };
-          sincronizarTextosTopsUI();
-          renderizarGradePanorama();
-        }
-      } catch {
-        // Mantém fallback
-      }
-    })(),
-  ];
-
-  await Promise.all(promessas);
-
-  // Garante que o de maior FC entre as classes seja o geral
-  const listaTops = Object.values(top1DinamicoPorClasse);
-  listaTops.sort((a, b) => (b.power || 0) - (a.power || 0));
-  if (listaTops[0]?.power && listaTops[0].power > (top1GeralDinamico.power || 0)) {
-    top1GeralDinamico = { ...listaTops[0] };
-  }
-
-  sincronizarTextosTopsUI();
-  renderizarGradePanorama();
-
-  if (perfilCarregadoP1) {
-    atualizarCardP1Comparacao(perfilCarregadoP1, plataformaCarregadaP1);
-  }
 }
 
 function preencherSelectsLivesOnline(lives) {
@@ -3090,26 +3065,26 @@ function renderizarPainelGerenciadorBuilds() {
   if (!painelGerenciadorBuilds || !Compartilhamento.listarBuildsSalvas) return;
 
   const buildsSalvas = Compartilhamento.listarBuildsSalvas();
+  const estavaAberto = painelGerenciadorBuilds.querySelector(".detalhes-gerenciador-builds")?.open || false;
 
   painelGerenciadorBuilds.innerHTML = `
-    <div class="builds-acoes-barra">
-      <div class="campo" style="flex:1; min-width:180px;">
-        <input id="input-nome-nova-build" maxlength="50" placeholder="Nome da build (ex. DPS Máximo ou Raide)" style="min-height:38px;">
+    <details class="detalhes-builds-salvas detalhes-gerenciador-builds" ${estavaAberto ? "open" : ""}>
+      <summary class="sumario-expansivel">💾 Salvar, compartilhar ou importar build${buildsSalvas.length > 0 ? ` (${buildsSalvas.length} salvas)` : ""}</summary>
+      <div class="builds-acoes-barra" style="margin-top:8px;">
+        <div class="campo" style="flex:1; min-width:180px;">
+          <input id="input-nome-nova-build" maxlength="50" placeholder="Nome da build (ex. DPS Máximo ou Raide)" style="min-height:38px;">
+        </div>
+        <button type="button" id="btn-salvar-build-local" class="btn-secundario btn-compacto">💾 Salvar Build</button>
+        <button type="button" id="btn-copiar-link-build" class="btn-secundario btn-compacto">🔗 Copiar Link da Simulação</button>
+        <button type="button" id="btn-exportar-json-build" class="btn-secundario btn-compacto">📥 Exportar JSON</button>
+        <label class="btn-secundario btn-compacto" style="cursor:pointer; display:inline-flex; align-items:center;">
+          📤 Importar JSON
+          <input type="file" id="input-importar-json-build" accept=".json" style="display:none;">
+        </label>
       </div>
-      <button type="button" id="btn-salvar-build-local" class="btn-secundario btn-compacto">💾 Salvar Build</button>
-      <button type="button" id="btn-copiar-link-build" class="btn-secundario btn-compacto">🔗 Copiar Link da Simulação</button>
-      <button type="button" id="btn-exportar-json-build" class="btn-secundario btn-compacto">📥 Exportar JSON</button>
-      <label class="btn-secundario btn-compacto" style="cursor:pointer; display:inline-flex; align-items:center;">
-        📤 Importar JSON
-        <input type="file" id="input-importar-json-build" accept=".json" style="display:none;">
-      </label>
-    </div>
-
-    ${
-      buildsSalvas.length > 0
-        ? `
-      <details class="detalhes-builds-salvas">
-        <summary class="sumario-expansivel">📂 Ver builds salvas neste navegador (${buildsSalvas.length})</summary>
+      ${
+        buildsSalvas.length > 0
+          ? `
         <div class="grade-builds-salvas" style="margin-top:8px;">
           ${buildsSalvas
             .map(
@@ -3129,10 +3104,10 @@ function renderizarPainelGerenciadorBuilds() {
             )
             .join("")}
         </div>
-      </details>
-    `
-        : ""
-    }
+      `
+          : ""
+      }
+    </details>
   `;
 
   const btnSalvar = document.querySelector("#btn-salvar-build-local");
@@ -3467,60 +3442,90 @@ function obterResumoPassivasBuildSimulador() {
   return { setsDetectados, armaInfo, anelInfo, contagemGemas, totalGemas };
 }
 
-function construirBarraModoCriativoHtml() {
+function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3Pecas = "") {
   const modRollTexto = {
     max: "Teto Oficial (115% fixo)",
     media: "Média Neutra (100%)",
     sorteio: "Sorteio Real (85%–115%)",
   }[modoRolagemGemaSimulador] || "";
 
+  const pillsSetsHtml = conjuntosDaClasse.length > 0
+    ? `
+      <div class="sim-barra-grupo" style="width:100%;">
+        <span class="sim-barra-rotulo">Equipar Conjunto 3/3 (${nomesClasses[estadoSimulador.cls]}):</span>
+        <div class="rs-top-sets-bar">
+          ${conjuntosDaClasse.map(([k, v]) => {
+            const corRar = coresRaridade[v.raridadePadrao ?? 4] || "#c9c5d8";
+            return `
+              <button type="button" class="btn-mini ${setAtivo3Pecas === k ? "ativo" : ""}" style="border-left:3px solid ${corRar};" data-sim-set-rapido="${k}">
+                ${escaparHtml(v.nome)}
+              </button>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `
+    : "";
+
+  return `
+    <details class="rs-opcoes-avancadas" id="sim-details-avancadas" ${opcoesAvancadasAbertasSimulador ? "open" : ""}>
+      <summary class="sumario-expansivel">⚙️ Opções avançadas (rolagem de pedras, presets e conjuntos rápidos)</summary>
+      <div class="rs-opcoes-avancadas-body">
+        <div class="sim-barra-grupo">
+          <span class="sim-barra-rotulo">Rolagem das Pedras (${modRollTexto}):</span>
+          <div class="sim-seg-controle" role="group" aria-label="Modo de rolagem das gemas">
+            <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "max" ? "ativo" : ""}" data-sim-modo-roll="max" title="Todas as novas pedras vêm com rolagem máxima de 115%">
+              🔥 Teto 115%
+            </button>
+            <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "media" ? "ativo" : ""}" data-sim-modo-roll="media" title="Todas as novas pedras vêm na média exata de 100%">
+              ⚖️ Média 100%
+            </button>
+            <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "sorteio" ? "ativo" : ""}" data-sim-modo-roll="sorteio" title="Sorteia cada pedra entre 85% e 115% como na forja do jogo">
+              🎲 Sorteio
+            </button>
+          </div>
+          <button type="button" class="btn-mini" data-sim-aplicar-roll-todas="1" title="Recalcula todas as pedras já engastadas nas 4 peças usando o modo acima">
+            🔄 Aplicar nas 24 pedras
+          </button>
+        </div>
+
+        <div class="sim-barra-grupo sim-barra-presets">
+          <label class="sim-check-auto" title="Quando ativo, trocar a peça, raridade ou itemLevel calcula os atributos base estimados automaticamente">
+            <input type="checkbox" data-sim-toggle-autostats="1" ${autoCalcularStatsItemSimulador ? "checked" : ""}>
+            <span>Auto-stats por Nv.</span>
+          </label>
+          <button type="button" class="btn-mini" data-sim-preset-criativo="max330" title="Coloca as 4 peças em Arcano Nível 330 e recalcula os atributos base e gemas">
+            ⚡ Tudo Arcano Nv.330
+          </button>
+          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_safira" title="Engasta 6 Safiras T5 Suprema em todas as 4 peças (24 pedras no total)">
+            💎 24× Safira T5
+          </button>
+          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_rubi" title="Engasta 6 Rubis T5 Suprema em todas as 4 peças (24 pedras no total)">
+            ❤️ 24× Rubi T5
+          </button>
+        </div>
+
+        ${pillsSetsHtml}
+      </div>
+    </details>
+  `;
+}
+
+function construirBarraModoCriativoHtml(conjuntosDaClasse = [], setAtivo3Pecas = "") {
   return `
     <div class="sim-barra-modo">
       <div class="sim-barra-grupo">
-        <span class="sim-barra-rotulo">Modo do Simulador:</span>
+        <span class="sim-barra-rotulo">Visualização:</span>
         <div class="sim-seg-controle" role="group" aria-label="Modo de visualização do simulador">
           <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "ficha" ? "ativo" : ""}" data-sim-modo-vis="ficha">
-            🎮 Ficha Oficial (/character)
+            🎮 Ficha visual
           </button>
           <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "lista" ? "ativo" : ""}" data-sim-modo-vis="lista">
-            📋 Lista Completa
+            📋 Grade completa
           </button>
         </div>
       </div>
-
-      <div class="sim-barra-grupo">
-        <span class="sim-barra-rotulo">Rolagem das Pedras (${modRollTexto}):</span>
-        <div class="sim-seg-controle" role="group" aria-label="Modo de rolagem das gemas">
-          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "max" ? "ativo" : ""}" data-sim-modo-roll="max" title="Todas as novas pedras vêm com rolagem máxima de 115%">
-            🔥 Teto 115%
-          </button>
-          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "media" ? "ativo" : ""}" data-sim-modo-roll="media" title="Todas as novas pedras vêm na média exata de 100%">
-            ⚖️ Média 100%
-          </button>
-          <button type="button" class="btn-seg ${modoRolagemGemaSimulador === "sorteio" ? "ativo" : ""}" data-sim-modo-roll="sorteio" title="Sorteia cada pedra entre 85% e 115% como na forja do jogo">
-            🎲 Sorteio
-          </button>
-        </div>
-        <button type="button" class="btn-mini" data-sim-aplicar-roll-todas="1" title="Recalcula todas as pedras já engastadas nas 4 peças usando o modo acima">
-          🔄 Aplicar nas 24 pedras
-        </button>
-      </div>
-
-      <div class="sim-barra-grupo sim-barra-presets">
-        <label class="sim-check-auto" title="Quando ativo, trocar a peça, raridade ou itemLevel calcula os atributos base estimados automaticamente (você ainda pode editar os números manualmente depois)">
-          <input type="checkbox" data-sim-toggle-autostats="1" ${autoCalcularStatsItemSimulador ? "checked" : ""}>
-          <span>Auto-stats por Nv.</span>
-        </label>
-        <button type="button" class="btn-mini" data-sim-preset-criativo="max330" title="Coloca as 4 peças em Arcano Nível 330 e recalcula os atributos base e gemas">
-          ⚡ Tudo Arcano Nv.330
-        </button>
-        <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_safira" title="Engasta 6 Safiras T5 Suprema em todas as 4 peças (24 pedras no total)">
-          💎 24× Safira T5
-        </button>
-        <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_rubi" title="Engasta 6 Rubis T5 Suprema em todas as 4 peças (24 pedras no total)">
-          ❤️ 24× Rubi T5
-        </button>
-      </div>
+      ${construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse, setAtivo3Pecas)}
     </div>
   `;
 }
@@ -3628,8 +3633,13 @@ function construirModoFichaVisualHtml(
   const idxAtivo = Math.min(3, Math.max(0, Number(slotSelecionadoSimulador) || 0));
   const itemAtivo = estadoSimulador.itens[idxAtivo] || estadoSimulador.itens[0];
   const maxGemasAtivo = Math.max(0, Math.min(6, Number(itemAtivo.sockets ?? 6)));
+  if (!Array.isArray(itemAtivo.gems) || itemAtivo.gems.length < 6) {
+    const antigas = Array.isArray(itemAtivo.gems) ? itemAtivo.gems : [];
+    itemAtivo.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
+  }
   const tierSlotAtivo = Number(itemAtivo.gemTierPadrao || 5);
-  const qtdGemasAtivas = (itemAtivo.gems || []).slice(0, maxGemasAtivo).filter(Boolean).length;
+  const qtdGemasAtivas = itemAtivo.gems.slice(0, maxGemasAtivo).filter(Boolean).length;
+  const engasteAtivo = Math.min(Math.max(0, maxGemasAtivo - 1), Math.max(0, Number(engasteSelecionadoSimulador) || 0));
   const ehArma = itemAtivo.slot === "weapon";
   const ehAnel = itemAtivo.slot === "ring";
 
@@ -3641,7 +3651,7 @@ function construirModoFichaVisualHtml(
   const corClasseHeroi = coresOficiaisClasse[estadoSimulador.cls] || "#ffe27a";
   const nomeClasseHeroi = (nomesClasses[estadoSimulador.cls] || "Clérigo").toUpperCase();
 
-  // Abas de classe estilo oficial /character
+  // Abas de classe estilo /character
   const abasClasseOficialHtml = Object.entries(nomesClasses).map(([k, n]) => {
     const ativa = estadoSimulador.cls === k;
     return `
@@ -3656,7 +3666,7 @@ function construirModoFichaVisualHtml(
     `;
   }).join("");
 
-  // Conjuntos equipados (exatamente como no painel esquerdo de /character)
+  // Conjuntos equipados (no painel esquerdo de /character)
   const passivas = obterResumoPassivasBuildSimulador();
   const caixasSetsEquipadosHtml = passivas.setsDetectados.length > 0
     ? passivas.setsDetectados.map(({ chave, qtd, info }) => {
@@ -3680,7 +3690,7 @@ function construirModoFichaVisualHtml(
       </div>
     `;
 
-  // Os 4 quadrados EQUIPADO (idênticos ao .slots4 > .ibox.rbg-X de /character)
+  // Os 4 quadrados EQUIPADO (.slots4 > .ibox.rbg-X)
   const quadradosEquipadoHtml = estadoSimulador.itens.map((item, idxSlot) => {
     const rarIdx = Math.max(0, Math.min(7, Number(item.rarity) || 0));
     const maxSock = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
@@ -3691,6 +3701,7 @@ function construirModoFichaVisualHtml(
         type="button"
         class="rs-ibox rs-rbg-${rarIdx} ${selecionado ? "sel" : ""}"
         data-sim-selecionar-slot="${idxSlot}"
+        data-sim-scroll-bancada="1"
         title="${escaparHtml(`${nomesSlots[item.slot]}: ${item.name || "Peça"} (${nomesRaridade[rarIdx]} · Nv.${item.itemLevel || 1}) — Clique para editar`)}"
       >
         <canvas class="rs-canvas-equipado" data-sim-canvas-equipado="${idxSlot}" width="48" height="48"></canvas>
@@ -3700,17 +3711,7 @@ function construirModoFichaVisualHtml(
     `;
   }).join("");
 
-  // Barra rápida de Set 3/3 da classe
-  const pillsSetsRapidosHtml = conjuntosDaClasse.map(([k, v]) => {
-    const corRar = coresRaridade[v.raridadePadrao ?? 4] || "#c9c5d8";
-    return `
-      <button type="button" class="btn-mini ${setAtivo3Pecas === k ? "ativo" : ""}" style="border-left:3px solid ${corRar};" data-sim-set-rapido="${k}">
-        ${escaparHtml(v.nome)}
-      </button>
-    `;
-  }).join("");
-
-  // Linhas de GASTAR OURO (idênticas ao .upg > .urow de /character)
+  // Linhas de GASTAR OURO: topo com Nome + Nível + Botões; descrição embaixo ocupando 100% da largura
   const descricoesAtributosOficiais = [
     { chave: "str", rotulo: "FORÇA", desc: "+1.5 de ataque e +1,5% do ataque total por nível" },
     { chave: "vit", rotulo: "VITALIDADE", desc: "+10 de vida e +1,5% da vida total por nível" },
@@ -3727,27 +3728,34 @@ function construirModoFichaVisualHtml(
     const ehMelhor = melhorAttr.chave === chave;
     return `
       <div class="rs-urow ${ehMelhor ? "melhor-fc" : ""}">
-        <div>
-          <b>${rotulo} ${ehMelhor ? `<span class="rs-badge-melhor-attr" title="Maior ganho de FC por ponto agora">★ +${formatadorInteiro.format(melhorGanho)} FC</span>` : ""}</b>
-          <div class="muted small">${desc}</div>
+        <div class="rs-urow-top">
+          <div class="rs-urow-title">
+            <b>${rotulo}</b>
+            ${ehMelhor ? `<span class="rs-badge-melhor-attr" title="Maior ganho de FC por ponto agora">★ +${formatadorInteiro.format(melhorGanho)} FC</span>` : ""}
+          </div>
+          <div class="rs-urow-controls">
+            <label class="rs-lv-wrap" for="sim-attr-${chave}">
+              <span>nv</span>
+              <input id="sim-attr-${chave}" type="number" min="0" max="5000" value="${estadoSimulador.atributos[chave]}" data-sim-attr="${chave}" class="rs-attr-input">
+            </label>
+            <div class="rs-urow-btns">
+              <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-10" title="-10 níveis">-10</button>
+              <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-1" title="-1 nível">-1</button>
+              <button type="button" class="rs-btn gold sm" data-attr-btn="${chave}" data-delta="1" title="+1 nível">+1</button>
+              <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="10" title="+10 níveis">+10</button>
+              <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="100" title="+100 níveis">+100</button>
+            </div>
+          </div>
         </div>
-        <label class="rs-lv-wrap" for="sim-attr-${chave}">
-          <span>nv</span>
-          <input id="sim-attr-${chave}" type="number" min="0" max="5000" value="${estadoSimulador.atributos[chave]}" data-sim-attr="${chave}" class="rs-attr-input">
-        </label>
-        <div class="rs-urow-btns">
-          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-10" title="-10 níveis">-10</button>
-          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="-1" title="-1 nível">-1</button>
-          <button type="button" class="rs-btn gold sm" data-attr-btn="${chave}" data-delta="1" title="+1 nível">+1</button>
-          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="10" title="+10 níveis">+10</button>
-          <button type="button" class="rs-btn ghost sm" data-attr-btn="${chave}" data-delta="100" title="+100 níveis">+100</button>
-        </div>
+        <div class="rs-urow-desc muted small">${desc}</div>
       </div>
     `;
   }).join("");
 
-  // Galeria de itens possíveis para o slot selecionado (Mochila visual com ícones pixel-art!)
+  // Seletor Compacto de Peças para o Slot Ativo (com busca textual + filtros; detalhes ficam apenas na peça selecionada à direita)
+  const termoFiltro = (termoBuscaSlotSimulador || "").trim().toLowerCase();
   let galeriaSlotHtml = "";
+
   if (ehAnel) {
     const anelComumAtivo = !Number(itemAtivo.look);
     const listaAneis = [
@@ -3755,41 +3763,53 @@ function construirModoFichaVisualHtml(
       ...Object.entries(catalogoAneis)
         .sort((a, b) => (b[1].raridadeMin || 6) - (a[1].raridadeMin || 6) || Number(b[0]) - Number(a[0]))
         .map(([k, v]) => ({ look: Number(k), nome: v.nome, raridadeMin: v.raridadeMin || 7, efeito: v.efeito })),
-    ];
+    ].filter((an) => {
+      if (!termoFiltro) return true;
+      const rarNome = nomesRaridade[an.raridadeMin || 6] || "";
+      return `${an.nome} ${rarNome} ${an.efeito}`.toLowerCase().includes(termoFiltro);
+    });
 
-    const cardsAneisHtml = listaAneis.map((an) => {
-      const equipado = an.look === 0 ? anelComumAtivo : Number(itemAtivo.look) === an.look;
-      const rarIdx = Math.max(0, Math.min(7, an.raridadeMin || 6));
-      const corRar = coresRaridade[rarIdx] || "#eb34b1";
-      return `
-        <button
-          type="button"
-          class="rs-bag-card ${equipado ? "sel" : ""}"
-          data-sim-equipar-anel="${an.look}"
-          title="${escaparHtml(an.efeito)}"
-        >
-          <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
-            <canvas
-              class="rs-canvas-catalogo"
-              data-sim-canvas-catalogo="ring|${estadoSimulador.cls}|${an.look}|${rarIdx}||0"
-              width="48"
-              height="48"
-            ></canvas>
-          </div>
-          <div class="rs-bag-card-info">
-            <strong style="color:${corRar};">${escaparHtml(an.nome)}</strong>
-            <span class="small muted">${nomesRaridade[rarIdx]}</span>
-            <small>${escaparHtml(an.efeito)}</small>
-          </div>
-        </button>
-      `;
-    }).join("");
+    const cardsAneisHtml = listaAneis.length > 0
+      ? listaAneis.map((an) => {
+          const equipado = an.look === 0 ? anelComumAtivo : Number(itemAtivo.look) === an.look;
+          const rarIdx = Math.max(0, Math.min(7, an.raridadeMin || 6));
+          const corRar = coresRaridade[rarIdx] || "#eb34b1";
+          return `
+            <button
+              type="button"
+              class="rs-bag-item-compact ${equipado ? "sel" : ""}"
+              data-sim-equipar-anel="${an.look}"
+              title="${escaparHtml(an.efeito)}"
+            >
+              <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
+                <canvas
+                  class="rs-canvas-catalogo"
+                  data-sim-canvas-catalogo="ring|${estadoSimulador.cls}|${an.look}|${rarIdx}||0"
+                  width="32"
+                  height="32"
+                ></canvas>
+              </div>
+              <div class="rs-bag-compact-info">
+                <strong style="color:${corRar};">${escaparHtml(an.nome)}</strong>
+                <span class="rs-bag-compact-sub">${nomesRaridade[rarIdx]}</span>
+              </div>
+              ${equipado ? `<span class="rs-bag-equip-tag">✓</span>` : ""}
+            </button>
+          `;
+        }).join("")
+      : `<div class="small muted" style="padding:12px;">Nenhum anel encontrado para "${escaparHtml(termoBuscaSlotSimulador)}".</div>`;
 
-    galeriaSlotHtml = `<div class="rs-bag-list sim-galeria-itens">${cardsAneisHtml}</div>`;
+    galeriaSlotHtml = `<div class="rs-bag-list compact sim-galeria-itens">${cardsAneisHtml}</div>`;
   } else {
     const setsFiltrados = Object.entries(catalogoConjuntos)
       .filter(([, v]) => filtroConjuntoSlotSimulador === "todos" || v.classe === estadoSimulador.cls)
-      .sort((a, b) => (b[1].raridadePadrao || 4) - (a[1].raridadePadrao || 4));
+      .sort((a, b) => (b[1].raridadePadrao || 4) - (a[1].raridadePadrao || 4))
+      .filter(([k, v]) => {
+        if (!termoFiltro) return true;
+        const nomePeca = obterNomeOficialPecaConjunto(k, itemAtivo.slot);
+        const rarNome = nomesRaridade[v.raridadePadrao ?? 4] || "";
+        return `${nomePeca} ${v.nome} ${rarNome} ${nomesClasses[v.classe] || ""}`.toLowerCase().includes(termoFiltro);
+      });
 
     const cardsSetsHtml = setsFiltrados.map(([k, v]) => {
       const nomePeca = obterNomeOficialPecaConjunto(k, itemAtivo.slot);
@@ -3798,91 +3818,115 @@ function construirModoFichaVisualHtml(
       const equipado = itemAtivo.set === k;
       const rarIdx = Math.max(0, Math.min(7, v.raridadePadrao ?? 4));
       const corRar = coresRaridade[rarIdx] || "#ffb62e";
-      const infoKindOficial = window.RiftSprites?.catalogoKindsOficial?.[kindPeca];
-      const infoArma = ehArma && v.armaKind ? catalogoArmas[v.armaKind] : null;
-      const textoEfeito = infoArma?.efeito?.texto || infoArma?.notaSkill || infoKindOficial?.effect || "";
-      const b2Texto = window.RiftSprites?.catalogoConjuntosOficial?.[k]?.b2 || formatarBonusConjuntoCurto(v.b2);
-      const b3Texto = window.RiftSprites?.catalogoConjuntosOficial?.[k]?.b3 || formatarBonusConjuntoCurto(v.b3);
 
       return `
-        <div class="rs-bag-card ${equipado ? "sel" : ""}">
-          <button
-            type="button"
-            class="rs-bag-card-main"
-            data-sim-equipar-peca-set="${idxAtivo}:${k}"
-            title="Clique para equipar ${escaparHtml(nomePeca)}"
-          >
-            <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
-              <canvas
-                class="rs-canvas-catalogo"
-                data-sim-canvas-catalogo="${itemAtivo.slot}|${v.classe}|0|${rarIdx}|${kindPeca || ""}|0"
-                width="48"
-                height="48"
-              ></canvas>
-            </div>
-            <div class="rs-bag-card-info">
-              <div class="rs-bag-card-head">
-                <strong style="color:${corRar};">${escaparHtml(nomePeca)}</strong>
-                <span class="rs-rar-tag" style="color:${corRar};">${nomesRaridade[rarIdx]}</span>
-              </div>
-              <div class="rs-bag-card-set">Conjunto ${escaparHtml(v.nome)} ${v.classe !== estadoSimulador.cls ? `(${nomesClasses[v.classe]})` : ""}</div>
-              <small class="rs-bag-card-bonus">2p: ${escaparHtml(b2Texto)} · 3p: ${escaparHtml(b3Texto)}</small>
-              ${textoEfeito ? `<small class="rs-bag-card-ef">${escaparHtml(textoEfeito)}</small>` : ""}
-            </div>
-          </button>
-          <button
-            type="button"
-            class="rs-btn ghost sm rs-btn-set3"
-            data-sim-set-rapido="${k}"
-            title="Equipar Arma, Elmo e Armadura deste conjunto de uma vez"
-          >
-            ⚡ Set 3/3
-          </button>
-        </div>
+        <button
+          type="button"
+          class="rs-bag-item-compact ${equipado ? "sel" : ""}"
+          data-sim-equipar-peca-set="${idxAtivo}:${k}"
+          title="${escaparHtml(`${nomePeca} — Conjunto ${v.nome} (${nomesRaridade[rarIdx]})`)}"
+        >
+          <div class="rs-ibox rs-rbg-${rarIdx} ${equipado ? "sel" : ""}">
+            <canvas
+              class="rs-canvas-catalogo"
+              data-sim-canvas-catalogo="${itemAtivo.slot}|${v.classe}|0|${rarIdx}|${kindPeca || ""}|0"
+              width="32"
+              height="32"
+            ></canvas>
+          </div>
+          <div class="rs-bag-compact-info">
+            <strong style="color:${corRar};">${escaparHtml(nomePeca)}</strong>
+            <span class="rs-bag-compact-sub">${escaparHtml(v.nome)} · <span style="color:${corRar};">${nomesRaridade[rarIdx]}</span>${v.classe !== estadoSimulador.cls ? ` · ${nomesClasses[v.classe]}` : ""}</span>
+          </div>
+          ${equipado ? `<span class="rs-bag-equip-tag">✓</span>` : ""}
+        </button>
       `;
-    }).join("");
+    });
 
-    let armasAvulsasHtml = "";
     if (ehArma) {
       const kindsDeSet = new Set(Object.values(catalogoConjuntos).map((s) => s.armaKind));
-      const avulsas = Object.entries(catalogoArmas).filter(
-        ([k, v]) => !kindsDeSet.has(k) && (filtroConjuntoSlotSimulador === "todos" || v.classe === estadoSimulador.cls)
-      );
-      if (avulsas.length > 0) {
-        armasAvulsasHtml = `
-          <div class="rs-avulsas-wrap">
-            <span class="small muted">Armas avulsas (sem conjunto):</span>
-            <div class="rs-avulsas-grid">
-              ${avulsas.map(([k, v]) => {
-                const ativa = itemAtivo.kind === k && !itemAtivo.set;
-                return `
-                  <button
-                    type="button"
-                    class="rs-avulsa-btn ${ativa ? "sel" : ""}"
-                    data-sim-equipar-arma-avulsa="${k}"
-                    title="${escaparHtml(v.notaSkill || "")}"
-                  >
-                    <canvas
-                      class="rs-canvas-catalogo"
-                      data-sim-canvas-catalogo="weapon|${v.classe}|0|4|${k}|0"
-                      width="32"
-                      height="32"
-                    ></canvas>
-                    <span>${escaparHtml(v.nome)}</span>
-                  </button>
-                `;
-              }).join("")}
+      const avulsas = Object.entries(catalogoArmas)
+        .filter(([k, v]) => !kindsDeSet.has(k) && (filtroConjuntoSlotSimulador === "todos" || v.classe === estadoSimulador.cls))
+        .filter(([, v]) => {
+          if (!termoFiltro) return true;
+          return `${v.nome} avulsa ${nomesClasses[v.classe] || ""}`.toLowerCase().includes(termoFiltro);
+        });
+
+      for (const [k, v] of avulsas) {
+        const ativa = itemAtivo.kind === k && !itemAtivo.set;
+        cardsSetsHtml.push(`
+          <button
+            type="button"
+            class="rs-bag-item-compact ${ativa ? "sel" : ""}"
+            data-sim-equipar-arma-avulsa="${k}"
+            title="${escaparHtml(v.notaSkill || v.nome)}"
+          >
+            <div class="rs-ibox rs-rbg-4 ${ativa ? "sel" : ""}">
+              <canvas
+                class="rs-canvas-catalogo"
+                data-sim-canvas-catalogo="weapon|${v.classe}|0|4|${k}|0"
+                width="32"
+                height="32"
+              ></canvas>
             </div>
-          </div>
-        `;
+            <div class="rs-bag-compact-info">
+              <strong style="color:#ffb62e;">${escaparHtml(v.nome)}</strong>
+              <span class="rs-bag-compact-sub">Arma Avulsa (sem conjunto)${v.classe !== estadoSimulador.cls ? ` · ${nomesClasses[v.classe]}` : ""}</span>
+            </div>
+            ${ativa ? `<span class="rs-bag-equip-tag">✓</span>` : ""}
+          </button>
+        `);
       }
     }
 
     galeriaSlotHtml = `
-      <div class="rs-bag-list sim-galeria-itens">${cardsSetsHtml}</div>
-      ${armasAvulsasHtml}
+      <div class="rs-bag-list compact sim-galeria-itens">
+        ${cardsSetsHtml.length > 0 ? cardsSetsHtml.join("") : `<div class="small muted" style="padding:12px;">Nenhuma peça encontrada para "${escaparHtml(termoBuscaSlotSimulador)}".</div>`}
+      </div>
     `;
   }
+
+  // Detalhes da Peça Selecionada (exibidos apenas no card da direita .rs-icard)
+  const setChaveAtiva = itemAtivo.set && catalogoConjuntos[itemAtivo.set] ? itemAtivo.set : "";
+  const infoSetAtivo = setChaveAtiva ? catalogoConjuntos[setChaveAtiva] : null;
+  const qtdSetAtivo = setChaveAtiva
+    ? estadoSimulador.itens.filter((it) => it && it.set === setChaveAtiva).length
+    : 0;
+  const b2AtivoTexto = setChaveAtiva
+    ? window.RiftSprites?.catalogoConjuntosOficial?.[setChaveAtiva]?.b2 || formatarBonusConjuntoCurto(infoSetAtivo.b2)
+    : "";
+  const b3AtivoTexto = setChaveAtiva
+    ? window.RiftSprites?.catalogoConjuntosOficial?.[setChaveAtiva]?.b3 || formatarBonusConjuntoCurto(infoSetAtivo.b3)
+    : "";
+
+  const kindAtivo = itemAtivo.kind || (infoSetAtivo ? (ehArma ? infoSetAtivo.armaKind : itemAtivo.slot === "helmet" ? infoSetAtivo.elmoKind : infoSetAtivo.armaduraKind) : "");
+  const infoArmaAtiva = ehArma && kindAtivo ? catalogoArmas[kindAtivo] : null;
+  const infoKindOficialAtivo = kindAtivo ? window.RiftSprites?.catalogoKindsOficial?.[kindAtivo] : null;
+  const infoAnelAtivo = ehAnel && Number(itemAtivo.look) ? catalogoAneis[Number(itemAtivo.look)] : null;
+  const textoPassivaPecaAtiva = ehAnel
+    ? (infoAnelAtivo?.efeito || "Sem efeito passivo especial.")
+    : (infoArmaAtiva?.efeito?.texto || infoArmaAtiva?.notaSkill || infoKindOficialAtivo?.effect || "");
+
+  const blocoDetalhesPecaSelecionadaHtml = (infoSetAtivo || textoPassivaPecaAtiva)
+    ? `
+      <div class="rs-icard-lore">
+        ${infoSetAtivo ? `
+          <div class="rs-icard-lore-head">
+            <span>Conjunto <strong style="color:var(--gold);">${escaparHtml(infoSetAtivo.nome)}</strong> (${qtdSetAtivo}/3 equipadas)</span>
+            <button type="button" class="rs-btn ghost sm" data-sim-set-rapido="${setChaveAtiva}" title="Equipar Arma, Elmo e Armadura deste conjunto">
+              ⚡ Equipar Set 3/3
+            </button>
+          </div>
+          <div class="rs-icard-lore-bonus">
+            <span class="${qtdSetAtivo >= 2 ? "on" : "muted"}">2p: ${escaparHtml(b2AtivoTexto)}</span>
+            <span>·</span>
+            <span class="${qtdSetAtivo >= 3 ? "on" : "muted"}">3p: ${escaparHtml(b3AtivoTexto)}</span>
+          </div>
+        ` : ""}
+        ${textoPassivaPecaAtiva ? `<div class="rs-icard-lore-ef">★ ${escaparHtml(textoPassivaPecaAtiva)}</div>` : ""}
+      </div>
+    `
+    : "";
 
   // Pills de raridade & nível rápido do slot
   const pillsRaridadeHtml = [0, 3, 4, 5, 6, 7].map((rIdx) => {
@@ -3906,52 +3950,70 @@ function construirModoFichaVisualHtml(
     </button>
   `).join("");
 
-  // Botões Tier e engastes de pedras do slot
+  // Botões Tier de gemas
   const botoesTierHtml = [1, 2, 3, 4, 5].map((t) => `
     <button type="button" class="btn-tier-gema ${tierSlotAtivo === t ? "ativa" : ""}" data-sim-slot-tier="${idxAtivo}:${t}">
       T${t}${t === 5 ? " Suprema" : ""}
     </button>
   `).join("");
 
-  const btnsPreencher6Html = Object.entries(catalogoGemas).map(([tk, tv]) => `
-    <button type="button" class="btn-mini rs-btn-gema-fill" data-sim-preencher-gema-peca="${idxAtivo}:${tk}" title="Engastar 6× ${tv.nome} T${tierSlotAtivo} nesta peça">
-      <canvas class="rs-canvas-gema-mini" data-sim-canvas-gema="${tk}:${tierSlotAtivo}:1" width="16" height="16"></canvas>
-      <span>6× ${tv.nome}</span>
-    </button>
-  `).join("");
-
-  const linhasGemasHtml = Array.from({ length: maxGemasAtivo }, (_, idxGema) => {
-    const gemaAtual = itemAtivo.gems[idxGema] || null;
-    const tipoAtual = gemaAtual?.type || null;
-
-    const botoesOpcoesHtml = Object.entries(catalogoGemas).map(([tk, tv]) => {
-      const estaSelecionada = tipoAtual === tk;
-      const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlotAtivo : tierSlotAtivo;
-      const subtexto = estaSelecionada
-        ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
-        : resumoCurtoGemaBotao(tk, itemAtivo.slot, tierExibicao, itemAtivo.itemLevel);
-      return `
-        <button
-          type="button"
-          class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
-          data-sim-gem-btn="${idxAtivo}:${idxGema}:${tk}"
-          aria-pressed="${estaSelecionada ? "true" : "false"}"
-          title="${estaSelecionada ? "Clique para remover esta gema" : `Engastar ${tv.nome} T${tierSlotAtivo}`}"
-        >
-          <strong class="gema-titulo-btn">
-            <canvas class="rs-canvas-gema-mini" data-sim-canvas-gema="${tk}:${tierExibicao}:1" width="16" height="16"></canvas>
-            ${tv.nome}
-          </strong>
-          <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
-        </button>
-      `;
-    }).join("");
+  // Os 6 Engastes Visuais Lado a Lado (clicar num engaste abre/foca a escolha da pedra abaixo)
+  const sockets6Html = Array.from({ length: maxGemasAtivo }, (_, idxGema) => {
+    const gema = itemAtivo.gems[idxGema] || null;
+    const selecionado = idxGema === engasteAtivo;
+    const infoGema = gema?.type ? catalogoGemas[gema.type] : null;
+    const tierGema = gema?.tier || tierSlotAtivo;
+    const resumoCurto = gema
+      ? formatarGemaTexto(gema).replace(/^[^:]+:\s*/, "").split(" · ")[0]
+      : "Vazio";
 
     return `
-      <div class="sim-gema-linha">
-        <span class="sim-gema-indice">#${idxGema + 1}</span>
-        ${botoesOpcoesHtml}
-      </div>
+      <button
+        type="button"
+        class="rs-socket-btn ${selecionado ? "sel" : ""} ${gema ? "filled" : "empty"}"
+        data-sim-selecionar-engaste="${idxGema}"
+        aria-pressed="${selecionado}"
+        title="${escaparHtml(`Engaste ${idxGema + 1}: ${gema ? formatarGemaTexto(gema) : "Vazio"}`)}"
+      >
+        <span class="rs-socket-num">#${idxGema + 1}</span>
+        <span class="rs-socket-icon">
+          ${
+            infoGema
+              ? `<canvas class="rs-canvas-gema-socket" data-sim-canvas-gema="${gema.type}:${tierGema}:1" width="16" height="16"></canvas>`
+              : `<span class="rs-socket-empty-diamond">◇</span>`
+          }
+        </span>
+        <strong class="rs-socket-name" style="color:${infoGema ? infoGema.cor : "var(--muted)"};">${infoGema ? infoGema.nome : "Vazio"}</strong>
+        <small class="rs-socket-val">${escaparHtml(resumoCurto)}</small>
+      </button>
+    `;
+  }).join("");
+
+  // Seletor Único de Pedra para o Engaste Selecionado (sem repetir as 5 pedras 6 vezes!)
+  const gemaNoEngasteAtivo = itemAtivo.gems[engasteAtivo] || null;
+  const tipoNoEngasteAtivo = gemaNoEngasteAtivo?.type || null;
+
+  const opcoesPedraEngasteAtivoHtml = Object.entries(catalogoGemas).map(([tk, tv]) => {
+    const estaSelecionada = tipoNoEngasteAtivo === tk;
+    const tierExibicao = estaSelecionada ? gemaNoEngasteAtivo.tier || tierSlotAtivo : tierSlotAtivo;
+    const subtexto = estaSelecionada
+      ? formatarGemaTexto(gemaNoEngasteAtivo).replace(/^[^:]+:\s*/, "")
+      : resumoCurtoGemaBotao(tk, itemAtivo.slot, tierExibicao, itemAtivo.itemLevel);
+
+    return `
+      <button
+        type="button"
+        class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
+        data-sim-gem-btn="${idxAtivo}:${engasteAtivo}:${tk}"
+        aria-pressed="${estaSelecionada ? "true" : "false"}"
+        title="${estaSelecionada ? "Clique para remover a pedra deste engaste" : `Colocar ${tv.nome} T${tierSlotAtivo} no Engaste #${engasteAtivo + 1}`}"
+      >
+        <strong class="gema-titulo-btn">
+          <canvas class="rs-canvas-gema-mini" data-sim-canvas-gema="${tk}:${tierExibicao}:1" width="16" height="16"></canvas>
+          ${tv.nome}
+        </strong>
+        <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
+      </button>
     `;
   }).join("");
 
@@ -3962,22 +4024,37 @@ function construirModoFichaVisualHtml(
   const deltaFc = fcOrig !== null ? fcSim - fcOrig : null;
 
   return `
-    <!-- Abas de Classe idênticas ao topo de https://riftstream.com.br/character -->
+    <!-- Topo enxuto: Classe + Nível visíveis; Modo Ficha visual / Grade completa; Opções avançadas recolhidas -->
     <div class="rs-top-row">
-      <div class="rs-tabs">
-        ${abasClasseOficialHtml}
+      <div class="rs-top-main">
+        <div class="rs-tabs" role="group" aria-label="Classe do personagem">
+          ${abasClasseOficialHtml}
+        </div>
+        <label class="rs-top-lvl-badge" for="sim-nivel" title="Nível do personagem">
+          <span>NÍVEL</span>
+          <input id="sim-nivel" type="number" min="1" max="2000" value="${estadoSimulador.level}" class="rs-lvl-input">
+        </label>
+        <!-- Select oculto para compatibilidade com scripts/atalhos -->
+        <select id="sim-classe" hidden aria-hidden="true">
+          ${Object.entries(nomesClasses).map(([k, n]) => `<option value="${k}" ${estadoSimulador.cls === k ? "selected" : ""}>${n}</option>`).join("")}
+        </select>
       </div>
-      <!-- Select oculto para compatibilidade com scripts/atalhos -->
-      <select id="sim-classe" hidden aria-hidden="true">
-        ${Object.entries(nomesClasses).map(([k, n]) => `<option value="${k}" ${estadoSimulador.cls === k ? "selected" : ""}>${n}</option>`).join("")}
-      </select>
-      <div class="rs-top-sets-bar">
-        <span class="small muted">Equipar Set 3/3:</span>
-        ${pillsSetsRapidosHtml}
+
+      <div class="rs-top-actions">
+        <div class="sim-seg-controle" role="group" aria-label="Modo de visualização do simulador">
+          <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "ficha" ? "ativo" : ""}" data-sim-modo-vis="ficha">
+            🎮 Ficha visual
+          </button>
+          <button type="button" class="btn-seg ${modoVisualizacaoSimulador === "lista" ? "ativo" : ""}" data-sim-modo-vis="lista">
+            📋 Grade completa
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Layout de 2 Colunas idêntico ao .sheet de /character -->
+    ${construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse, setAtivo3Pecas)}
+
+    <!-- Layout de 2 Colunas estilo /character -->
     <div class="rs-sheet">
       <!-- COLUNA ESQUERDA: section.panel.hero -->
       <section class="rs-panel rs-hero">
@@ -3987,15 +4064,12 @@ function construirModoFichaVisualHtml(
 
         <div class="rs-hero-head">
           <h2 style="color:${corClasseHeroi};">${nomeClasseHeroi}</h2>
-          <label class="rs-lvl" for="sim-nivel" title="Clique para alterar o nível do herói">
-            NÍVEL
-            <input id="sim-nivel" type="number" min="1" max="2000" value="${estadoSimulador.level}" class="rs-lvl-input">
-          </label>
+          <span class="rs-lvl">NÍVEL <strong style="color:#eae6ff; font-family:var(--pix); font-size:15px;">${estadoSimulador.level}</strong></span>
         </div>
 
         <div class="rs-bar tall" title="Modo Criativo de Build">
           <i style="width:94%;"></i>
-          <span>SIMULADOR CRIATIVO · NÍVEL ${estadoSimulador.level}</span>
+          <span>FICHA VISUAL · NÍVEL ${estadoSimulador.level}</span>
         </div>
 
         <div class="rs-hero-tiles">
@@ -4017,7 +4091,7 @@ function construirModoFichaVisualHtml(
         <div class="rs-slots4">
           ${quadradosEquipadoHtml}
         </div>
-        <p class="rs-equipado-hint">👆 Clique em qualquer equipamento acima para trocar a peça ou editar as gemas abaixo</p>
+        <p class="rs-equipado-hint">👆 Clique em um slot para escolher a peça, nível e gemas</p>
       </section>
 
       <!-- COLUNA DIREITA: section.panel.attrs -->
@@ -4073,7 +4147,7 @@ function construirModoFichaVisualHtml(
 
         <div class="rs-attrs-head">
           <h3>GASTAR OURO</h3>
-          <span class="rs-gold">💡 Recomendado para FC: +1 em ${melhorAttr.nome.toUpperCase()} (+${formatadorInteiro.format(melhorGanho)} FC)</span>
+          <span class="rs-gold">💡 Melhor ganho de FC: +1 em ${melhorAttr.nome.toUpperCase()} (+${formatadorInteiro.format(melhorGanho)} FC)</span>
         </div>
 
         <div class="rs-upg">
@@ -4082,11 +4156,11 @@ function construirModoFichaVisualHtml(
       </section>
     </div>
 
-    <!-- PAINEL INFERIOR: MOCHILA CRIATIVA DO SLOT & FICHA DA PEÇA (idêntico a section.panel.full de /character) -->
+    <!-- PAINEL INFERIOR: Fluxo direto "Clicar no slot -> escolher a peça -> editar nível e gemas -> ver diferença no resumo" -->
     <section class="rs-panel rs-full" id="sim-bancada-slot-oficial">
       <div class="rs-inv-head">
         <div class="rs-inv-title-group">
-          <h2>EDITANDO SLOT: ${nomesSlots[itemAtivo.slot].toUpperCase()}</h2>
+          <h2>SLOT: ${nomesSlots[itemAtivo.slot].toUpperCase()}</h2>
           <div class="rs-tabs">
             ${estadoSimulador.itens.map((it, idx) => `
               <button type="button" class="rs-tab-cls sm ${idx === idxAtivo ? "active" : ""}" data-sim-selecionar-slot="${idx}">
@@ -4095,26 +4169,46 @@ function construirModoFichaVisualHtml(
             `).join("")}
           </div>
         </div>
-        ${!ehAnel ? `
-          <div class="rs-bag-filters">
-            <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "classe" ? "sel" : ""}" data-sim-filtro-galeria="classe">
-              Apenas ${nomesClasses[estadoSimulador.cls]}
-            </button>
-            <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "todos" ? "sel" : ""}" data-sim-filtro-galeria="todos">
-              Todas as Classes
-            </button>
-          </div>
-        ` : ""}
+
+        <!-- Resumo instantâneo visível enquanto edita a peça e as gemas -->
+        <div class="rs-live-summary-bar" aria-live="polite">
+          <span>FC: <strong style="color:var(--gold); font-family:var(--pix);">${formatadorInteiro.format(fcSim)}</strong></span>
+          ${deltaFc !== null ? `<span class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">(${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)})</span>` : ""}
+          <span>·</span>
+          <span>${estadoSimulador.cls === "cleric" ? "Cura" : "DPS"}: <strong style="color:var(--cyan);">${formatarNumeroCompacto(estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio)}${estadoSimulador.cls === "cleric" ? "" : "/s"}</strong></span>
+          <span>·</span>
+          <span>HP: <strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></span>
+        </div>
       </div>
 
       <div class="rs-inv-body">
-        <!-- Esquerda: Galeria de peças possíveis para este slot com ícones pixel-art -->
+        <!-- Esquerda: Seletor compacto de peças com busca e filtro -->
         <div class="rs-bag-col">
-          <div class="rs-subhead">CLIQUE EM UM ITEM PARA EQUIPAR NO SLOT (${nomesSlots[itemAtivo.slot].toUpperCase()}):</div>
+          <div class="rs-bag-toolbar">
+            <input
+              type="search"
+              id="sim-busca-peca-slot"
+              class="rs-bag-search"
+              placeholder="Buscar peça ou conjunto…"
+              aria-label="Buscar peça ou conjunto"
+              maxlength="64"
+              value="${escaparHtml(termoBuscaSlotSimulador)}"
+            >
+            ${!ehAnel ? `
+              <div class="rs-bag-filters">
+                <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "classe" ? "sel" : ""}" data-sim-filtro-galeria="classe">
+                  ${nomesClasses[estadoSimulador.cls]}
+                </button>
+                <button type="button" class="rs-btn ghost sm ${filtroConjuntoSlotSimulador === "todos" ? "sel" : ""}" data-sim-filtro-galeria="todos">
+                  Todos
+                </button>
+              </div>
+            ` : ""}
+          </div>
           ${galeriaSlotHtml}
         </div>
 
-        <!-- Direita: Ficha oficial .icard da peça equipada + Atributos + 6 Gemas -->
+        <!-- Direita: Detalhes da peça selecionada + Nível/Raridade + 6 Engastes diretos -->
         <aside class="rs-detail">
           <div class="rs-icard rs-rbg-${rarAtivoIdx}">
             <div class="rs-icard-top">
@@ -4127,10 +4221,11 @@ function construirModoFichaVisualHtml(
                   <span style="color:${corRarAtivo};">${nomesRaridade[rarAtivoIdx]}</span>
                   · ${nomesSlots[itemAtivo.slot]} · Nv. ${itemAtivo.itemLevel || 1}
                 </div>
-                ${itemAtivo.set && catalogoConjuntos[itemAtivo.set] ? `<div class="small" style="color:var(--gold); margin-top:2px;">Conjunto ${escaparHtml(catalogoConjuntos[itemAtivo.set].nome)}</div>` : ""}
               </div>
               <span class="rs-gem-badge-top">💎 ${qtdGemasAtivas}/${maxGemasAtivo}</span>
             </div>
+
+            ${blocoDetalhesPecaSelecionadaHtml}
 
             <div class="sim-bancada-atributos-box">
               <div class="sim-rar-nivel-row">
@@ -4161,7 +4256,6 @@ function construirModoFichaVisualHtml(
               <div class="sim-gemas-topo">
                 <div>
                   <span>ENGASTES DE GEMAS (${qtdGemasAtivas}/${maxGemasAtivo})</span>
-                  <p class="small muted" style="margin:2px 0 0 0; font-size:0.74rem;">Roll atual: ${modoRolagemGemaSimulador === "max" ? "Teto 115%" : modoRolagemGemaSimulador === "media" ? "Média 100%" : "Sorteio 85%–115%"}</p>
                 </div>
                 <div class="sim-tier-bar">
                   ${botoesTierHtml}
@@ -4169,11 +4263,32 @@ function construirModoFichaVisualHtml(
                   <button type="button" class="btn-mini" data-sim-gem-limpar="${idxAtivo}" title="Remove todas as gemas desta peça">Limpar</button>
                 </div>
               </div>
-              <div class="sim-barra-preencher-gemas">
-                <span class="small muted">6 iguais:</span>
-                ${btnsPreencher6Html}
+
+              ${maxGemasAtivo > 0 ? `
+              <div class="rs-sockets6" role="group" aria-label="Engastes da peça">
+                ${sockets6Html}
               </div>
-              ${linhasGemasHtml}
+
+              <!-- Seletor direto da pedra para o engaste selecionado -->
+              <div class="rs-stone-picker">
+                <div class="rs-stone-picker-head">
+                  <span>Escolher pedra para o <strong>Engaste #${engasteAtivo + 1}</strong>:</span>
+                  <div class="rs-stone-picker-actions">
+                    ${gemaNoEngasteAtivo ? `
+                      ${maxGemasAtivo > 1 ? `<button type="button" class="btn-mini btn-atalho-ativo" data-sim-gem-repetir-ativo="${idxAtivo}:${engasteAtivo}" title="Preencher os engastes com gemas do mesmo tipo e tier">
+                        Repetir nos ${maxGemasAtivo} engastes
+                      </button>` : ""}
+                      <button type="button" class="btn-mini" data-sim-gem-limpar-unico="${idxAtivo}:${engasteAtivo}" title="Remover pedra apenas do Engaste #${engasteAtivo + 1}">
+                        ✕ Esvaziar #${engasteAtivo + 1}
+                      </button>
+                    ` : ""}
+                  </div>
+                </div>
+                <div class="rs-stone-options-row">
+                  ${opcoesPedraEngasteAtivoHtml}
+                </div>
+              </div>
+              ` : `<p class="small muted">Esta peça não tem engastes.</p>`}
             </div>
           </div>
         </aside>
@@ -4199,7 +4314,11 @@ function renderizarSimulador() {
       }
     });
   }
-  const galeriaAnterior = containerSimulador.querySelector(".sim-galeria-itens");
+  const detailsAvancadasExistente = containerSimulador.querySelector("#sim-details-avancadas");
+  if (detailsAvancadasExistente) {
+    opcoesAvancadasAbertasSimulador = Boolean(detailsAvancadasExistente.open);
+  }
+  const galeriaAnterior = containerSimulador.querySelector(".rs-bag-list, .sim-galeria-itens");
   const scrollGaleriaAnterior = galeriaAnterior ? galeriaAnterior.scrollTop : 0;
 
   // Preserva rolagem e elemento com foco ativo
@@ -4207,8 +4326,16 @@ function renderizarSimulador() {
   const scrollXAnterior = typeof window !== "undefined" ? window.scrollX : 0;
   const elementoFocadoAtivo = typeof document !== "undefined" ? document.activeElement : null;
   let seletorFocoRestaurar = null;
+  let cursorBuscaIni = null;
+  let cursorBuscaFim = null;
   if (elementoFocadoAtivo && containerSimulador.contains(elementoFocadoAtivo)) {
-    if (elementoFocadoAtivo.dataset?.simGemBtn) {
+    if (elementoFocadoAtivo.id === "sim-busca-peca-slot") {
+      seletorFocoRestaurar = "#sim-busca-peca-slot";
+      cursorBuscaIni = elementoFocadoAtivo.selectionStart;
+      cursorBuscaFim = elementoFocadoAtivo.selectionEnd;
+    } else if (elementoFocadoAtivo.dataset?.simSelecionarEngaste) {
+      seletorFocoRestaurar = `[data-sim-selecionar-engaste="${elementoFocadoAtivo.dataset.simSelecionarEngaste}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simGemBtn) {
       seletorFocoRestaurar = `[data-sim-gem-btn="${elementoFocadoAtivo.dataset.simGemBtn}"]`;
     } else if (elementoFocadoAtivo.dataset?.simSlotTier) {
       seletorFocoRestaurar = `[data-sim-slot-tier="${elementoFocadoAtivo.dataset.simSlotTier}"]`;
@@ -4321,7 +4448,6 @@ function renderizarSimulador() {
       ? estadoSimulador.itens[0].set
       : "";
 
-  const barraModoHtml = construirBarraModoCriativoHtml();
   const resumoPainelDireitoHtml = construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOrig);
 
   if (modoVisualizacaoSimulador === "ficha") {
@@ -4338,8 +4464,9 @@ function renderizarSimulador() {
       fcOrig,
       metOrig
     );
-    containerSimulador.innerHTML = `${barraModoHtml}${fichaHtml}`;
+    containerSimulador.innerHTML = fichaHtml;
   } else {
+    const barraModoHtml = construirBarraModoCriativoHtml(conjuntosDaClasse, setAtivo3Pecas);
     const barraConjuntoRapidoHtml = `
       <div class="barra-atalhos">
         <span class="rotulo-atalho">⚡ Equipar Set Completo (${nomesClasses[estadoSimulador.cls]}):</span>
@@ -4509,7 +4636,7 @@ function renderizarSimulador() {
   vincularEventosSimulador();
   renderizarCanvasesFichaSimulador();
 
-  const novaGaleria = containerSimulador.querySelector(".sim-galeria-itens");
+  const novaGaleria = containerSimulador.querySelector(".rs-bag-list, .sim-galeria-itens");
   if (novaGaleria && scrollGaleriaAnterior > 0) {
     novaGaleria.scrollTop = scrollGaleriaAnterior;
   }
@@ -4520,6 +4647,13 @@ function renderizarSimulador() {
     if (elRestaurar && typeof elRestaurar.focus === "function") {
       try {
         elRestaurar.focus({ preventScroll: true });
+        if (
+          elRestaurar.id === "sim-busca-peca-slot" &&
+          cursorBuscaIni !== null &&
+          typeof elRestaurar.setSelectionRange === "function"
+        ) {
+          elRestaurar.setSelectionRange(cursorBuscaIni, cursorBuscaFim ?? cursorBuscaIni);
+        }
       } catch {}
     }
   }
@@ -4650,13 +4784,63 @@ function vincularEventosSimulador() {
     });
   });
 
+  const detailsAvancadas = containerSimulador.querySelector("#sim-details-avancadas");
+  detailsAvancadas?.addEventListener("toggle", () => {
+    opcoesAvancadasAbertasSimulador = Boolean(detailsAvancadas.open);
+  });
+
+  const buscaPeca = containerSimulador.querySelector("#sim-busca-peca-slot");
+  buscaPeca?.addEventListener("input", () => {
+    termoBuscaSlotSimulador = buscaPeca.value;
+    renderizarSimulador();
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-selecionar-engaste]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      engasteSelecionadoSimulador = Number(botao.dataset.simSelecionarEngaste);
+      renderizarSimulador();
+    });
+  });
+
+  containerSimulador.querySelectorAll("[data-sim-gem-repetir-ativo], [data-sim-gem-limpar-unico]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const repetir = botao.hasAttribute("data-sim-gem-repetir-ativo");
+      const [idxSlot, idxGema] = (botao.dataset.simGemRepetirAtivo || botao.dataset.simGemLimparUnico).split(":").map(Number);
+      const item = estadoSimulador.itens[idxSlot];
+      const gema = item?.gems[idxGema];
+      if (!gema) return;
+      simuladorEditadoManual = true;
+      if (repetir) {
+        const tipo = gema.type || gema.kind;
+        if (!Object.hasOwn(catalogoGemas, tipo)) return;
+        const limite = Math.min(6, Number(item.sockets ?? 6));
+        item.gems = Array.from({ length: 6 }, (_, i) =>
+          i >= limite ? null : i === idxGema ? gema : criarGemaPreset(tipo, item.slot, gema.tier, item.itemLevel)
+        );
+      } else {
+        item.gems[idxGema] = null;
+      }
+      renderizarSimulador();
+    });
+  });
+
   // Navegação dos slots no Paperdoll
   containerSimulador.querySelectorAll("[data-sim-selecionar-slot]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const idx = Number(e.currentTarget.dataset.simSelecionarSlot);
       if (!Number.isNaN(idx) && idx >= 0 && idx < estadoSimulador.itens.length) {
+        if (slotSelecionadoSimulador !== idx) {
+          engasteSelecionadoSimulador = 0;
+          termoBuscaSlotSimulador = "";
+        }
         slotSelecionadoSimulador = idx;
+        const abrirBancada = e.currentTarget.hasAttribute("data-sim-scroll-bancada");
         renderizarSimulador();
+        if (abrirBancada) {
+          const bancada = document.querySelector("#sim-bancada-slot-oficial");
+          bancada?.querySelector("#sim-busca-peca-slot")?.focus({ preventScroll: true });
+          requestAnimationFrame(() => bancada?.scrollIntoView({ block: "start" }));
+        }
       }
     });
   });
@@ -4933,7 +5117,7 @@ function vincularEventosSimulador() {
       const idxSlot = Number(idxSlotStr);
       const idxGema = Number(idxGemaStr);
       const item = estadoSimulador.itens[idxSlot];
-      if (!item) return;
+      if (!item || idxGema < 0 || idxGema >= Math.min(6, Number(item.sockets ?? 6))) return;
       if (!Array.isArray(item.gems) || item.gems.length < 6) {
         const antigas = Array.isArray(item.gems) ? item.gems : [];
         item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
@@ -5433,6 +5617,8 @@ async function obterPerfilEmCache(login, cls, sinalAborto) {
   }
   const caminho = `/api/profile/${encodeURIComponent(login)}${cls ? `?cls=${encodeURIComponent(cls)}` : ""}`;
   const dados = await buscarJsonApi(caminho, sinalAborto, 8000);
+  validarPerfilApi(dados, login, cls);
+  if (cachePerfisApi.size >= 500) cachePerfisApi.delete(cachePerfisApi.keys().next().value);
   cachePerfisApi.set(chave, { ts: agora, dados });
   return dados;
 }
@@ -5565,7 +5751,7 @@ async function escanearLiveSelecionada() {
       statusRadar.textContent = erro.message || "Não foi possível escanear esta live.";
     }
   } finally {
-    if (btnEscanearLive) btnEscanearLive.disabled = false;
+    if (btnEscanearLive && requisicaoRadarAtiva === controlador) btnEscanearLive.disabled = false;
   }
 }
 
@@ -5595,7 +5781,7 @@ function verificarFiltroRadarJogador(perfil, filtroItem, filtroClasse, buscaText
       ...itens.map((i) => catalogoArmas[i.kind]?.nome),
       ...itens.map((i) => catalogoConjuntos[i.set]?.nome),
       ...itens.map((i) => (i.slot === "ring" ? catalogoAneis[i.look]?.nome : "")),
-      ...itens.flatMap((i) => (i.gems || []).map((g) => g.name)),
+      ...itens.flatMap((i) => (i.gems || []).map((g) => g?.name)),
     ]
       .filter(Boolean)
       .join(" ")
@@ -5961,6 +6147,10 @@ function renderizarResultadoRadar() {
    ========================================================================== */
 
 function renderizarPerfil(perfil, urlPublica, plataforma) {
+  requisicaoComparacaoAtiva?.abort();
+  resultadoComparacao.hidden = true;
+  delete statusComparacao.dataset.error;
+  statusComparacao.textContent = "Escolha um segundo jogador para comparar os atributos.";
   const nomeExibicao = perfil.displayName || perfil.login;
   document.querySelector("#nome-jogador").textContent = nomeExibicao;
   document.querySelector("#plataforma-jogador").textContent =
@@ -6073,7 +6263,7 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
   if (!compararP1Card) return;
   const nome = perfil.displayName || perfil.login;
   const avatarHtml = perfil.avatar
-    ? `<img class="p1-card-avatar" src="${escaparHtml(perfil.avatar)}" alt="${escaparHtml(nome)}">`
+    ? `<img class="p1-card-avatar" width="52" height="52" src="${escaparHtml(perfil.avatar)}" alt="${escaparHtml(nome)}">`
     : `<div class="p1-card-avatar-placeholder"></div>`;
   compararP1Card.innerHTML = `
     ${avatarHtml}
@@ -6087,13 +6277,14 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 
   const loginP1Limpo = String(perfil.login || "").replace(/^kick:/i, "").toLowerCase();
   const topClasseAtual = top1DinamicoPorClasse[perfil.cls] || top1DinamicoPorClasse.warrior;
-  const ehMesmoTopClasse = loginP1Limpo === String(topClasseAtual.nick || "").toLowerCase();
+  const ehMesmoPersonagem = (top) => top.plataforma === plataforma && top.cls === perfil.cls && top.nick.toLowerCase() === loginP1Limpo;
+  const ehMesmoTopClasse = ehMesmoPersonagem(topClasseAtual);
 
   if (btnCompararTop1) {
     if (ehMesmoTopClasse) {
-      const ehTopGeral = loginP1Limpo === String(top1GeralDinamico.nick || "").toLowerCase();
+      const ehTopGeral = ehMesmoPersonagem(top1GeralDinamico);
       btnCompararTop1.textContent = ehTopGeral ? `👑 Top 1 Geral (Você)` : `👑 vs Top 1 Geral (${top1GeralDinamico.rotulo})`;
-      btnCompararTop1.disabled = ehTopGeral;
+      btnCompararTop1.disabled = ehTopGeral || !top1GeralDinamico.nick;
       btnCompararTop1.onclick = () => {
         inputCompararNick.value = top1GeralDinamico.nick;
         selectCompararPlataforma.value = top1GeralDinamico.plataforma;
@@ -6101,7 +6292,7 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
       };
     } else {
       btnCompararTop1.textContent = `⚡ Top 1 ${nomesClasses[perfil.cls] || ""} (${topClasseAtual.rotulo})`;
-      btnCompararTop1.disabled = false;
+      btnCompararTop1.disabled = !topClasseAtual.nick;
       btnCompararTop1.onclick = () => {
         inputCompararNick.value = topClasseAtual.nick;
         selectCompararPlataforma.value = topClasseAtual.plataforma;
@@ -6112,9 +6303,9 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 
   if (btnCompararWarrior) {
     const topW = top1DinamicoPorClasse.warrior;
-    const ehP1W = loginP1Limpo === String(topW.nick || "").toLowerCase();
+    const ehP1W = ehMesmoPersonagem(topW);
     btnCompararWarrior.textContent = ehP1W ? `🛡️ Guerreiro (Você)` : `🛡️ vs Guerreiro (${topW.rotulo})`;
-    btnCompararWarrior.disabled = ehP1W;
+    btnCompararWarrior.disabled = ehP1W || !topW.nick;
     btnCompararWarrior.onclick = () => {
       inputCompararNick.value = topW.nick;
       selectCompararPlataforma.value = topW.plataforma;
@@ -6124,9 +6315,9 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 
   if (btnCompararCleric) {
     const topC = top1DinamicoPorClasse.cleric;
-    const ehP1C = loginP1Limpo === String(topC.nick || "").toLowerCase();
+    const ehP1C = ehMesmoPersonagem(topC);
     btnCompararCleric.textContent = ehP1C ? `✨ Clérigo (Você)` : `✨ vs Clérigo (${topC.rotulo})`;
-    btnCompararCleric.disabled = ehP1C;
+    btnCompararCleric.disabled = ehP1C || !topC.nick;
     btnCompararCleric.onclick = () => {
       inputCompararNick.value = topC.nick;
       selectCompararPlataforma.value = topC.plataforma;
@@ -6136,9 +6327,9 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 
   if (btnCompararArcher) {
     const topA = top1DinamicoPorClasse.archer;
-    const ehP1A = loginP1Limpo === String(topA.nick || "").toLowerCase();
+    const ehP1A = ehMesmoPersonagem(topA);
     btnCompararArcher.textContent = ehP1A ? `🏹 Arqueiro (Você)` : `🏹 vs Arqueiro (${topA.rotulo})`;
-    btnCompararArcher.disabled = ehP1A;
+    btnCompararArcher.disabled = ehP1A || !topA.nick;
     btnCompararArcher.onclick = () => {
       inputCompararNick.value = topA.nick;
       selectCompararPlataforma.value = topA.plataforma;
@@ -6150,21 +6341,25 @@ function atualizarCardP1Comparacao(perfil, plataforma) {
 async function dispararComparacao(nick2, plataforma2, classeDesejadaP2) {
   if (!perfilCarregadoP1) return;
   if (!/^[a-z0-9_.\-]{1,40}$/i.test(nick2)) {
+    requisicaoComparacaoAtiva?.abort();
     statusComparacao.dataset.error = "true";
     statusComparacao.textContent = "Informe um nick válido para o Jogador 2.";
     return;
   }
 
+  requisicaoComparacaoAtiva?.abort();
+  const controlador = new AbortController();
+  requisicaoComparacaoAtiva = controlador;
   delete statusComparacao.dataset.error;
   statusComparacao.textContent = `Consultando ${nick2} na ${plataforma2 === "kick" ? "Kick" : "Twitch"}…`;
   resultadoComparacao.hidden = true;
 
   try {
     const loginApi2 = plataforma2 === "kick" ? `kick:${nick2}` : nick2;
-    const { resposta } = await buscarRespostaPerfil(
+    const { resposta, dados } = await buscarRespostaPerfil(
       loginApi2,
       classeDesejadaP2 || undefined,
-      AbortSignal.timeout(9000)
+      controlador.signal
     );
 
     if (resposta.status === 404) {
@@ -6174,19 +6369,17 @@ async function dispararComparacao(nick2, plataforma2, classeDesejadaP2) {
       throw new Error("Falha ao comunicar com os servidores para consultar o Jogador 2.");
     }
 
-    const perfilP2 = await resposta.json();
+    if (controlador.signal.aborted) return;
+    const perfilP2 = validarPerfilApi(dados, loginApi2, classeDesejadaP2);
     renderizarPainelComparacao(perfilCarregadoP1, plataformaCarregadaP1, perfilP2, plataforma2);
     statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} (${nomesClasses[perfilCarregadoP1.cls] || perfilCarregadoP1.cls}) e ${perfilP2.displayName || perfilP2.login} (${nomesClasses[perfilP2.cls] || perfilP2.cls}).`;
     resultadoComparacao.hidden = false;
   } catch (erro) {
+    if (controlador.signal.aborted) return;
     statusComparacao.dataset.error = "true";
     statusComparacao.textContent = erro.message || "Erro ao comparar jogadores.";
   }
 }
-
-window.trocarClasseComparacaoP2 = function(nick2, plat2, cls2) {
-  void dispararComparacao(nick2, plat2, cls2);
-};
 
 function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const at1 = inferirAtributosBase(p1);
@@ -6242,7 +6435,7 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const seletorClassesP2 = (classesP2.length > 1)
     ? `<div class="p2-switch-classes" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
         ${classesP2.map((c) => `
-          <button type="button" class="tag-fc ${c.cls === p2.cls ? "" : "secundaria"}" style="cursor:pointer;font-size:0.75rem;padding:2px 6px;" onclick="window.trocarClasseComparacaoP2('${escaparHtml(p2.login.replace(/^kick:/, ""))}', '${plat2}', '${c.cls}')">
+          <button type="button" class="tag-fc ${c.cls === p2.cls ? "" : "secundaria"}" style="cursor:pointer;font-size:0.75rem;padding:2px 6px;" data-classe-comparacao="${c.cls}" aria-pressed="${c.cls === p2.cls}">
             ${nomesClasses[c.cls] || c.cls}
           </button>
         `).join("")}
@@ -6252,7 +6445,7 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
   const htmlVersus = `
     <div class="bloco-versus-topo">
       <div class="card-versus-jogador ${p1VenceFc ? "vencedor" : ""}">
-        ${p1.avatar ? `<img class="card-versus-avatar" src="${escaparHtml(p1.avatar)}" alt="${escaparHtml(nome1)}">` : '<div class="card-versus-avatar"></div>'}
+        ${p1.avatar ? `<img class="card-versus-avatar" width="56" height="56" src="${escaparHtml(p1.avatar)}" alt="${escaparHtml(nome1)}">` : '<div class="card-versus-avatar"></div>'}
         <div class="card-versus-detalhes">
           <span class="eyebrow">${plat1.toUpperCase()}</span>
           <div class="card-versus-nome">${escaparHtml(nome1)}</div>
@@ -6268,7 +6461,7 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
       </div>
 
       <div class="card-versus-jogador ${!p1VenceFc ? "vencedor" : ""}">
-        ${p2.avatar ? `<img class="card-versus-avatar" src="${escaparHtml(p2.avatar)}" alt="${escaparHtml(nome2)}">` : '<div class="card-versus-avatar"></div>'}
+        ${p2.avatar ? `<img class="card-versus-avatar" width="56" height="56" src="${escaparHtml(p2.avatar)}" alt="${escaparHtml(nome2)}">` : '<div class="card-versus-avatar"></div>'}
         <div class="card-versus-detalhes">
           <span class="eyebrow">${plat2.toUpperCase()}</span>
           <div class="card-versus-nome">${escaparHtml(nome2)}</div>
@@ -6467,6 +6660,14 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
 
   resultadoComparacao.innerHTML = `${avisoClassesDiferentes}${htmlVersus}${htmlTabelaStats}${htmlEquipamentos}${htmlGemas}${htmlForjas}`;
 
+  resultadoComparacao.querySelectorAll("[data-classe-comparacao]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      if (botao.dataset.classeComparacao !== p2.cls) {
+        void dispararComparacao(p2.login.replace(/^kick:/i, ""), plat2, botao.dataset.classeComparacao);
+      }
+    });
+  });
+
   const checkDif = resultadoComparacao.querySelector("#check-apenas-diferencas");
   if (checkDif) {
     checkDif.addEventListener("change", (e) => {
@@ -6492,7 +6693,7 @@ async function consultarPerfil(jogador, classeDesejada) {
   estadoPerfil.status = "loading";
 
   try {
-    const { resposta, urlPublica } = await buscarRespostaPerfil(
+    const { resposta, dados, urlPublica } = await buscarRespostaPerfil(
       loginApi,
       classeDesejada,
       controlador.signal
@@ -6505,15 +6706,9 @@ async function consultarPerfil(jogador, classeDesejada) {
       throw new Error("O RiftStream não respondeu à consulta. Tente novamente.");
     }
 
-    const perfil = await resposta.json();
     if (requisicaoAtiva !== controlador) return;
-
-    if (
-      perfil.login?.toLowerCase() !== loginApi.toLowerCase() ||
-      !Object.hasOwn(nomesClasses, perfil.cls)
-    ) {
-      throw new Error("O RiftStream retornou um perfil diferente do solicitado.");
-    }
+    const perfil = validarPerfilApi(dados, loginApi, classeDesejada);
+    renderizarPerfil(perfil, urlPublica, jogador.plataforma);
 
     estadoPerfil.data = perfil;
     estadoPerfil.status = "success";
@@ -6528,7 +6723,6 @@ async function consultarPerfil(jogador, classeDesejada) {
 
     jogadorAtual = jogador;
     atualizarParametrosUrl(jogador, perfil.cls);
-    renderizarPerfil(perfil, urlPublica, jogador.plataforma);
 
     const poderFormatado = Number.isFinite(perfil.power)
       ? ` · Poder ${formatadorInteiro.format(perfil.power)}`
@@ -6537,6 +6731,7 @@ async function consultarPerfil(jogador, classeDesejada) {
   } catch (erro) {
     if (requisicaoAtiva !== controlador) return;
 
+    if (perfilCarregadoP1) selectPersonagem.value = perfilCarregadoP1.cls;
     const ehMesmaIdentidade =
       perfilCarregadoP1 &&
       plataformaCarregadaP1 === jogador.plataforma &&
@@ -6546,7 +6741,7 @@ async function consultarPerfil(jogador, classeDesejada) {
       estadoPerfil.status = "stale";
       estadoPerfil.error = erro.message;
       const dataRec = new Date(estadoPerfil.receivedAt);
-      const horaFmt = `${String(dataRec.getHours()).padStart(2, "0")}:${String(dataRec.getMinutes()).padStart(2, "0")}`;
+      const horaFmt = dataRec.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       statusConsulta.dataset.error = "true";
       statusConsulta.textContent = `Não foi possível atualizar. Mostrando a consulta de ${horaFmt}. (${erro.message})`;
     } else {
@@ -6612,7 +6807,7 @@ formularioBusca.addEventListener("submit", (evento) => {
     requisicaoAtiva?.abort();
     requisicaoAtiva = undefined;
     statusConsulta.dataset.error = "true";
-    statusConsulta.textContent = `Informe um nick válido (ex. ${top1GeralDinamico.nick}).`;
+    statusConsulta.textContent = `Informe um nick válido (ex. nando_sts).`;
     return;
   }
 
@@ -6754,27 +6949,10 @@ inputRadarBusca?.addEventListener("input", () => {
   if (ultimosDadosRadar) renderizarResultadoRadar();
 });
 
-async function atualizarPlaceholderTop1() {
-  try {
-    const dados = await buscarJsonApi("/api/ranking/characters?page=1&size=1", undefined, 5000);
-    const top1 = dados?.items?.[0];
-    if (top1?.login) {
-      const nickLimpo = top1.login.replace(/^kick:/i, "");
-      if (!inputNick.value) {
-        inputNick.placeholder = `Ex. ${nickLimpo}`;
-      }
-      if (inputCompararNick && !inputCompararNick.value) {
-        inputCompararNick.placeholder = `Ex. ${nickLimpo}`;
-      }
-    }
-  } catch {
-    // Mantém placeholders padrão
-  }
-}
-
 // Inicialização imediata da interface
+const parametrosIniciais = new URLSearchParams(window.location.search);
 configurarAbas();
-alternarVisibilidadeAba("resumo");
+alternarVisibilidadeAba(parametrosIniciais.get("aba"), false);
 atualizarEstadoVazioOuPerfil(false);
 popularSeletorItensRadar();
 renderizarSimulador();
@@ -6783,6 +6961,7 @@ renderizarSecaoGlossario();
 vincularEventosGradePanorama();
 sincronizarTextosTopsUI();
 void carregarPanoramaGlobal();
+void atualizarTop1Dinamicos();
 
 // Decodifica build compartilhada via URL (#build=...)
 if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.decodificarBuildDeHash) {
@@ -6797,7 +6976,6 @@ if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.
   } catch {}
 }
 
-const parametrosIniciais = new URLSearchParams(window.location.search);
 const nickInicial = parametrosIniciais.get("nick");
 if (nickInicial) {
   const { nick, plataforma } = normalizarEntradaNick(
@@ -6805,10 +6983,6 @@ if (nickInicial) {
     parametrosIniciais.get("plataforma")
   );
   const classeInicial = parametrosIniciais.get("cls");
-  const abaInicial = parametrosIniciais.get("aba");
-  if (abaInicial && Object.hasOwn(secoesAbas, abaInicial)) {
-    alternarVisibilidadeAba(abaInicial);
-  }
   if (/^[a-z0-9_.\-]{1,40}$/i.test(nick)) {
     inputNick.value = nick;
     selectPlataforma.value = plataforma;
@@ -6816,10 +6990,5 @@ if (nickInicial) {
       { nick, plataforma },
       Object.hasOwn(nomesClasses, classeInicial) ? classeInicial : undefined
     );
-  }
-} else {
-  const abaInicial = parametrosIniciais.get("aba");
-  if (abaInicial && Object.hasOwn(secoesAbas, abaInicial)) {
-    alternarVisibilidadeAba(abaInicial);
   }
 }

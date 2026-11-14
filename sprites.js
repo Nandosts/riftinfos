@@ -12,6 +12,7 @@
   const CORES_RARIDADE = ["#9aa0b8","#6be07b","#58a8ff","#c77dff","#ffae34","#ff4a5a","#00e5ff","#eb34b1"];
   const cacheIconeItem = new Map();
   const cacheIconeGema = new Map();
+  const cacheHeroiAnim = new Map();
   let timerPalcoAtivo = null;
 
   function obterCanvasIconeItem(slot, cls, look, raridade, kind, tier) {
@@ -79,7 +80,12 @@
     const look = o3(listaEquipados);
     const appearance = Fc(look) || {};
     const classeHeroi = cls || "cleric";
-    const heroi = Rv(classeHeroi, appearance);
+    const chaveHeroi = classeHeroi + "::" + JSON.stringify(appearance);
+    let heroi = cacheHeroiAnim.get(chaveHeroi);
+    if (!heroi) {
+      heroi = Rv(classeHeroi, appearance);
+      cacheHeroiAnim.set(chaveHeroi, heroi);
+    }
 
     const l = appearance.aura ?? 0;
     const i = appearance.fx === "fire";

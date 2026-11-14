@@ -1,0 +1,43 @@
+:root[data-fonte="limpa"] {
+  --pix: system-ui, sans-serif;
+}
+
+[data-fonte="limpa"] :is(h1, h2, h3, .brand) {
+  font-weight: 650;
+}
+
+.topbar-inner .preferencia-fonte {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preferencia-fonte select {
+  width: auto;
+  min-height: 44px;
+}
+
+.atalho-conteudo {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-start: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--cyan);
+  z-index: 10;
+}
+
+.atalho-conteudo:not(:focus) {
+  clip-path: inset(50%);
+}
+
+@media (max-width: 540px) {
+  .topbar-inner {
+    gap: 8px 12px;
+    padding-block: 8px;
+  }
+
+  .topbar-inner .community {
+    display: none;
+  }
+}

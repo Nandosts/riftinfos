@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import http.server
+import json
 import socketserver
 import urllib.error
 import urllib.request
@@ -43,8 +44,8 @@ class ServidorRiftForjas(http.server.SimpleHTTPRequestHandler):
             tipo_conteudo = erro.headers.get(
                 "Content-Type", "application/json; charset=utf-8"
             )
-        except Exception as erro:
-            corpo = f'{{"error": "{str(erro)}"}}'.encode("utf-8")
+        except (OSError, ValueError):
+            corpo = json.dumps({"error": "Não foi possível consultar a API do RiftStream."}).encode("utf-8")
             status = 502
             tipo_conteudo = "application/json; charset=utf-8"
 
@@ -54,7 +55,10 @@ class ServidorRiftForjas(http.server.SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(corpo)))
         self.end_headers()
-        self.wfile.write(corpo)
+        try:
+            self.wfile.write(corpo)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
 
 class ServidorTCPReutilizavel(socketserver.ThreadingMixIn, socketserver.TCPServer):

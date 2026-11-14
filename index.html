@@ -3,24 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0b19">
   <title>RiftInfos · Forjas, Dano, Monstros e Radar de Lives · RiftStream</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
-  <link rel="stylesheet" href="style.css?v=20261114c">
-  <script src="sprites.js?v=20261114c" defer></script>
+  <link rel="stylesheet" href="style.css?v=20261114e">
+  <link rel="stylesheet" href="aparencia.css">
+  <script src="aparencia.js"></script>
+  <script src="sprites.js?v=20261114e" defer></script>
   <script src="explicacoes.js" defer></script>
   <script src="analise.js" defer></script>
   <script src="historico.js" defer></script>
   <script src="compartilhamento.js" defer></script>
-  <script src="app.js?v=20261114c" defer></script>
+  <script src="app.js?v=20261114e" defer></script>
 </head>
 <body>
+  <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <a class="brand" href="https://riftstream.com.br/"><span aria-hidden="true"></span> RiftStream · RiftInfos</a>
+      <a class="brand" href="https://riftstream.com.br/" translate="no"><span aria-hidden="true"></span> RiftStream · RiftInfos</a>
       <span class="community">CENTRAL DE ANÁLISE DA COMUNIDADE</span>
+      <div class="preferencia-fonte">
+        <label for="fonte-site">Fonte</label>
+        <select id="fonte-site" name="fonte">
+          <option value="pixelada">Pixelada</option>
+          <option value="limpa">Limpa</option>
+        </select>
+      </div>
     </div>
   </header>
-  <main class="wrap">
+  <main id="conteudo-principal" class="wrap" tabindex="-1">
     <div class="intro intro-compacta">
       <p class="eyebrow">ANÁLISE COMPLETA VIA APIS PÚBLICAS</p>
       <h1>RiftInfos</h1>
@@ -30,7 +42,7 @@
     <section id="painel-recordes-globais" class="panel painel-panorama" aria-label="Panorama global do servidor">
       <div class="panorama-cabecalho">
         <span class="eyebrow">SERVIDOR AGORA · RADAR AO VIVO</span>
-        <span id="panorama-atualizacao" class="muted small">Sincronizando com o servidor…</span>
+        <span id="panorama-atualizacao" class="muted small" role="status">Sincronizando com o servidor…</span>
       </div>
       <div id="grade-recordes-globais" class="grade-panorama">
         <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-melhor-zona" title="Clique para sincronizar o Simulador de Monstros com a Zona mais alta ao vivo">
@@ -227,12 +239,12 @@
         </div>
         <div class="subpainel-topo">
           <div>
-            <h3 class="titulo-secao-comp">Simulador Interativo de FC, Build e Dano ("E se eu mudar...?")</h3>
-            <p class="note-compacto">Edite classe, nível, pontos de ouro, equipamentos, raridades e gemas para comparar instantaneamente FC, DPS e Cura sob o mesmo motor.</p>
+            <h3 class="titulo-secao-comp">Simulador de builds</h3>
+            <p class="note-compacto">Escolha uma classe e clique em um slot para trocar equipamentos e gemas. A ficha mostra o impacto na hora.</p>
           </div>
           <div class="acoes-inline">
-            <button type="button" id="btn-sim-importar" class="btn-secundario btn-compacto">Importar Jogador Atual</button>
-            <button type="button" id="btn-sim-resetar" class="btn-secundario btn-compacto">Resetar Simulação</button>
+            <button type="button" id="btn-sim-importar" class="btn-secundario btn-compacto">Importar personagem</button>
+            <button type="button" id="btn-sim-resetar" class="btn-secundario btn-compacto">Restaurar exemplo</button>
           </div>
         </div>
 
