@@ -1,181 +1,223 @@
 import { test, expect } from "@playwright/test";
-import { instalarMocksApi } from "./helpers/mock-api.mjs";
+import {
+  prepararPagina,
+  verificarCanvasComSprite,
+  verificarFonteSilkscreenCarregada,
+  verificarSemOverflowHorizontal,
+} from "./helpers/ambiente.mjs";
 
-function anexarMonitorErros(page) {
-  const erros = [];
-  page.on("pageerror", (erro) => erros.push(`pageerror: ${erro.message}`));
-  page.on("console", (msg) => {
-    if (msg.type() === "error") {
-      erros.push(`console.error: ${msg.text()}`);
-    }
-  });
-  return erros;
-}
-
-async function prepararPagina(page, url) {
-  const erros = anexarMonitorErros(page);
-  await page.addInitScript(() => {
-    localStorage.clear();
-    const tempoBaseMs = new Date("2026-11-15T15:30:00-03:00").getTime();
-    const DateOriginal = Date;
-    const offsetMs = tempoBaseMs - DateOriginal.now();
-    function DateAncorado(...args) {
-      if (new.target) {
-        return args.length === 0 ? new DateOriginal(DateOriginal.now() + offsetMs) : new DateOriginal(...args);
-      }
-      return new DateOriginal(DateOriginal.now() + offsetMs).toString();
-    }
-    DateAncorado.prototype = DateOriginal.prototype;
-    DateAncorado.now = () => DateOriginal.now() + offsetMs;
-    DateAncorado.parse = DateOriginal.parse;
-    DateAncorado.UTC = DateOriginal.UTC;
-    window.Date = DateAncorado;
-  });
-  await instalarMocksApi(page);
-  await page.goto(url, { waitUntil: "networkidle" });
-  await page.evaluate(() => document.fonts?.ready);
-  return erros;
+async function carregarPerfilHalscriolo(page) {
+  await page.fill("#input-nick", "halscriolo");
+  await page.click('#formulario-busca button[type="submit"]');
+  await expect(page.locator("#cabecalho-perfil")).toBeVisible();
+  await expect(page.locator("#nome-jogador")).toContainText("Halscriolo");
 }
 
 test.describe("Site principal (index.html)", () => {
   test("estado inicial, panorama global e atalhos", async ({ page }, testInfo) => {
-    const erros = await prepararPagina(page, "/index.html");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
 
+    await verificarFonteSilkscreenCarregada(page);
     await expect(page.getByRole("link", { name: /Tier List do Nando/i })).toBeVisible();
     await expect(page.locator("#panorama-atualizacao")).toContainText("15:30");
     await expect(page.locator("#top-pill-val-top1")).not.toContainText("Carregando");
     await expect(page.locator("#aviso-sem-perfil")).toBeVisible();
+    await verificarSemOverflowHorizontal(page, `home-inicial-${testInfo.project.name}`);
 
     await expect(page).toHaveScreenshot(`home-inicial-${testInfo.project.name}.png`, {
       fullPage: true,
     });
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 
-  test("busca de perfil, troca de classe e todas as abas", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "chromium-mobile", "Fluxo completo das 7 abas roda no projeto desktop");
-    const erros = await prepararPagina(page, "/index.html");
+  test("aba Resumo: busca de perfil e troca de classe", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
 
-    // 1. Busca de jogador
-    await page.fill("#input-nick", "halscriolo");
-    await page.click('#formulario-busca button[type="submit"]');
-    await expect(page.locator("#cabecalho-perfil")).toBeVisible();
-    await expect(page.locator("#nome-jogador")).toContainText("Halscriolo");
+    await carregarPerfilHalscriolo(page);
     await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
+    await expect(page.locator("#cabecalho-perfil")).toContainText("Guerreiro");
+    await verificarSemOverflowHorizontal(page, "home-aba-resumo");
     await expect(page).toHaveScreenshot("home-aba-resumo.png", { fullPage: true });
 
-    // 2. Troca de personagem para Clérigo e volta para Guerreiro
     await page.selectOption("#select-personagem", "cleric");
     await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
+    await expect(page.locator("#cabecalho-perfil")).toContainText("Clérigo");
     await expect(page).toHaveScreenshot("home-aba-resumo-cleric.png", { fullPage: true });
-    await page.selectOption("#select-personagem", "warrior");
-    await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
 
-    // 3. Aba Forjas
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Forjas: taxas reais de counters.fuse_* e Gelo/Fogo", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-forjas");
     await expect(page.locator("#conteudo-forjas-perfil")).toBeVisible();
-    await expect(page).toHaveScreenshot("home-aba-forjas.png", { fullPage: true });
+    await expect(page.locator("#linhas-forjas")).toContainText("120 sucessos em 400 tentativas");
+    await expect(page.locator("#linhas-forjas")).toContainText("20 sucessos em 250 tentativas");
+    await expect(page.locator("#linhas-forjas")).toContainText("3 sucessos em 50 tentativas");
+    await expect(page.locator("#resumo-gelo-fogo-topo")).toContainText("+10 p.p. em Elmo (Arcano · 5 falhas)");
+    await verificarSemOverflowHorizontal(page, "home-aba-forjas");
 
-    // 4. Aba Equipamentos
+    await expect(page).toHaveScreenshot("home-aba-forjas.png", { fullPage: true });
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Equipamentos: peças, conjuntos e análise de FC", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-equipamentos");
     await expect(page.locator("#conteudo-equipamentos-perfil")).toBeVisible();
-    await expect(page).toHaveScreenshot("home-aba-equipamentos.png", { fullPage: true });
+    await expect(page.locator("#lista-equipamentos")).toContainText("Lâmina da Singularidade");
+    await verificarSemOverflowHorizontal(page, "home-aba-equipamentos");
 
-    // 5. Aba Simulador (Ficha Visual + T6 Prismática)
+    await expect(page).toHaveScreenshot("home-aba-equipamentos.png", { fullPage: true });
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Simulador: ficha visual, T6 Prismática e modo Lista", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-simulador");
     await expect(page.locator("#simulador-container")).toBeVisible();
+    await verificarCanvasComSprite(page, "#sim-canvas-heroi");
+    await verificarSemOverflowHorizontal(page, "home-aba-simulador-ficha");
+
     await expect(page).toHaveScreenshot("home-aba-simulador-ficha.png", {
       fullPage: true,
-      mask: [page.locator("#sim-canvas-heroi")],
     });
 
     const btnT6 = page.locator('#simulador-container [data-sim-slot-tier="0:0:6"]');
     await expect(btnT6).toBeVisible();
+    await expect(btnT6).toBeEnabled();
     await btnT6.click();
+
     const btnSafira = page.locator('#simulador-container [data-sim-gem-btn="0:0:sapphire"]');
     await expect(btnSafira).toBeVisible();
+    await expect(btnSafira).toBeEnabled();
     await btnSafira.click();
+
     await expect(page.locator('#simulador-container [data-sim-selecionar-engaste="0"]')).toContainText(/T6/i);
     await expect(page.locator('#simulador-container [data-sim-selecionar-engaste="0"]')).toContainText(/Safira/i);
     await expect(page).toHaveScreenshot("home-aba-simulador-t6.png", {
       fullPage: true,
-      mask: [page.locator("#sim-canvas-heroi")],
     });
 
-    // Modo Lista do Simulador + volta para Ficha + Restaurar exemplo
     const btnModoLista = page.locator('#simulador-container [data-sim-modo-vis="lista"]').first();
     await expect(btnModoLista).toBeVisible();
     await btnModoLista.click();
     await expect(page).toHaveScreenshot("home-aba-simulador-lista.png", { fullPage: true });
+
     await page.locator('#simulador-container [data-sim-modo-vis="ficha"]').first().click();
     await page.click("#btn-sim-resetar");
 
-    // 6. Aba Monstros & Chefes
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Monstros & Chefes: simulação de zona, onda e grupo", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-monstros");
     await page.fill("#input-monstro-zona", "28");
     await page.fill("#input-monstro-onda", "10");
     await page.fill("#input-monstro-jogadores", "25");
     await expect(page.locator("#resultado-monstros")).toBeVisible();
-    await expect(page).toHaveScreenshot("home-aba-monstros.png", { fullPage: true });
+    await verificarSemOverflowHorizontal(page, "home-aba-monstros");
 
-    // 7. Aba Radar de Lives
+    await expect(page).toHaveScreenshot("home-aba-monstros.png", { fullPage: true });
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Radar de Lives: varredura concluída e contagem de perfis", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-radar-live");
     await page.fill("#input-radar-canal", "belky");
     await page.click("#btn-escanear-live");
-    await expect(page.locator("#status-radar")).not.toContainText("Preparando", { timeout: 5000 });
-    await expect(page).toHaveScreenshot("home-aba-radar.png", { fullPage: true });
+    await expect(page.locator("#status-radar")).toContainText(/Varredura concluída/i, { timeout: 5000 });
+    await expect(page.locator("#status-radar")).toContainText(/2/);
+    await verificarSemOverflowHorizontal(page, "home-aba-radar");
 
-    // 8. Aba Comparação (P1 vs P2)
+    await expect(page).toHaveScreenshot("home-aba-radar.png", { fullPage: true });
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("aba Comparação: P1 vs P2", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Baseline de abas completas roda no desktop");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
+
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-comparacao");
     await expect(page.locator("#conteudo-comparacao-perfil")).toBeVisible();
     const inputNick2 = page.locator("#input-nick-p2, #input-comparar-nick").first();
-    if (await inputNick2.isVisible()) {
-      await inputNick2.fill("nando");
-      await page.locator('#form-comparar button[type="submit"]').click();
-      await expect(page.locator("#conteudo-comparacao-perfil")).toContainText("Nando");
-    }
-    await expect(page).toHaveScreenshot("home-aba-comparacao.png", { fullPage: true });
+    await expect(inputNick2).toBeVisible();
+    await inputNick2.fill("nando");
+    await page.locator('#form-comparar button[type="submit"]').click();
+    await expect(page.locator("#conteudo-comparacao-perfil")).toContainText("Nando");
+    await verificarSemOverflowHorizontal(page, "home-aba-comparacao");
 
+    await expect(page).toHaveScreenshot("home-aba-comparacao.png", { fullPage: true });
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 
   test("mobile: simulador com editor de gemas aberto", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-mobile", "Captura exclusiva do projeto mobile");
-    const erros = await prepararPagina(page, "/index.html");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
 
-    await page.fill("#input-nick", "halscriolo");
-    await page.click('#formulario-busca button[type="submit"]');
-    await expect(page.locator("#cabecalho-perfil")).toBeVisible();
+    await carregarPerfilHalscriolo(page);
     await page.click("#aba-simulador");
     await expect(page.locator("#simulador-container .rs-stone-picker")).toBeVisible();
+    await verificarCanvasComSprite(page, "#sim-canvas-heroi");
+    await verificarSemOverflowHorizontal(page, "home-simulador-mobile");
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(200);
 
     await expect(page).toHaveScreenshot("home-simulador-chromium-mobile.png", {
       fullPage: true,
-      mask: [page.locator("#sim-canvas-heroi")],
     });
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 
   test("alternância de fonte do site", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Teste de fonte no desktop");
-    const erros = await prepararPagina(page, "/index.html");
+    const { erros, controleApi } = await prepararPagina(page, "/index.html");
     const valores = await page.locator("#fonte-site option").evaluateAll((opts) => opts.map((o) => o.value));
-    if (valores.length > 1) {
-      await page.selectOption("#fonte-site", valores[1]);
-      await page.evaluate(() => document.fonts?.ready);
-      await expect(page).toHaveScreenshot("home-fonte-alternativa.png", { fullPage: true });
-    }
+    expect(valores).toContain("limpa");
+    await page.selectOption("#fonte-site", "limpa");
+    await page.evaluate(() => document.fonts?.ready);
+    await expect(page.locator("html")).toHaveAttribute("data-fonte", "limpa");
+    await expect(page).toHaveScreenshot("home-fonte-alternativa.png", { fullPage: true });
+
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 });
 
 test.describe("Tier List do Nando (tierlist.html)", () => {
   test("visão inicial Por Utilidade · Todos", async ({ page }, testInfo) => {
-    const erros = await prepararPagina(page, "/tierlist.html");
+    const { erros, controleApi } = await prepararPagina(page, "/tierlist.html");
 
+    await verificarFonteSilkscreenCarregada(page);
     await expect(page.locator("#tierlist-tabela .tl-card").first()).toBeVisible();
+    await verificarSemOverflowHorizontal(page, `tierlist-inicial-${testInfo.project.name}`);
     await expect(page).toHaveScreenshot(`tierlist-utilidade-todos-${testInfo.project.name}.png`, {
       fullPage: true,
     });
@@ -184,66 +226,64 @@ test.describe("Tier List do Nando (tierlist.html)", () => {
       await page.click('[data-tl-cat="cleric"]');
       await page.click('[data-tl-card="ring_19"]');
       await expect(page.locator("#tierlist-detalhe")).toContainText("4,6/s");
+      await verificarSemOverflowHorizontal(page, "tierlist-detalhe-mobile");
       await expect(page).toHaveScreenshot("tierlist-detalhe-chromium-mobile.png", {
         fullPage: true,
       });
     }
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 
   test("filtros por classe, detalhes contextualizados e modo Por FC com T6", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Fluxo completo da Tier List roda no projeto desktop");
-    const erros = await prepararPagina(page, "/tierlist.html");
+    const { erros, controleApi } = await prepararPagina(page, "/tierlist.html");
 
-    // 1. Filtro Guerreiro + detalhe do Anel do Eclipse Arcano
     await page.click('[data-tl-cat="warrior"]');
     await page.click('[data-tl-card="ring_14"]');
     await expect(page.locator("#tierlist-detalhe")).toContainText("Singularidade");
     await expect(page).toHaveScreenshot("tierlist-guerreiro-eclipse.png", { fullPage: true });
 
-    // 2. Filtro Clérigo + detalhe do Anel da Teia Escarlate
     await page.click('[data-tl-cat="cleric"]');
     await page.click('[data-tl-card="ring_19"]');
     await expect(page.locator("#tierlist-detalhe")).toContainText("4,6/s");
     await expect(page).toHaveScreenshot("tierlist-clerigo-teia.png", { fullPage: true });
 
-    // 3. Filtro Arqueiro e Filtro Anéis
     await page.click('[data-tl-cat="archer"]');
     await expect(page.locator("#tierlist-tabela .tl-card").first()).toBeVisible();
     await page.click('[data-tl-cat="ring"]');
     await expect(page).toHaveScreenshot("tierlist-aneis.png", { fullPage: true });
 
-    // 4. Modo Por FC + troca de anel de referência + gemas T6 Prismáticas
     await page.click('[data-tl-cat="todos"]');
     await page.click('[data-tl-modo="fc"]');
     await expect(page.locator("#tierlist-controles-fc")).toBeVisible();
     await page.selectOption("#tierlist-anel-referencia", "14");
     await page.locator('[data-tl-card="set_singular"]').click();
     await expect(page.locator("#tierlist-detalhe .tl-ficha-fc")).toBeVisible();
+    await verificarCanvasComSprite(page, "canvas[data-tl-heroi]");
     await expect(page).toHaveScreenshot("tierlist-fc-ficha-padrao.png", {
       fullPage: true,
-      mask: [page.locator("canvas[data-tl-heroi]")],
     });
 
-    // Seleciona a arma, coloca T6 Prismática e aplica Rubi em todos os engastes
     await page.click('[data-tl-selecionar-peca="weapon"]');
-    await page.getByRole("button", { name: "T6 Prismática" }).click();
+    const btnT6 = page.getByRole("button", { name: "T6 Prismática" });
+    await expect(btnT6).toBeVisible();
+    await expect(btnT6).toBeEnabled();
+    await btnT6.click();
     await page.locator('[data-tl-gem-btn$=":ruby"]').first().click();
-    const btnRepetir = page.locator('[data-tl-gem-repetir-ativo]');
-    if (await btnRepetir.isVisible()) {
-      await btnRepetir.click();
-    }
+    const btnRepetir = page.locator("[data-tl-gem-repetir-ativo]");
+    await expect(btnRepetir).toBeVisible();
+    await btnRepetir.click();
+
     await expect(page.locator("#tierlist-detalhe")).toContainText("T6 Prismática");
     await expect(page).toHaveScreenshot("tierlist-fc-ficha-t6.png", {
       fullPage: true,
-      mask: [page.locator("canvas[data-tl-heroi]")],
     });
 
-    // Restaurar cenário
     await page.click("#tierlist-restaurar-fc");
     await expect(page.locator("#tierlist-anel-referencia")).toHaveValue("0");
 
+    expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
   });
 });
-
