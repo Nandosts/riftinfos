@@ -59,7 +59,7 @@ const UTILIDADE_ANEIS = {
   10: { tier: "A", tag: "Sangramento", motivo: "Melhor anel Imortal contra chefes de defesa muito alta: aplica sangramento que ignora defesa (60% ATK/s por 3s)." },
   13: { tier: "B", tag: "Revive Imortal", motivo: "Ótima opção Imortal antes do Coração do Vazio: garante auto-revive com 40% HP." },
   12: { tier: "B", tag: "Finalizador", motivo: "+60% dano quando o alvo está abaixo de 30% de vida; bom em Imortal, perde para passivas Arcanas." },
-  11: { tier: "C", tag: "Roubo de Vida", motivo: "Concede 8% de roubo de vida nos ataques; útil no início dos Imortais." },
+  11: { tier: "S", tag: "Roubo de Vida 8%", motivo: "Cura 8% de TODO o dano causado sem cooldown (golpes, skills e procs): enche a vida inteira em 1–2 hits contra chefes se você não tomar hit-kill." },
 };
 
 function calcularFcPadraoConjunto(setKey, setInfo) {
