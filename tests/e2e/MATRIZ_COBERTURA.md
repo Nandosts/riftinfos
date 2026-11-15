@@ -37,14 +37,22 @@ Revisão visual de regressões: em caso de falha visual, o Playwright gera `expe
 
 ---
 
-## Entrega 2 — Interações das Abas (Planejada)
+## Entrega 2 — Interações das Abas
 
 | área | estado | fixture | teste | tipo de cobertura | resultado |
 |---|---|---|---|---|---|
-| 4. Resumo & Histórico | Resumo sem perfil, 3 classes, pontos de atenção + atalhos, histórico (autosave, duplicata, comparação, isolamento por `plat+nick+cls`, limite 100) | `PERFIS_MOCK.*` | `tests/e2e/resumo-historico.spec.mjs` (a criar) | E2E funcional | Pendente (Entrega 2) |
-| 5. Forjas & Equipamentos | Forjas (0 tentativas, 0 sucessos, inconsistente, Gelo/Fogo, planejador 0/10/20/25, VIP true/false/ausente) e Equipamentos (conjuntos 2/3, 3/3, misto, desequipar) | `PERFIS_MOCK.*` | `tests/e2e/forjas-equipamentos.spec.mjs` (a criar) | E2E funcional | Pendente (Entrega 2) |
-| 6. Simulador & Compartilhamento | Origem, equipar/busca, atributos manuais vs auto-stats, gemas T1–T6, builds salvas, link compartilhado e JSON export/import (>64KiB, corrompido) | `PERFIS_MOCK.*` | `tests/e2e/simulador-compartilhamento.spec.mjs` (a criar) | E2E + Regressão | Pendente (Entrega 2) |
-| 7. Chefes, Radar & Comparação | Chefes (zona/onda/jogadores, sangramento, hit-kill, Fúria, raid), Radar (paginação, filtros, cache, VS) e Comparação (P1 vs P2, Top 1, empate, cura) | `PERFIS_MOCK.*`, `cenarios.*` | `tests/e2e/chefes-radar-comparacao.spec.mjs` (a criar) | E2E funcional | Pendente (Entrega 2) |
+| 4. Resumo & Histórico | Resumo sem perfil, 3 classes, FC oficial/ausente e pontos de atenção + atalhos | `PERFIS_MOCK.{halscriolo,nando,sempoder}` | `tests/e2e/resumo-historico.spec.mjs` | E2E funcional | Passou |
+| 4. Resumo & Histórico | Histórico: salvar manual, duplicata, mudança de 1 gema/peça, autosave após reload e comparação | `PERFIS_MOCK.halscriolo` (versões 1 e 2) | `tests/e2e/resumo-historico.spec.mjs` | E2E persistência | Passou |
+| 4. Resumo & Histórico | Isolamento por `plataforma+nick+classe`, cancelar/confirmar limpeza | `PERFIS_MOCK.{nando,kick:nando}` | `tests/e2e/resumo-historico.spec.mjs` | E2E funcional | Passou |
+| 5. Forjas & Equipamentos | Histórico de forjas: normal, 0 tentativas, 0 sucessos e dados inconsistentes | `PERFIS_MOCK.sempoder` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
+| 5. Forjas & Equipamentos | Gelo/Fogo, atalho maior Gelo, planejador (bases, pergaminhos 0/10/20/25, evento, 10x, teto 100%) e VIP | `PERFIS_MOCK.{halscriolo,nando}` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
+| 5. Forjas & Equipamentos | Equipamentos: conjunto 3/3, análise "Se desequipar" e atalho para Simulador | `PERFIS_MOCK.halscriolo` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Origem (exemplo/importar/restaurar), Ficha/Lista, 3 classes, auto-stats desligado e busca na galeria | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Gemas T1–T6, seleção de engaste sem sobrescrever anterior, mistura de tiers, raridade e rótulos DPS/s vs FC | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Builds salvas (nome longo + reload) e compartilhamento em contexto limpo | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E persistência | Passou |
+| 7. Chefes, Radar & Comparação | Chefes: origem, limites zona/onda/jogadores, escalas 70/100 e sync pela live | `PERFIS_MOCK.halscriolo`, `CANAIS_RUNS_PADRAO` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
+| 7. Chefes, Radar & Comparação | Radar: paginação, filtros locais sem reconsultar perfis e limpar filtros | `cenarios.board` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
+| 7. Chefes, Radar & Comparação | Comparação: P1 vs P2, Twitch vs Kick, atalho Clérigo (cura) e filtro Apenas diferenças | `PERFIS_MOCK.{halscriolo,nando}` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
 
 ---
 

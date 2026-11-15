@@ -47,6 +47,12 @@ export async function configurarAmbienteDeterministico(page, {
     }
 
     if (travarCanvas) {
+      try {
+        Object.defineProperty(window.performance, "now", {
+          configurable: true,
+          value: () => 1000,
+        });
+      } catch {}
       const setIntervalOriginal = window.setInterval.bind(window);
       const clearIntervalOriginal = window.clearInterval.bind(window);
       const mapaTimers = new Map();
