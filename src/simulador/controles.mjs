@@ -8,6 +8,7 @@ import {
 } from "../dados.mjs";
 import { perfilCarregadoP1, statusConsulta } from "../perfil.mjs";
 import {
+  adequarTierGemas,
   aplicarAtributosPadraoNoItem,
   aplicarTrocaAnelSimulador,
   criarGemaPreset,
@@ -15,6 +16,7 @@ import {
   equiparConjuntoCompletoSimulador,
   equiparPecaConjuntoSimulador,
   limparVisualImportado,
+  limitarTierGema,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,
   recalcularGemasBuildComModo,
@@ -213,6 +215,7 @@ function vincularEventosSimulador() {
       const item = simulacao.estadoSimulador.itens[Number(idxStr)];
       if (!item) return;
       item.rarity = Number(rarStr) || 0;
+      adequarTierGemas(item);
       if (simulacao.autoCalcularStatsItemSimulador) {
         aplicarAtributosPadraoNoItem(item, false);
       }
@@ -357,6 +360,7 @@ function vincularEventosSimulador() {
       }
       if (campo === "rarity" || campo === "itemLevel" || campo === "look") {
         item[campo] = Number(e.target.value) || 0;
+        if (campo === "rarity") adequarTierGemas(item);
         if (campo === "look") {
           aplicarTrocaAnelSimulador(item, item.look);
         }
@@ -443,9 +447,9 @@ function vincularEventosSimulador() {
       const novoTier = Number(tierStr) || 5;
       const item = simulacao.estadoSimulador.itens[idxSlot];
       if (!item) return;
-      item.gemTierPadrao = novoTier;
+      item.gemTierPadrao = limitarTierGema(novoTier, item.rarity);
       if (Array.isArray(item.gems)) {
-        item.gems = item.gems.map((g) => (g && g.type ? criarGemaPreset(g.type, item.slot, novoTier, item.itemLevel) : null));
+        item.gems = item.gems.map((g) => g ? criarGemaPreset(g.type || g.kind, item.slot, item.gemTierPadrao, item.itemLevel) : null);
       }
       renderizarSimulador();
     });

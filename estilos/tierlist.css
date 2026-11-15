@@ -315,7 +315,6 @@
   gap: 10px;
 }
 
-.tl-ficha-fc h4,
 .tl-ficha-fc p {
   margin: 0;
   overflow-wrap: anywhere;
@@ -371,25 +370,6 @@
 .tl-ficha-atributos dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
-}
-
-.tl-ficha-engastes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
-  gap: 8px;
-}
-
-.tl-ficha-engastes label {
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  min-width: 0;
-}
-
-.tl-ficha-engastes select {
-  min-height: 38px;
-  padding: 4px 6px;
-  font-size: 0.85rem;
 }
 
 #tierlist-controles-fc > label {

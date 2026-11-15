@@ -18,7 +18,7 @@ import { escaparHtml, formatadorInteiro, formatarGemaTexto } from "../formato.mj
 import { perfilCarregadoP1 } from "../perfil.mjs";
 import { renderizarCompararMelhorias, renderizarPainelGerenciadorBuilds } from "./builds.mjs";
 import { vincularEventosSimulador } from "./controles.mjs";
-import { obterOrigemBuildSimulador, resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
+import { limitarTierGema, obterOrigemBuildSimulador, resumoCurtoGemaBotao, rotuloTierGema, simulacao, slotsAbertosSimulador } from "./estado.mjs";
 import {
   construirBarraModoCriativoHtml,
   construirModoFichaVisualHtml,
@@ -224,14 +224,14 @@ function renderizarSimulador() {
         const antigas = Array.isArray(item.gems) ? item.gems : [];
         item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
       }
-      const tierSlot = Number(item.gemTierPadrao || 5);
+      const tierSlot = limitarTierGema(item.gemTierPadrao, item.rarity);
       const qtdGemasAtivas = item.gems.slice(0, maxGemas).filter(Boolean).length;
 
-      const botoesTierHtml = [1, 2, 3, 4, 5]
+      const botoesTierHtml = [1, 2, 3, 4, 5, 6]
         .map(
           (t) => `
-          <button type="button" class="btn-tier-gema ${tierSlot === t ? "ativa" : ""}" data-sim-slot-tier="${idxSlot}:${t}">
-            T${t}${t === 5 ? " Suprema" : ""}
+          <button type="button" class="btn-tier-gema ${tierSlot === t ? "ativa" : ""}" data-sim-slot-tier="${idxSlot}:${t}" ${t > limitarTierGema(6, item.rarity) ? 'disabled title="Prismáticas exigem peças Imortais ou Arcanas"' : ""}>
+            ${rotuloTierGema(t)}
           </button>
         `
         )

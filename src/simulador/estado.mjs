@@ -28,8 +28,8 @@ const simulacao = {
   historicoDesfazerSimulador: [],
 };
 
-const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5];
-const escalaGemasXz = [1, 2, 3.5, 6, 9];
+const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5, 7.5];
+const escalaGemasXz = [1, 2, 3.5, 6, 9, 14];
 const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
 
 const multiplicadoresRaridadeItem = [0.35, 0.45, 0.55, 0.68, 0.78, 0.84, 0.92, 1.0];
@@ -45,8 +45,16 @@ function sortearRolagemGema() {
   return 0.85 + Math.random() * 0.30;
 }
 
+function limitarTierGema(tier, raridade = 7) {
+  return Math.min(raridade >= 6 ? 6 : 5, Math.max(1, Math.trunc(Number(tier)) || 5));
+}
+
+function rotuloTierGema(tier) {
+  return `T${tier}${tier === 6 ? " Prismática" : tier === 5 ? " Suprema" : ""}`;
+}
+
 function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, roll = 1.0) {
-  const o = Math.min(5, Math.max(1, Number(tier) || 5)) - 1;
+  const o = limitarTierGema(tier) - 1;
   if (ehPct || stat === "hp" || stat === "def") {
     // hp e def percentuais: 10 * Uz[o] (em decimos de %, ex: 10 * 5 = 50 -> 5.0%)
     const basePct = 10 * escalaGemasUz[o];
@@ -62,17 +70,17 @@ function calcularValorGemaOficial(stat, tier, itemLevel = 300, ehPct = false, ro
 function criarGemaPreset(tipo, slot, tier = 5, itemLevel = 300, rollFixo = undefined) {
   if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return null;
   const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
-  const t = Math.min(5, Math.max(1, Number(tier) || 5));
+  const t = limitarTierGema(tier);
 
   const rollModo = rollFixo === undefined ? obterRollFixoModoGema() : rollFixo;
-  const roll1 = typeof rollModo === "number" ? rollModo : sortearRolagemGema();
-  const roll2 = typeof rollModo === "number" ? rollModo : sortearRolagemGema();
+  const roll1 = Array.isArray(rollModo) ? rollModo[0] : rollModo ?? sortearRolagemGema();
+  const roll2 = Array.isArray(rollModo) ? rollModo[1] : rollModo ?? sortearRolagemGema();
 
   const val1 = calcularValorGemaOficial(spec.stat, t, itemLevel, spec.pct, roll1);
   const gema = {
     type: tipo,
     tier: t,
-    name: `${catalogoGemas[tipo].nome} T${t}${t === 5 ? " Suprema" : ""}`,
+    name: `${catalogoGemas[tipo].nome} ${rotuloTierGema(t)}`,
     stat: spec.stat,
     value: val1,
     pct: spec.pct,
@@ -92,10 +100,20 @@ function recalcularGemasItem(item, rollForcado = undefined) {
   if (!item || !Array.isArray(item.gems)) return;
   const rollUsar = rollForcado === undefined ? obterRollFixoModoGema() : rollForcado;
   item.gems = item.gems.map((g) => {
-    if (!g || !g.type) return null;
-    const tierGema = Number(g.tier || item.gemTierPadrao || 5);
-    return criarGemaPreset(g.type, item.slot, tierGema, item.itemLevel || 100, rollUsar);
+    if (!g) return null;
+    const tierGema = limitarTierGema(g.tier || item.gemTierPadrao, item.rarity);
+    return criarGemaPreset(g.type || g.kind, item.slot, tierGema, item.itemLevel || 100, rollUsar);
   });
+}
+
+function adequarTierGemas(item) {
+  if (item.rarity >= 6) return;
+  if (item.gemTierPadrao > 5) item.gemTierPadrao = 5;
+  if (item.gems?.some((gema) => gema?.tier > 5)) {
+    item.gems = item.gems.map((gema) => gema?.tier > 5
+      ? criarGemaPreset(gema.type || gema.kind, item.slot, 5, item.itemLevel)
+      : gema);
+  }
 }
 
 function recalcularGemasBuildComModo(rollForcado = undefined) {
@@ -162,6 +180,7 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
 
 function aplicarAtributosPadraoNoItem(item, recalcularGemas = true) {
   if (!item) return;
+  adequarTierGemas(item);
   const stats = calcularAtributosPadraoPeca(item.slot, simulacao.estadoSimulador.cls, item.rarity, item.itemLevel, item.look);
   item.atk = stats.atk;
   item.def = stats.def;
@@ -193,11 +212,10 @@ function formatarBonusConjuntoCurto(bonusObj) {
   return partes.join(" · ") || "—";
 }
 
-function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300) {
+function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300, rollModo = obterRollFixoModoGema()) {
   if (!tipo || tipo === "none" || !catalogoGemas[tipo]) return "";
   const spec = catalogoGemas[tipo].porSlot[slot] || catalogoGemas[tipo].porSlot.weapon;
-  const t = Math.min(5, Math.max(1, Number(tier) || 5));
-  const rollModo = obterRollFixoModoGema();
+  const t = limitarTierGema(tier);
 
   const fmtTexto = (st, pct) => {
     const rot = rotulosStats[st] || st.toUpperCase();
@@ -313,6 +331,7 @@ function aplicarTrocaAnelSimulador(anel, novoLook) {
   const imp = origem?.anelImportado;
   if (imp && imp.look === look && imp.itemLevel === Number(anel.itemLevel)) {
     anel.rarity = imp.rarity;
+    adequarTierGemas(anel);
     anel.atk = imp.atk;
     anel.def = imp.def;
     anel.hp = imp.hp;
@@ -389,6 +408,7 @@ function obterResumoPassivasBuildSimulador() {
 }
 
 export {
+  adequarTierGemas,
   aplicarAtributosPadraoNoItem,
   aplicarTrocaAnelSimulador,
   criarGemaPreset,
@@ -396,6 +416,7 @@ export {
   equiparConjuntoCompletoSimulador,
   equiparPecaConjuntoSimulador,
   limparVisualImportado,
+  limitarTierGema,
   formatarBonusConjuntoCurto,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,
@@ -404,6 +425,8 @@ export {
   recalcularGemasBuildComModo,
   recalcularGemasItem,
   resumoCurtoGemaBotao,
+  rotuloTierGema,
+  sortearRolagemGema,
   simulacao,
   slotsAbertosSimulador,
 };

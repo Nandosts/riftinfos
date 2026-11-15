@@ -147,7 +147,7 @@
       item.itemLevel = numero(it.itemLevel, 1, 10000);
       item.look = numero(it.look ?? 0, 0, 10000);
       item.sockets = numero(it.sockets ?? 6, 0, 6);
-      item.gemTierPadrao = numero(it.gemTierPadrao ?? 5, 1, 5);
+      item.gemTierPadrao = numero(it.gemTierPadrao ?? 5, 1, 6);
       item.gems = Array.from({ length: 6 }, (_, index) => {
         const g = it.gems[index];
         if (g == null) return null;

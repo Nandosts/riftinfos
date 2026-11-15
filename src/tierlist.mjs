@@ -7,7 +7,7 @@ import {
   nomesClasses,
 } from "./dados.mjs";
 import { calcularFc, calcularStatusSimulados } from "./combate.mjs";
-import { aplicarAtributosPadraoNoItem, criarGemaPreset } from "./simulador/estado.mjs";
+import { aplicarAtributosPadraoNoItem, criarGemaPreset, limitarTierGema, sortearRolagemGema } from "./simulador/estado.mjs";
 import { escaparHtml, formatarNumeroCompacto } from "./formato.mjs";
 import { renderizarFichaFc } from "./tierlist-ficha.mjs";
 
@@ -25,6 +25,9 @@ const NIVEL_ITEM_REFERENCIA = 300;
 const NIVEL_PERSONAGEM_REFERENCIA = 750;
 const ATRIBUTOS_REFERENCIA = { str: 140, agi: 140, vit: 140, def: 140, luk: 140 };
 const gemasPorSlot = new Map();
+const tiersPorSlot = new Map();
+let pecaSelecionada = "weapon";
+let engasteSelecionado = 0;
 let anelReferencia = 0;
 
 const UTILIDADE_CONJUNTOS = {
@@ -74,10 +77,11 @@ function calcularFcReferencia(classe, pecas) {
     const item = { ...peca };
     item.itemLevel = NIVEL_ITEM_REFERENCIA;
     item.sockets = item.rarity === 7 ? 6 : 5;
+    item.gemTierPadrao = limitarTierGema(tiersPorSlot.get(item.slot) ?? 5, item.rarity);
     aplicarAtributosPadraoNoItem(item);
     item.gems = Array.from({ length: item.sockets }, (_, index) => {
-      const tipo = gemasPorSlot.get(`${item.slot}:${index}`) ?? "topaz";
-      return criarGemaPreset(tipo, item.slot, 5, item.itemLevel, 1);
+      const { tipo = "topaz", rolagem = 1 } = gemasPorSlot.get(`${item.slot}:${index}`) || {};
+      return criarGemaPreset(tipo, item.slot, item.gemTierPadrao, item.itemLevel, rolagem);
     });
     return item;
   });
@@ -283,6 +287,10 @@ function desenharTodosSprites() {
       escala
     );
   });
+  containerDetalhe?.querySelectorAll("canvas[data-tl-canvas-gema]").forEach((canvas) => {
+    const [tipo, tier, escala] = canvas.dataset.tlCanvasGema.split(":");
+    window.RiftSprites.desenharIconeGema(canvas, tipo, Number(tier), Number(escala));
+  });
 }
 
 function obterItemContextualizado(item) {
@@ -309,7 +317,11 @@ function renderizarDetalhe() {
     return;
   }
   if (modoAtual === "fc") {
-    containerDetalhe.innerHTML = renderizarFichaFc(item, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA);
+    const itens = item.referenciaFc.itens;
+    const peca = itens.find((peca) => peca.slot === pecaSelecionada) || itens[0];
+    pecaSelecionada = peca.slot;
+    engasteSelecionado = Math.min(engasteSelecionado, peca.sockets - 1);
+    containerDetalhe.innerHTML = renderizarFichaFc(item, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA, pecaSelecionada, engasteSelecionado);
     return;
   }
 
@@ -454,18 +466,58 @@ if (selectAnelReferencia) {
 
 document.querySelector("#tierlist-restaurar-fc")?.addEventListener("click", () => {
   gemasPorSlot.clear();
+  tiersPorSlot.clear();
   anelReferencia = 0;
   if (selectAnelReferencia) selectAnelReferencia.value = "0";
   atualizarCenarioFc();
 });
 
-containerDetalhe?.addEventListener("change", (event) => {
-  const chave = event.target.dataset.tlGema;
-  const tipo = event.target.value;
-  if (!chave || (tipo !== "none" && !Object.hasOwn(catalogoGemas, tipo))) return;
-  gemasPorSlot.set(chave, tipo);
-  atualizarCenarioFc();
-  containerDetalhe.querySelector(`[data-tl-gema="${chave}"]`)?.focus({ preventScroll: true });
+containerDetalhe?.addEventListener("click", (event) => {
+  const botao = event.target.closest("button");
+  if (!botao || modoAtual !== "fc") return;
+  const acao = botao.getAttributeNames().find((nome) => nome.startsWith("data-tl-"));
+  if (!acao) return;
+  const valor = botao.getAttribute(acao);
+  const item = obterItemContextualizado(catalogoTierList.find((item) => item.id === itemSelecionadoId));
+  const peca = item.referenciaFc.itens.find((peca) => peca.slot === pecaSelecionada);
+  if (acao === "data-tl-selecionar-peca" || acao === "data-tl-selecionar-engaste") {
+    if (acao === "data-tl-selecionar-peca") {
+      pecaSelecionada = valor;
+      engasteSelecionado = 0;
+    } else {
+      engasteSelecionado = Number(valor);
+    }
+    renderizarDetalhe();
+    desenharTodosSprites();
+  } else {
+    const chaveEngaste = `${peca.slot}:${engasteSelecionado}`;
+    const gemaAtiva = peca.gems[engasteSelecionado];
+    if (acao === "data-tl-slot-tier") {
+      const tier = Number(valor.split(":")[1]);
+      tiersPorSlot.set(peca.slot, limitarTierGema(tier, peca.rarity));
+    } else if (acao === "data-tl-gem-btn") {
+      const tipo = valor.split(":")[2];
+      if (!Object.hasOwn(catalogoGemas, tipo)) return;
+      gemasPorSlot.set(chaveEngaste, { tipo: gemaAtiva?.type === tipo ? "none" : tipo });
+    } else if (acao === "data-tl-gem-limpar-unico") {
+      gemasPorSlot.set(chaveEngaste, { tipo: "none" });
+    } else {
+      peca.gems.forEach((gema, index) => {
+        const chave = `${peca.slot}:${index}`;
+        if (acao === "data-tl-gem-limpar") gemasPorSlot.set(chave, { tipo: "none" });
+        if (acao === "data-tl-gem-repetir-ativo" && gemaAtiva && index !== engasteSelecionado) {
+          gemasPorSlot.set(chave, { tipo: gemaAtiva.type });
+        }
+        if (acao === "data-tl-gem-reroll" && gema) {
+          gemasPorSlot.set(chave, { tipo: gema.type, rolagem: [sortearRolagemGema(), sortearRolagemGema()] });
+        }
+      });
+    }
+    atualizarCenarioFc();
+  }
+  const proximoFoco = containerDetalhe.querySelector(`[${acao}="${valor}"]`)
+    || containerDetalhe.querySelector(`[data-tl-selecionar-engaste="${engasteSelecionado}"]`);
+  proximoFoco?.focus({ preventScroll: true });
 });
 
 renderizarTabela();

@@ -1,5 +1,6 @@
-import { catalogoGemas, dadosClasses, nomesClasses, nomesSlots } from "./dados.mjs";
-import { escaparHtml, formatadorDecimal1, formatadorDecimal2, formatadorInteiro, formatarGemaTexto } from "./formato.mjs";
+import { dadosClasses, nomesClasses, nomesSlots } from "./dados.mjs";
+import { escaparHtml, formatadorDecimal1, formatadorDecimal2, formatadorInteiro } from "./formato.mjs";
+import { construirEditorEngastes } from "./simulador/engastes.mjs";
 
 function listaAtributos(atributos) {
   return `<dl class="tl-ficha-atributos">${atributos.map(([rotulo, valor]) => `
@@ -7,7 +8,7 @@ function listaAtributos(atributos) {
   `).join("")}</dl>`;
 }
 
-export function renderizarFichaFc(item, nivel, atributos) {
+export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtivo) {
   const { classe, itens, status, fc, fcBase } = item.referenciaFc;
   const inteiro = (n) => formatadorInteiro.format(n);
   const decimal = (n) => formatadorDecimal1.format(n);
@@ -15,6 +16,7 @@ export function renderizarFichaFc(item, nivel, atributos) {
   const rotuloEquipamento = item.categoria === "ring" ? "Apenas o anel equipado"
     : anelEquipado ? "Conjunto 3/3 equipado · Com anel" : "Conjunto 3/3 equipado · Sem anel";
   const slots = ["weapon", "helmet", "armor", "ring"];
+  const pecaAtiva = itens.find((peca) => peca.slot === slotAtivo);
   return `
     <div class="tl-ficha-fc">
       <h3 class="tl-detalhe-titulo">${escaparHtml(item.nome)}</h3>
@@ -40,11 +42,11 @@ export function renderizarFichaFc(item, nivel, atributos) {
               const index = itens.findIndex((peca) => peca.slot === slot);
               const peca = itens[index];
               if (!peca) return `<span class="rs-ibox tl-slot-vazio" title="${nomesSlots[slot]} vazio">—</span>`;
-              return `<a class="rs-ibox rs-rbg-${peca.rarity}" href="#tl-ficha-slot-${slot}" aria-label="${escaparHtml(peca.name)}">
+              return `<button type="button" class="rs-ibox rs-rbg-${peca.rarity} ${slot === slotAtivo ? "sel" : ""}" data-tl-selecionar-peca="${slot}" aria-pressed="${slot === slotAtivo}" aria-label="${escaparHtml(peca.name)}">
                 <canvas data-tl-sprite="${item.id}" data-tl-peca="${index}" aria-hidden="true"></canvas>
                 <span class="rs-gem-mark">${peca.gems.filter(Boolean).length}</span>
                 <span class="rs-lv">${peca.itemLevel}</span>
-              </a>`;
+              </button>`;
             }).join("")}
           </div>
         </section>
@@ -62,11 +64,10 @@ export function renderizarFichaFc(item, nivel, atributos) {
             ["Força", atributos.str], ["Agilidade", atributos.agi], ["Vitalidade", atributos.vit],
             ["Defesa", atributos.def], ["Sorte", atributos.luk],
           ])}
-          <h3 class="tl-ficha-atributos-titulo">Equipamento e gemas</h3>
-          <p class="note small">Alterar um engaste atualiza o mesmo slot e posição em todos os itens do ranking. Gemas T5 com rolagem de 100%.</p>
+          <h3 class="tl-ficha-atributos-titulo">Equipamento</h3>
           <div class="tl-ficha-equipamentos">
             ${itens.map((peca, index) => `
-              <article class="tl-ficha-peca" id="tl-ficha-slot-${peca.slot}" data-tl-slot="${peca.slot}">
+              <article class="tl-ficha-peca" data-tl-slot="${peca.slot}">
                 <div class="tl-ficha-peca-topo">
                   <canvas data-tl-sprite="${item.id}" data-tl-peca="${index}" data-tl-escala="2" aria-hidden="true"></canvas>
                   <div>
@@ -77,23 +78,14 @@ export function renderizarFichaFc(item, nivel, atributos) {
                 ${listaAtributos([
                   ["ATK", peca.atk], ["HP", peca.hp], ["DEF", peca.def], ["Crítico", `+${peca.crit} p.p.`], ["VEL", `+${peca.spd}%`],
                 ])}
-                <div class="tl-ficha-engastes">
-                  ${peca.gems.map((gema, indice) => `
-                    <label>
-                      <span>Engaste ${indice + 1}</span>
-                      <select data-tl-gema="${peca.slot}:${indice}" aria-label="${nomesSlots[peca.slot]} · Engaste ${indice + 1}">
-                        <option value="none" ${gema ? "" : "selected"}>Vazio</option>
-                        ${Object.entries(catalogoGemas).map(([tipo, dados]) =>
-                          `<option value="${tipo}" ${gema?.type === tipo ? "selected" : ""}>${escaparHtml(dados.nome)}</option>`
-                        ).join("")}
-                      </select>
-                      ${gema ? `<small>${escaparHtml(formatarGemaTexto(gema))}</small>` : ""}
-                    </label>
-                  `).join("")}
-                </div>
               </article>
             `).join("")}
           </div>
+          <h3 class="tl-ficha-atributos-titulo">Gemas de ${escaparHtml(pecaAtiva.name)}</h3>
+          <p class="note small">O tier e os engastes deste slot são compartilhados por todos os itens do ranking.</p>
+          ${construirEditorEngastes({
+            item: pecaAtiva, chavePeca: slotAtivo, engaste: engasteAtivo, prefixo: "tl", rolagem: 1,
+          })}
           ${item.curvaEstimada ? '<p class="note small">Atributos do anel estimados para o nível de referência.</p>' : ""}
         </section>
       </div>

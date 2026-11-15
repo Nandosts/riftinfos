@@ -165,18 +165,21 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   assert.ok(painel.querySelector('.rs-stage-box [data-tl-heroi]'));
   const fcAurora = fcDoCard('set_auroraborealis');
   const fcTeia = fcDoCard('ring_19');
-  conferirMudanca('set_abysshunter', () => alterar('[data-tl-gema="weapon:0"]', 'sapphire'));
+  conferirMudanca('set_abysshunter', () => click('[data-tl-gem-btn="weapon:0:sapphire"]'));
   assert.notEqual(fcDoCard('set_auroraborealis'), fcAurora);
   assert.equal(fcDoCard('ring_19'), fcTeia);
   click('[data-tl-card="set_abysshunter"]');
-  assert.equal(painel.querySelector('[data-tl-gema="weapon:0"]').value, 'sapphire');
+  assert.equal(painel.querySelector('[data-tl-gem-btn="weapon:0:sapphire"]').getAttribute('aria-pressed'), 'true');
+  conferirMudanca('set_auroraborealis', () => click('[data-tl-slot-tier="weapon:6"]'));
+  assert.match(detalhe(), /T6 Prismática/);
+  assert.match(painel.querySelector('[data-tl-gem-btn="weapon:0:sapphire"]').textContent, /\+67 VEL/);
   conferirMudanca('set_auroraborealis', () => alterar('#tierlist-anel-referencia', '14'));
   assert.deepEqual(slots(), ['weapon', 'helmet', 'armor', 'ring']);
   assert.match(detalhe(), /Anel do Eclipse Arcano/);
   assert.equal(fcDoCard('ring_19'), fcTeia);
   click('[data-tl-card="ring_19"]');
   assert.deepEqual(slots(), ['ring']);
-  conferirMudanca('ring_14', () => alterar('[data-tl-gema="ring:0"]', 'none'));
+  conferirMudanca('ring_14', () => click('[data-tl-gem-limpar-unico="ring:0"]'));
   assert.notEqual(fcDoCard('ring_19'), fcTeia);
   click('#tierlist-restaurar-fc');
   assert.equal(fcDoCard('set_auroraborealis'), fcAurora);
@@ -184,6 +187,24 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   click('[data-tl-modo="utilidade"]');
   assert.match(detalhe(), /Ponto forte/);
   assert.deepEqual(slots(), []);
+});
+
+test('Prismatic gems use the game scales and survive shared builds', async () => {
+  const { criarGemaPreset, adequarTierGemas } = await import('../src/simulador/estado.mjs');
+  const gema = criarGemaPreset('sapphire', 'weapon', 6, 300, 1);
+  assert.deepEqual([gema.tier, gema.stat, gema.value, gema.stat2, gema.value2, gema.pct2], [6, 'spd', 67, 'def', 75, true]);
+  const original = build();
+  const arma = original.itens[0];
+  arma.itemLevel = 300;
+  arma.gemTierPadrao = 6;
+  arma.gems[0] = gema;
+  const decoded = await sharing.decodificarBuildDeHash(await sharing.serializarBuildParaHash(original));
+  assert.equal(decoded.buildA.itens[0].gemTierPadrao, 6);
+  assert.equal(decoded.buildA.itens[0].gems[0].value2, 75);
+  arma.rarity = 4;
+  adequarTierGemas(arma);
+  assert.equal(arma.gems[0].tier, 5);
+  assert.equal(arma.gemTierPadrao, 5);
 });
 
 test('Eclipse echoes damaging skills without changing the base hit or cooldown', async () => {
