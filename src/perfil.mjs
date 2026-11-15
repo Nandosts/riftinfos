@@ -176,7 +176,6 @@ async function consultarPerfil(jogador, classeDesejada) {
 
     if (requisicaoAtiva !== controlador) return;
     const perfil = validarPerfilApi(dados, loginApi, classeDesejada);
-    renderizarPerfil(perfil, jogador.plataforma);
 
     estadoPerfil.data = perfil;
     estadoPerfil.status = "success";
@@ -188,6 +187,8 @@ async function consultarPerfil(jogador, classeDesejada) {
     if (Historico.obterConfigAutoSave && Historico.obterConfigAutoSave()) {
       Historico.salvarSnapshotConsulta(jogador.plataforma, jogador.nick, perfil.cls, perfil, estadoPerfil.sourceUpdatedAt, CALCULATION_VERSION);
     }
+
+    renderizarPerfil(perfil, jogador.plataforma);
 
     jogadorAtual = jogador;
     atualizarParametrosUrl(jogador, perfil.cls);

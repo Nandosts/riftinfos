@@ -56,14 +56,11 @@ function renderizarResumoGeloFogoTopo(perfil) {
   const btnPity = document.querySelector("#btn-abrir-planejador-maior-gelo");
   if (btnPity) {
     btnPity.addEventListener("click", () => {
-      const selRaridade = document.querySelector("#select-planejador-raridade");
-      const selSlot = document.querySelector("#select-planejador-slot");
-      if (selRaridade && selSlot) {
-        selRaridade.value = maxGelo.raridadeChave;
-        selSlot.value = maxGelo.slotChave;
-        selRaridade.dispatchEvent(new Event("change"));
-        selRaridade.scrollIntoView({ behavior: "smooth" });
-      }
+      estadoPlanejador.raridade = maxGelo.raridadeChave;
+      estadoPlanejador.slot = maxGelo.slotChave;
+      estadoPlanejador.geloManual = null;
+      renderizarPlanejadorForjas(perfil);
+      document.querySelector("#select-planejador-raridade")?.scrollIntoView({ behavior: "smooth" });
     });
   }
 }
