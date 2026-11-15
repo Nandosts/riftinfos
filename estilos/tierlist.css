@@ -286,6 +286,85 @@
   line-height: 1.45;
 }
 
+.tl-ficha-fc {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.tl-ficha-cabecalho,
+.tl-ficha-peca-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tl-ficha-cabecalho {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tl-ficha-fc h4,
+.tl-ficha-fc p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.tl-ficha-total {
+  display: grid;
+  gap: 2px;
+}
+
+.tl-ficha-total strong {
+  color: var(--gold);
+  font-size: 1.25rem;
+}
+
+.tl-ficha-paineis,
+.tl-ficha-equipamentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 10px;
+  margin-block: 8px 14px;
+}
+
+.tl-ficha-bloco,
+.tl-ficha-peca {
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.tl-ficha-peca-topo canvas {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  image-rendering: pixelated;
+}
+
+.tl-ficha-peca-topo strong {
+  overflow-wrap: anywhere;
+}
+
+.tl-ficha-atributos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5rem), 1fr));
+  gap: 6px 10px;
+  margin: 8px 0;
+}
+
+.tl-ficha-atributos dt {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tl-ficha-atributos dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 640px) {
   .tl-linha {
     grid-template-columns: 76px minmax(0, 1fr);

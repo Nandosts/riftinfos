@@ -132,11 +132,26 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   assert.deepEqual(primeirosSPlus(), ['set_singular', 'ring_14', 'ring_17']);
   click('[data-tl-modo="fc"]');
   click('[data-tl-card="set_obsidian"]');
-  assert.match(detalhe(), /200,37M/);
+  const slots = () => [...painel.querySelectorAll('[data-tl-slot]')].map(peca => peca.dataset.tlSlot);
+  assert.deepEqual(slots(), ['weapon', 'helmet', 'armor']);
+  assert.match(detalhe(), /10\.101\.979 FC/);
+  assert.doesNotMatch(detalhe(), /Ponto forte|Anel do Eclipse Arcano/);
+  click('[data-tl-cat="archer"]');
+  click('[data-tl-card="set_auroraborealis"]');
+  assert.deepEqual(slots(), ['weapon', 'helmet', 'armor']);
+  assert.match(detalhe(), /10\.904\.444 FC/);
+  click('[data-tl-cat="ring"]');
   click('[data-tl-card="ring_19"]');
-  assert.match(detalhe(), /FC simulado \(Guerreiro\) · 164,48M/);
+  assert.deepEqual(slots(), ['ring']);
+  assert.match(detalhe(), /Guerreiro · Nível 750 · Apenas o anel equipado/);
+  assert.match(detalhe(), /1\.257\.470 FC/);
   click('[data-tl-cat="cleric"]');
-  assert.match(detalhe(), /FC simulado \(Clérigo\) · 226,32M/);
+  assert.deepEqual(slots(), ['ring']);
+  assert.match(detalhe(), /Clérigo · Nível 750 · Apenas o anel equipado/);
+  assert.match(detalhe(), /1\.017\.893 FC/);
+  click('[data-tl-modo="utilidade"]');
+  assert.match(detalhe(), /Ponto forte/);
+  assert.deepEqual(slots(), []);
 });
 
 test('Eclipse echoes damaging skills without changing the base hit or cooldown', async () => {

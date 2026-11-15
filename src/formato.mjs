@@ -55,6 +55,7 @@ function formatarGemaTexto(gema) {
 export {
   escaparHtml,
   formatadorDecimal1,
+  formatadorDecimal2,
   formatadorInteiro,
   formatadorPercentual,
   formatarDuracaoSegundos,

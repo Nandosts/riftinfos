@@ -8,6 +8,7 @@ import {
 import { calcularFc, calcularStatusSimulados } from "./combate.mjs";
 import { aplicarAtributosPadraoNoItem, criarGemaPreset } from "./simulador/estado.mjs";
 import { escaparHtml, formatarNumeroCompacto } from "./formato.mjs";
+import { renderizarFichaFc } from "./tierlist-ficha.mjs";
 
 const containerTabela = document.querySelector("#tierlist-tabela");
 const containerDetalhe = document.querySelector("#tierlist-detalhe");
@@ -19,12 +20,7 @@ let itemSelecionadoId = null;
 
 const NIVEL_ITEM_REFERENCIA = 300;
 const NIVEL_PERSONAGEM_REFERENCIA = 750;
-const ATRIBUTOS_REFERENCIA = { str: 500, agi: 500, vit: 500, def: 500, luk: 100 };
-const CONJUNTOS_REFERENCIA_ANEIS = {
-  warrior: "thunderlord",
-  archer: "abysshunter",
-  cleric: "seraphgold",
-};
+const ATRIBUTOS_REFERENCIA = { str: 140, agi: 140, vit: 140, def: 140, luk: 140 };
 
 const UTILIDADE_CONJUNTOS = {
   singular: { tier: "S+", prioridade: 20, tag: "Dano em chefes", motivo: "A implosão escala com a vida máxima do chefe e ignora defesa. Combina com o Eclipse Arcano para dano e com o Sanguessuga para recuperar vida.", limite: "O dano vem em pulsos. A implosão tem 1,4s de atraso e pode cair fora da janela em que o chefe recebe dano." },
@@ -68,27 +64,18 @@ const UTILIDADE_ANEIS = {
   12: { tier: "B", prioridade: 310, tag: "Finalizador", motivo: "Reforça o dano direto na fase final, inclusive na implosão da Singularidade.", limite: "Só ativa quando o alvo já está com 30% de vida ou menos." },
 };
 
-function calcularFcReferencia(setKey, look) {
-  const conjunto = catalogoConjuntos[setKey];
-  const rarity = conjunto.raridadePadrao;
-  const itens = [
-    { slot: "helmet", kind: conjunto.elmoKind, rarity, set: setKey },
-    { slot: "armor", kind: conjunto.armaduraKind, rarity, set: setKey },
-    { slot: "weapon", kind: conjunto.armaKind, rarity, set: setKey },
-    { slot: "ring", kind: "ring", rarity: catalogoAneis[look].raridadeMin, look },
-  ];
-  for (const item of itens) {
+function calcularFcReferencia(classe, pecas) {
+  const itens = pecas.map((peca) => {
+    const item = { ...peca };
     item.itemLevel = NIVEL_ITEM_REFERENCIA;
     item.sockets = item.rarity === 7 ? 6 : 5;
     aplicarAtributosPadraoNoItem(item);
     item.gems = Array.from({ length: item.sockets }, () => criarGemaPreset("topaz", item.slot, 5, item.itemLevel, 1));
-  }
-  const status = calcularStatusSimulados(conjunto.classe, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA, itens);
-  return calcularFc(conjunto.classe, status);
-}
-
-function calcularFcPadraoConjunto(setKey) {
-  return calcularFcReferencia(setKey, 14);
+    return item;
+  });
+  const status = calcularStatusSimulados(classe, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA, itens);
+  const statusBase = calcularStatusSimulados(classe, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA, []);
+  return { classe, itens, status, fc: calcularFc(classe, status), fcBase: calcularFc(classe, statusBase) };
 }
 
 const UTILIDADE_ANEIS_POR_CLASSE = {
@@ -130,10 +117,6 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
   },
 };
 
-function calcularFcPadraoAnel(look, cls) {
-  return calcularFcReferencia(CONJUNTOS_REFERENCIA_ANEIS[cls], look);
-}
-
 function formatarBonusCurto(b) {
   if (!b) return "—";
   const nomes = { atk: "ATK", hp: "HP", def: "DEF", spd: "VEL", crit: "CRÍT" };
@@ -149,7 +132,16 @@ function construirCatalogoItens() {
     if ((setInfo.raridadePadrao || 0) < 6) continue;
     const arma = catalogoArmas[setInfo.armaKind];
     const util = UTILIDADE_CONJUNTOS[key] || { tier: "B", tag: "Conjunto", motivo: "" };
-    const fcRef = calcularFcPadraoConjunto(key);
+    const rarity = setInfo.raridadePadrao;
+    const referenciaFc = calcularFcReferencia(setInfo.classe, [
+      { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
+      { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
+      { slot: "armor", kind: setInfo.armaduraKind, name: setInfo.armaduraNome, rarity, set: key },
+    ]);
+    const bonusConjunto = [
+      `Bônus 2/3: ${formatarBonusCurto(setInfo.b2)}`,
+      `Bônus adicional 3/3: ${formatarBonusCurto(setInfo.b3)}`,
+    ];
     lista.push({
       id: `set_${key}`,
       categoria: setInfo.classe,
@@ -167,10 +159,10 @@ function construirCatalogoItens() {
       tagUtilidade: util.tag,
       motivoUtilidade: util.motivo,
       limiteUtilidade: util.limite,
-      fcRef,
+      referenciaFc,
+      bonusConjunto,
       detalhes: [
-        `Bônus 2/3: ${formatarBonusCurto(setInfo.b2)}`,
-        `Bônus adicional 3/3: ${formatarBonusCurto(setInfo.b3)}`,
+        ...bonusConjunto,
         `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || "Sem efeito extra."}`,
       ],
     });
@@ -181,8 +173,9 @@ function construirCatalogoItens() {
     if (!anel) continue;
     const rar = anel.raridadeMin;
     const util = UTILIDADE_ANEIS[look] || { tier: "B", tag: "Anel", motivo: "" };
-    const fcPorClasse = Object.fromEntries(
-      Object.keys(CONJUNTOS_REFERENCIA_ANEIS).map((cls) => [cls, calcularFcPadraoAnel(look, cls)])
+    const peca = { slot: "ring", kind: "ring", name: anel.nome, rarity: rar, look };
+    const referenciaPorClasse = Object.fromEntries(
+      Object.keys(nomesClasses).map((classe) => [classe, calcularFcReferencia(classe, [peca])])
     );
     lista.push({
       id: `ring_${look}`,
@@ -201,9 +194,9 @@ function construirCatalogoItens() {
       tagUtilidade: util.tag,
       motivoUtilidade: util.motivo,
       limiteUtilidade: util.limite,
-      fcRef: fcPorClasse.warrior,
-      classeFc: "warrior",
-      fcPorClasse,
+      referenciaFc: referenciaPorClasse.warrior,
+      referenciaPorClasse,
+      curvaEstimada: anel.estimado,
       utilPorClasse: {
         warrior: UTILIDADE_ANEIS_POR_CLASSE.warrior[look] || util,
         archer: UTILIDADE_ANEIS_POR_CLASSE.archer[look] || util,
@@ -223,15 +216,15 @@ function construirCatalogoItens() {
 const CATALOGO_TIERLIST = construirCatalogoItens();
 
 function atribuirTiersPorFc(itensFiltrados) {
-  const ordenados = [...itensFiltrados].sort((a, b) => b.fcRef - a.fcRef);
+  const ordenados = [...itensFiltrados].sort((a, b) => b.referenciaFc.fc - a.referenciaFc.fc);
   if (ordenados.length === 0) return {};
-  const maxFc = ordenados[0].fcRef;
-  const minFc = ordenados[ordenados.length - 1].fcRef;
+  const maxFc = ordenados[0].referenciaFc.fc;
+  const minFc = ordenados[ordenados.length - 1].referenciaFc.fc;
   const span = Math.max(1, maxFc - minFc);
 
   const grupos = { "S+": [], S: [], A: [], B: [], C: [] };
   ordenados.forEach((item, idx) => {
-    const pct = (item.fcRef - minFc) / span;
+    const pct = (item.referenciaFc.fc - minFc) / span;
     let tier = "C";
     if (ordenados.length <= 5) {
       tier = ["S+", "S", "A", "B", "C"][idx] || "C";
@@ -263,6 +256,11 @@ function desenharTodosSprites() {
     const item = CATALOGO_TIERLIST.find((x) => x.id === canvas.dataset.tlSprite);
     if (!item) return;
     const escala = Number(canvas.dataset.tlEscala || 3);
+    if (canvas.dataset.tlPeca !== undefined) {
+      const { classe, itens } = obterItemContextualizado(item).referenciaFc;
+      window.RiftSprites.desenharIconeItem(canvas, itens[Number(canvas.dataset.tlPeca)], classe, escala);
+      return;
+    }
     window.RiftSprites.desenharIconeItem(
       canvas,
       { slot: item.slotSprite, kind: item.kindSprite, rarity: item.raridade, look: item.lookSprite },
@@ -275,15 +273,13 @@ function desenharTodosSprites() {
 function obterItemContextualizado(item) {
   if (item.categoria === "ring" && ["warrior", "archer", "cleric"].includes(categoriaAtual)) {
     const u = item.utilPorClasse?.[categoriaAtual];
-    const fc = item.fcPorClasse?.[categoriaAtual];
     return {
       ...item,
       tierUtilidade: u?.tier || item.tierUtilidade,
       tagUtilidade: u?.tag || item.tagUtilidade,
       motivoUtilidade: u?.motivo || item.motivoUtilidade,
       prioridadeUtilidade: u?.prioridade ?? item.prioridadeUtilidade,
-      classeFc: categoriaAtual,
-      fcRef: fc ?? item.fcRef,
+      referenciaFc: item.referenciaPorClasse[categoriaAtual],
     };
   }
   return item;
@@ -297,10 +293,13 @@ function renderizarDetalhe() {
     containerDetalhe.innerHTML = `<div class="muted small">Clique em qualquer conjunto ou anel acima para ver os bônus, passiva, onde conseguir e FC simulado.</div>`;
     return;
   }
+  if (modoAtual === "fc") {
+    containerDetalhe.innerHTML = renderizarFichaFc(item, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA);
+    return;
+  }
 
   const corRar = coresRaridade[item.raridade];
   const tierAtual = `Tier de utilidade ${item.tierUtilidade} · ${item.tagUtilidade}`;
-  const classeFc = item.classeFc ? ` (${nomesClasses[item.classeFc]})` : "";
   containerDetalhe.innerHTML = `
     <div class="tl-detalhe-icone">
       <canvas data-tl-sprite="${escaparHtml(item.id)}" data-tl-escala="3"></canvas>
@@ -310,7 +309,6 @@ function renderizarDetalhe() {
         <h3 class="tl-detalhe-titulo" style="color:${corRar};" aria-label="${escaparHtml(`${item.nome} · ${item.raridadeNome}`)}">${escaparHtml(item.nome)}</h3>
         <span class="tl-card-tag">${escaparHtml(item.categoriaLabel)}</span>
         <span class="tl-card-tag">${escaparHtml(tierAtual)}</span>
-        <span class="tl-card-tag" style="color:var(--gold);">FC simulado${escaparHtml(classeFc)} · ${formatarNumeroCompacto(item.fcRef)}</span>
       </div>
       <p class="small"><strong>Ponto forte.</strong> ${escaparHtml(item.motivoUtilidade)}</p>
       ${item.limiteUtilidade ? `<p class="small"><strong>Limitação.</strong> ${escaparHtml(item.limiteUtilidade)}</p>` : ""}
@@ -344,7 +342,7 @@ function renderizarTabela() {
 
   if (descricaoModo) {
     descricaoModo.textContent = modoAtual === "fc"
-      ? "FC simulado da build completa. Personagem Nv. 750, itens Nv. 300, FOR/AGI/VIT/DEF 500 e SORTE 100, com Topázios Supremos T5 na rolagem média. Os tiers são relativos ao filtro. Passivas de combate ficam fora do FC."
+      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate."
       : "Avaliação do Nando para chefes e Raid. Em cada tier, a ordem dá mais peso a proteção do grupo, dano em chefes e sobrevivência.";
   }
   const metodologiaFc = document.querySelector("#tierlist-metodologia-fc");
@@ -367,7 +365,7 @@ function renderizarTabela() {
               const clsRar = item.raridade === 7 ? "arcano" : "imortal";
               const clsSel = item.id === itemSelecionadoId ? "selecionado" : "";
               const badgeTag = modoAtual === "fc"
-                ? `${formatarNumeroCompacto(item.fcRef)} FC`
+                ? `${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
                 : item.tagUtilidade;
               const rotulo = `${item.nome} · ${item.categoriaLabel} · ${item.raridadeNome} · ${badgeTag}`;
               return `
