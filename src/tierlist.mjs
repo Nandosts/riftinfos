@@ -369,7 +369,7 @@ function renderizarTabela() {
   if (descricaoModo) {
     descricaoModo.textContent = modoAtual === "fc"
       ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate."
-      : "Avaliação do Nando para chefes e Raid. Em cada tier, a ordem dá mais peso a proteção do grupo, dano em chefes e sobrevivência.";
+      : "Este ranking reflete a opinião do nando_sts sobre cada item em chefes e raids. A ordem dá mais peso à proteção do grupo, ao dano contra chefes e à sobrevivência.";
   }
   if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
 
