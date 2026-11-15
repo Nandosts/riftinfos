@@ -243,14 +243,8 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   const escudoAurora = infoArma?.escudoMult ? healPower * infoArma.escudoMult : 0;
 
   let dpsBasico = golpeMedioBruto * cadenciaReal;
-  const dpsSkill = cdSkillReal > 0 ? skillDanoTotal / cdSkillReal : 0;
-
-  // Bônus médios de uptime/anel no DPS
-  let fatorAnelDps = 1.0;
-  if (anelAtivo && anel.look === 14) {
-    // Eclipse Arcano: +20% echo no alvo principal (e +60% em até 2 alvos extras em mob)
-    fatorAnelDps = 1.2;
-  }
+  const fatorEco = anelAtivo && anel.look === 14 ? 1.2 : 1;
+  const dpsSkill = cdSkillReal > 0 ? (skillDanoTotal / cdSkillReal) * fatorEco : 0;
 
   let analiseEfeitoArma = null;
   let dpsEfeitoArma = 0;
@@ -286,12 +280,16 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
         nome: infoArma.nome,
         cada: ef.cada,
         texto: ef.texto,
-        pctBossEfetivo: ef.pctBoss,
+        pctBossBase: ef.pctBoss,
+        pctBossEfetivo: ef.pctBoss * fatorEco,
       };
     }
   }
 
-  const dpsCombateMedio = dpsBasico * fatorAnelDps + (skillDanoPorAlvo / cdSkillReal) + dpsEfeitoArma * fatorAnelDps;
+  dpsBasico *= fatorEco;
+  dpsEfeitoArma *= fatorEco;
+  const dpsSkillPorAlvo = cdSkillReal > 0 ? (skillDanoPorAlvo / cdSkillReal) * fatorEco : 0;
+  const dpsCombateMedio = dpsBasico + dpsSkillPorAlvo + dpsEfeitoArma;
   const reducaoDefesa = (status.def * 4) / (100 + status.def * 4);
   const ehp = status.maxHp * (1 + status.def * 0.04);
 
@@ -314,7 +312,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     golpeNormalBruto,
     golpeCritBruto,
     golpeMedioBruto,
-    dpsBasico: dpsBasico * fatorAnelDps,
+    dpsBasico,
     dpsSkill,
     dpsCombateMedio,
     dpsEfeitoArma,

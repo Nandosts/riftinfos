@@ -89,3 +89,48 @@ test('shared link initializes the actual simulator and renders finite calculatio
   assert.ok(requested.some(url => url.includes('kick%3Aregression_nick')));
   assert.ok(!requested.some(url => url.includes('/profile/undefined')));
 });
+
+test('Tier List keeps the Eclipse interaction visible and uses class-specific FC at average gem rolls', async (t) => {
+  const { window } = new JSDOM(fs.readFileSync('tierlist.html', 'utf8'));
+  globalThis.window = window;
+  globalThis.document = window.document;
+  t.after(() => {
+    window.close();
+    delete globalThis.document;
+    delete globalThis.window;
+  });
+  await import('../src/tierlist.mjs');
+  const click = (selector) => window.document.querySelector(selector).click();
+  const detalhe = () => window.document.querySelector('#tierlist-detalhe').textContent;
+  for (const categoria of ['todos', 'ring', 'warrior', 'archer', 'cleric']) {
+    click(`[data-tl-cat="${categoria}"]`);
+    click('[data-tl-card="ring_14"]');
+    assert.match(detalhe(), /Singularidade com o herói vivo/);
+    assert.match(detalhe(), /20% de chance/);
+  }
+  click('[data-tl-card="set_echo"]');
+  assert.match(detalhe(), /Tier de utilidade C/);
+  click('[data-tl-cat="warrior"]');
+  assert.equal(window.document.querySelector('.tl-tier-splus [data-tl-card^="ring_"]').dataset.tlCard, 'ring_14');
+  click('[data-tl-modo="fc"]');
+  click('[data-tl-card="set_obsidian"]');
+  assert.match(detalhe(), /200,37M/);
+  click('[data-tl-card="ring_19"]');
+  assert.match(detalhe(), /FC simulado \(Guerreiro\) · 164,48M/);
+  click('[data-tl-cat="cleric"]');
+  assert.match(detalhe(), /FC simulado \(Clérigo\) · 226,32M/);
+});
+
+test('Eclipse echoes damaging skills without changing the base hit or cooldown', async () => {
+  const { calcularMetricasCombate } = await import('../src/combate.mjs');
+  const status = { atk: 1000, maxHp: 8000, def: 120, aspd: 10, crit: 60, critDmg: 2 };
+  const arma = { slot: 'weapon', kind: 'singblade' };
+  const semEco = calcularMetricasCombate('warrior', 750, status, [arma]);
+  const comEco = calcularMetricasCombate('warrior', 750, status, [arma, { slot: 'ring', rarity: 7, look: 14 }]);
+  assert.equal(semEco.analiseEfeitoArma.pctBossEfetivo, 0.04);
+  assert.equal(comEco.analiseEfeitoArma.pctBossBase, 0.04);
+  assert.equal(comEco.analiseEfeitoArma.pctBossEfetivo, 0.048);
+  assert.equal(comEco.dpsSkill, semEco.dpsSkill * 1.2);
+  assert.equal(comEco.skillDanoPorAlvo, semEco.skillDanoPorAlvo);
+  assert.equal(comEco.cdSkillReal, semEco.cdSkillReal);
+});

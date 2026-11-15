@@ -52,7 +52,7 @@
     cura: {
       termo: "Poder de Cura",
       curto: "Cura estimada da habilidade Luz Divina. Escala com ATK, nível e os multiplicadores considerados no cenário.",
-      detalhes: "A fórmula de cura do clérigo utiliza (ATK × 2,4 + Nível × 1,5 + 6) multiplicado pelo bônus de velocidade da arma e pelo multiplicador de cura do cajado equipado.",
+      detalhes: "A fórmula da Luz Divina usa (ATK × 2,4 + Nível × 1,5 + 6) × SpeedBonus × multiplicador de cura do cajado. O crítico não aumenta a cura.",
       categoria: "combate"
     },
     cadencia: {
@@ -196,7 +196,7 @@
     speed_bonus: {
       termo: "SpeedBonus (Bônus de Excesso de Velocidade)",
       curto: "Multiplicador de dano gerado quando a cadência (ASPD) ultrapassa o teto de 4,60 ataques por segundo.",
-      detalhes: "Fórmula oficial: se ASPD > 4,60, SpeedBonus = ASPD / 4,60. Esse multiplicador amplifica golpes normais, dano de habilidades e o poder de cura do Clérigo.",
+      detalhes: "Acima de 4,60/s, SpeedBonus = ASPD / 4,60. Aumenta o dano que usa esse fator e o poder de cura, sem alterar a cadência por VEL ou a recarga das habilidades. A ASPD bruta também entra na fórmula de FC. Curas e escudos em % do HP seguem as regras da própria passiva.",
       categoria: "combate"
     },
     ttk: {
@@ -220,7 +220,7 @@
     singularidade: {
       termo: "Singularidade (True Damage em % HP)",
       curto: "Passiva da Lâmina da Singularidade que remove uma porcentagem fixa da vida total do chefe a cada 13s, ignorando defesa.",
-      detalhes: "No frontend consultado, causa 25% da vida máxima de monstros comuns e 4% de chefes, após um atraso de 1,4s na ativação do ciclo de 13s. A compensação aplicada ao dano anula a redução por defesa; outros efeitos do alvo ainda podem interferir.",
+      detalhes: "Causa 25% da vida máxima de monstros comuns e 4% de chefes, após um atraso de 1,4s na ativação do ciclo de 13s. Ignora defesa. Com o Guerreiro vivo, Eclipse Arcano pode repetir a implosão e Sanguessuga pode recuperar vida com o dano causado. A proteção do alvo ainda pode interferir.",
       categoria: "equipamentos"
     },
     luz_divina: {
@@ -274,13 +274,13 @@
     aneis_raid: {
       termo: "Anéis da Raid: Presa de Ixtharra (18) e Teia Escarlate (19)",
       curto: "Anéis Arcanos que só caem no Covil de Vexxaris. Não têm poder extra na luta, mas entregam muito mais status puros.",
-      detalhes: "Diferente dos anéis Arcanos antigos (que têm efeito especial na luta e saem na Forja Arcana), os anéis 18 e 19 só caem na Raid e focam 100% em atributos puros que aumentam direto o FC, ataques, habilidades e vida: • Presa de Ixtharra (18): o maior pacote de Ataque e Crítico brutos (~4,05 ATK e ~0,64 CRÍT por nível). • Teia Escarlate (19): muita Vida, Defesa e Velocidade (~16,20 HP e ~2,95 DEF por nível, com +18% VEL).",
+      detalhes: "Diferente dos anéis Arcanos antigos (que têm efeito especial na luta e saem na Forja Arcana), os anéis 18 e 19 só caem na Raid e focam em atributos brutos. As curvas usadas no simulador são estimadas: • Presa de Ixtharra (18): o maior pacote de Ataque e Crítico brutos (~4,05 ATK e ~0,64 CRÍT por nível). • Teia Escarlate (19): muita Vida, Defesa e Velocidade (~16,20 HP e ~2,95 DEF por nível, com +18% VEL).",
       categoria: "equipamentos"
     },
     comparativo_aneis: {
       termo: "Comparativo de Anéis Arcanos e Imortais (Atributos por Nível)",
       curto: "Cada anel tem um ganho diferente de ATK, DEF, HP e CRÍT por nível do item, além de Velocidade fixa.",
-      detalhes: "Ganho por nível do item: • Eclipse Arcano (14): 3,68 ATK, 0,57 CRÍT, 1,22 DEF, 5,93 HP, 16% VEL + Eco 60% / golpe duplo 20%. • Ceifador Cósmico (16): 3,42 ATK, 0,43 CRÍT, 1,46 DEF, 6,85 HP, 18% VEL + até +40% ATK por almas. • Coração do Vazio (15): 2,46 ATK, 0,28 CRÍT, 2,71 DEF, 14,87 HP, 12% VEL + Revive 70% HP. • Prisma Estelar (17): 2,21 ATK, 0,22 CRÍT, 2,21 DEF, 12,87 HP, 14% VEL + Limpa controles, escudo e cura a cada 10s. • Imortais (10 a 13): Sede Escarlate (1,65 ATK/nv, sangramento), Carrasco (1,83 ATK/nv, +60% dano <=30% HP), Sanguessuga (5,75 HP/nv, 8% roubo de vida) e Fênix Rubra (6,95 HP/nv, revive 40% HP).",
+      detalhes: "Ganho por nível do item: • Eclipse Arcano (14): 3,68 ATK, 0,57 CRÍT, 1,22 DEF, 5,93 HP, 16% VEL + ricochete de 60% e 20% de chance de ecoar um acerto elegível. • Ceifador Cósmico (16): 3,42 ATK, 0,43 CRÍT, 1,46 DEF, 6,85 HP, 18% VEL + ataque por almas e ceifa na décima. • Coração do Vazio (15): 2,46 ATK, 0,28 CRÍT, 2,71 DEF, 14,87 HP, 12% VEL + Revive 70% HP. • Prisma Estelar (17): 2,21 ATK, 0,22 CRÍT, 2,21 DEF, 12,87 HP, 14% VEL + Limpa controles, escudo e cura a cada 10s. • Imortais (10 a 13): Sede Escarlate (1,65 ATK/nv, sangramento), Carrasco (1,83 ATK/nv, +60% dano <=30% HP), Sanguessuga (5,75 HP/nv, 8% de roubo de vida em dano direto) e Fênix Rubra (6,95 HP/nv, revive 40% HP).",
       categoria: "equipamentos"
     },
     alquimia: {

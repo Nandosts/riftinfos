@@ -54,14 +54,16 @@ function renderizarAnaliseCombateJogador(perfil, status, metricas) {
     `;
   } else if (metricas.analiseEfeitoArma?.tipo === "singularity") {
     const s = metricas.analiseEfeitoArma;
+    const comEco = s.pctBossEfetivo > s.pctBossBase;
     cardArmaEspecial = `
       <article class="card-combate destaque-arma">
         <div class="card-combate-titulo">Efeito da Arma (${escaparHtml(s.nome)})</div>
-        <div class="metrica-principal">${(s.pctBossEfetivo * 100).toFixed(1).replace(".", ",")}% HP do Chefe</div>
+        <div class="metrica-principal">${(s.pctBossEfetivo * 100).toFixed(1).replace(".", ",")}% do HP do chefe${comEco ? " em média" : ""}</div>
         <span class="badge-status-skill ok">✓ DANO VERDADEIRO (% HP)</span>
         <div class="card-info-linha"><span>Em Monstros Normais</span><strong>25% do HP máx. (ignora DEF)</strong></div>
         <div class="card-info-linha"><span>Ativação</span><strong>A cada ${s.cada}s (+1,4s atraso)</strong></div>
         <p class="note-compacto">${escaparHtml(s.texto)}</p>
+        ${comEco ? '<p class="note-compacto">Média com Eclipse Arcano, considerando o herói vivo e o alvo recebendo o dano integral. O eco só sai em 20% das implosões elegíveis.</p>' : ""}
       </article>
     `;
   } else if (metricas.infoArma?.efeito) {
