@@ -174,16 +174,6 @@ function construirCatalogoItens() {
       tagUtilidade: util.tag,
       motivoUtilidade: util.motivo,
       fcRef,
-      fcPorClasse: {
-        warrior: calcularFcPadraoAnel(look, "warrior"),
-        archer: calcularFcPadraoAnel(look, "archer"),
-        cleric: calcularFcPadraoAnel(look, "cleric"),
-      },
-      utilPorClasse: {
-        warrior: UTILIDADE_ANEIS_POR_CLASSE.warrior[look] || util,
-        archer: UTILIDADE_ANEIS_POR_CLASSE.archer[look] || util,
-        cleric: UTILIDADE_ANEIS_POR_CLASSE.cleric[look] || util,
-      },
       detalhes: [
         `Bônus 2/3: ${formatarBonusCurto(setInfo.b2)}`,
         `Bônus 3/3: ${formatarBonusCurto(setInfo.b3)}`,
