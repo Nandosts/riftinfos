@@ -311,13 +311,17 @@ Object.assign(window, {
     # Confere IDs consultados pelos módulos, incluindo os gerados pelos templates.
     with open(caminho_html, "r", encoding="utf-8") as f:
         html_txt = f.read()
+    caminho_tierlist = os.path.join(DIRETORIO_BASE, "tierlist.html")
+    if os.path.exists(caminho_tierlist):
+        with open(caminho_tierlist, "r", encoding="utf-8") as f:
+            html_txt += "\n" + f.read()
     js_txt = "\n".join(arquivo.read_text(encoding="utf-8") for arquivo in arquivos_js)
 
     ids_html = set(re.findall(r'\bid="([^"]+)"', html_txt))
     ids_dinamicos_js = set(re.findall(r'id="([a-zA-Z0-9_-]+)"', js_txt))
     ids_js = set(re.findall(r'querySelector\("#([^"]+)"\)', js_txt))
     ids_faltando = sorted(ids_js - (ids_html | ids_dinamicos_js))
-    ex.afirmar(not ids_faltando, "Todos os IDs consultados pelos módulos existem em index.html (ou template JS)", f"Faltando: {ids_faltando}")
+    ex.afirmar(not ids_faltando, "Todos os IDs consultados pelos módulos existem no HTML (ou template JS)", f"Faltando: {ids_faltando}")
 
     if com_servidor:
         proc_srv = subprocess.Popen(

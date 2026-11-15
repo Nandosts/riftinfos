@@ -23,6 +23,24 @@ body { margin: 0; color: var(--text); font: 1rem/1.5 system-ui, sans-serif; back
 .brand span { width: 12px; height: 12px; background: #ff6a5a; box-shadow: 3px 3px #6a2a43; }
 .community, .note, #status-consulta { color: var(--muted); }
 .community { font-size: 11px; letter-spacing: .08em; }
+.topbar-centro { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.nav-topo { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn-topo-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(240, 180, 41, 0.45);
+  background: rgba(240, 180, 41, 0.1);
+  color: var(--gold);
+  font-family: var(--pix);
+  font-size: 11px;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+.btn-topo-nav:hover { background: rgba(240, 180, 41, 0.2); border-color: var(--gold); transform: translateY(-1px); }
+.btn-topo-nav.ativa { background: rgba(86, 204, 242, 0.16); border-color: var(--cyan); color: var(--cyan); }
 main { padding-block: clamp(32px, 7vw, 72px); }
 .intro { margin-bottom: 28px; }
 .intro p:last-child { color: var(--muted); margin-bottom: 0; }
