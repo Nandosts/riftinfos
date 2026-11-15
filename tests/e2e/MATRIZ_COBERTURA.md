@@ -56,11 +56,18 @@ Revisão visual de regressões: em caso de falha visual, o Playwright gera `expe
 
 ---
 
-## Entrega 3 — Erros, Concorrência, Limites Numéricos e Regressões Intencionais (Planejada)
+## Entrega 3 — Erros, Concorrência, Limites Numéricos e Regressões Intencionais
 
 | área | estado | fixture | teste | tipo de cobertura | resultado |
 |---|---|---|---|---|---|
-| 3/7. Erros & Concorrência | 404, 503, timeout, JSON inválido, fallback AWS bem-sucedido, consulta A lenta vs B rápida | `cenarios.*` | `tests/e2e/erros-concorrencia.spec.mjs` (a criar) | E2E funcional | Pendente (Entrega 3) |
-| 5/6/7/8. Limites Numéricos | Exemplos independentes calculados à mão (FC, DPS, cura, Gelo, chance acumulada, VEL 4,59/4,60/4,61) | Casos explícitos | `tests/calculos-independentes.test.cjs` (a criar) | Unitário independente | Pendente (Entrega 3) |
-| 9. Critério de Aceite | Regressões intencionais em cópia temporária (esconder controle, overflow, alterar número) + 2 runs consecutivos | Cópia temporária | Validação final | Auditoria E2E | Pendente (Entrega 3) |
+| 3/7. Erros & Concorrência | Fallback AWS (503 na rota principal), concorrência A lenta vs B rápida, erros HTTP 404/503/JSON inválido/login incorreto, P1/P2 concorrente, share JSON inválido / >64 KiB e storage bloqueado | `cenarios.*`, `PERFIS_MOCK.*` | `tests/e2e/erros-concorrencia.spec.mjs` | E2E funcional | Passou (4/4) |
+| 5/6/7/8. Limites Numéricos | Teto de VEL em 4,6/s (`cadenciaReal` fixa, excesso vira `speedBonus = aspd / 4.6`), redução física independente (`DEF=100 → 80%`), chance acumulada com Gelo e mecânicas dos anéis | Casos explícitos calculados à mão | `tests/calculos-independentes.test.cjs` | Unitário independente | Passou (4/4) |
+| 9. Critério de Aceite | Regressões intencionais revertidas (ocultar link da Tier List em `index.html` → falha em `visual-baselines.spec.mjs`; alterar fórmula `reducaoDefesa` em `src/combate.mjs` → falha em `calculos-independentes.test.cjs`) + 2 runs consecutivos sem atualização de snapshots | Cópia temporária revertida | `npm test` + `npm run test:e2e` | Auditoria E2E / Unitária | Passou |
+
+### Execução e Revisão de Baselines (Playwright 1.65.1)
+
+- **Testes unitários e de cálculo:** `npm test` (`node tests/review-regression.test.cjs && node tests/calculos-independentes.test.cjs`).
+- **Verificação E2E (sem alterar snapshots):** `npm run test:e2e` (`npx playwright test --update-snapshots=none`).
+- **Atualização intencional de baselines:** `npm run test:e2e:update` (`npx playwright test tests/e2e/visual-baselines.spec.mjs --update-snapshots`).
+- **Revisão de falhas visuais:** `npx playwright show-report` (exibe imagens `expected`, `actual` e `diff` quando há divergência de pixels).
 
