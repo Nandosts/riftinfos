@@ -22,7 +22,7 @@ const UTILIDADE_CONJUNTOS = {
   singular: { tier: "S+", tag: "Chefe / DPS%", motivo: "Insubstituível contra chefes de zona alta: tira 4% da vida máxima do chefe a cada 13s ignorando defesa." },
   thunderlord: { tier: "S", tag: "Dano + Stun", motivo: "Maior dano bruto Arcano do Guerreiro (+48% ATK, +15% VEL) com raio em cadeia a cada 11s e atordoamento." },
   tamer: { tier: "S", tag: "Sangramento", motivo: "Equilibrado em ataque e defesa; aplica sangramento puro que ignora defesa e reduz velocidade de ataque do alvo." },
-  chrono: { tier: "A", tag: "Stun Global", motivo: "Maior duração de atordoamento/congelamento do jogo (1,7s monstros / 0,9s chefe a cada 14s), ótimo para controle." },
+  chrono: { tier: "A", tag: "Maior Stun do Jogo", motivo: "Maior duração de atordoamento/congelamento do jogo (1,7s monstros / 0,9s chefe a cada 14s), excelente para controle." },
   obsidian: { tier: "A", tag: "Tanque / Escudo", motivo: "Focado em sobrevivência máxima (+48% HP, +40% DEF) com escudo de 10% a cada 12s; menor DPS entre os Arcanos." },
   strongman: { tier: "B", tag: "Stun Curto", motivo: "Bom ataque e stun curto de perto (1,3s / 0,5s chefe a cada 12s), mas perde em alcance e dano para Trovão/Domador." },
   ember: { tier: "B", tag: "Auto-Revive", motivo: "Útil como set de entrada na Raid pelo auto-revive (50% HP), porém superado por Anel do Coração do Vazio / Fênix." },
@@ -46,7 +46,7 @@ const UTILIDADE_CONJUNTOS = {
   communion: { tier: "A", tag: "Buff +30% ATK", motivo: "Excelente set Imortal de suporte ofensivo (+30% ATK para o time por 5s + 25% de cura a cada 12s)." },
   illusion: { tier: "A", tag: "Híbrido", motivo: "Status Arcanos altos (+75% ATK, +60% HP), mas efeito aleatório (1/3 cura, 1/3 escudo, 1/3 dano) reduz previsibilidade." },
   constel: { tier: "B", tag: "Escudo Imortal", motivo: "Versão Imortal da Madame Cartomante (escudo de 20% HP por 6s a cada 16s)." },
-  echo: { tier: "C", tag: "Skill Dupla", motivo: "Zera o cooldown da próxima cura a cada 18s; útil solo, mas entrega menos utilidade em grupo." },
+  echo: { tier: "B", tag: "Cura Dupla 18s", motivo: "Útil se bem utilizado para sustento: zera o cooldown da própria skill de cura do Clérigo a cada 18s (não reseta passivas de aliados como a Singularidade)." },
 };
 
 const UTILIDADE_ANEIS = {
@@ -81,22 +81,66 @@ function calcularFcPadraoConjunto(setKey, setInfo) {
   return Math.round(calcularFc(cls, st));
 }
 
-function calcularFcPadraoAnel(look) {
+const UTILIDADE_ANEIS_POR_CLASSE = {
+  warrior: {
+    15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Essencial na Raid e na linha de frente: revive com 70% HP + 40% escudo e dá ótima Vida/Defesa." },
+    19: { tier: "S+", tag: "Tanque +18% VEL", motivo: "Melhor pacote bruto de Vida, Defesa e +18% Velocidade para o Guerreiro aguentar chefes pesados." },
+    11: { tier: "S+", tag: "Roubo de Vida 8%", motivo: "Cura 8% de TODO o dano causado sem cooldown: com Singularidade ou DPS alto, enche a vida inteira em 1 hit." },
+    18: { tier: "S", tag: "ATK/CRÍT Brutos", motivo: "Maior dano bruto para builds Arcanas ofensivas (Senhor do Trovão / Domador)." },
+    14: { tier: "S", tag: "Eco +20% DPS", motivo: "Repete 100% do golpe em 20% das vezes (+20% DPS em golpes normais)." },
+    17: { tier: "S", tag: "Limpa Controle", motivo: "Remove stun/lentidão da linha de frente a cada 10s e ainda dá 12% escudo + 8% cura." },
+    10: { tier: "A", tag: "Sangramento", motivo: "Bom contra chefes de defesa muito alta: aplica sangramento que ignora defesa." },
+    16: { tier: "A", tag: "+40% ATK Ondas", motivo: "Escala até +40% ATK acumulando abates; ótimo em ondas, mais fraco em chefe solo." },
+    13: { tier: "B", tag: "Revive Imortal", motivo: "Alternativa Imortal ao Coração do Vazio (auto-revive com 40% HP)." },
+    12: { tier: "B", tag: "Finalizador", motivo: "+60% dano abaixo de 30% de vida do alvo." },
+  },
+  archer: {
+    18: { tier: "S+", tag: "ATK/CRÍT Brutos", motivo: "Melhor pacote ofensivo para o Arqueiro: ATK e Crítico altíssimos multiplicados pela velocidade base 1,10/s." },
+    14: { tier: "S+", tag: "Eco +20% DPS", motivo: "Repete 100% da flecha em 20% das vezes (+20% DPS em alvo único) e ricocheteia em 2 alvos." },
+    11: { tier: "S+", tag: "Roubo de Vida 8%", motivo: "Como o Arqueiro tem o maior DPS contínuo à distância, recupera a vida inteira quase instantaneamente." },
+    16: { tier: "S", tag: "+40% ATK +18% VEL", motivo: "Excelente para limpar ondas (+40% ATK por almas) e aumentar o SpeedBonus com +18% VEL." },
+    15: { tier: "S", tag: "Auto-Revive 70%", motivo: "Salva muito na Raid Covil de Vexxaris, onde o Arqueiro tem menos vida base." },
+    19: { tier: "A", tag: "Sobrevivência +VEL", motivo: "Dá +18% VEL e muita Vida/Defesa para evitar morrer em um golpe." },
+    10: { tier: "A", tag: "Sangramento", motivo: "Sangramento puro que ignora defesa contra chefes altos." },
+    17: { tier: "A", tag: "Limpa Controle", motivo: "Escudo + cura + limpeza de controle a cada 10s." },
+    13: { tier: "B", tag: "Revive Imortal", motivo: "Auto-revive Imortal (40% HP) até conseguir o Coração do Vazio." },
+    12: { tier: "B", tag: "Finalizador", motivo: "+60% dano abaixo de 30% de vida." },
+  },
+  cleric: {
+    15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Anel #1 de suporte na Raid: garante que o Clérigo volte vivo (70% HP + 40% escudo) para continuar curando/revivendo o time." },
+    19: { tier: "S+", tag: "Vida/DEF +18% VEL", motivo: "Maior resistência e +18% Velocidade para o Clérigo ficar vivo e lançar curas mais rápido." },
+    17: { tier: "S", tag: "Escudo + Limpa CC", motivo: "Ótima sinergia com Clérigo: limpa controles, aplica escudo de 12% e cura 8% a cada 10s." },
+    18: { tier: "S", tag: "Muito ATK p/ Cura", motivo: "Maior Ataque e Crítico brutos, aumentando direto o valor das curas do Clérigo." },
+    14: { tier: "A", tag: "Dano / Eclipse", motivo: "Boa opção se estiver jogando de Cajado do Eclipse focado em dano + stun." },
+    13: { tier: "A", tag: "Revive Imortal", motivo: "Boa alternativa Imortal para garantir auto-revive (40% HP) na Raid." },
+    16: { tier: "B", tag: "ATK em Ondas", motivo: "Bom para dano em ondas, mas menos útil em chefes/Raid para Clérigo." },
+    11: { tier: "B", tag: "Roubo de Vida 8%", motivo: "Clérigo causa menos dano que Guerreiro/Arqueiro, então aproveita menos os 8% de roubo de vida." },
+    10: { tier: "B", tag: "Sangramento", motivo: "Dano contínuo auxiliar em chefes." },
+    12: { tier: "C", tag: "Finalizador", motivo: "Pouco aproveitado por builds de suporte/cura." },
+  },
+};
+
+function calcularFcPadraoAnel(look, cls = "warrior") {
   const base = { str: 500, agi: 500, vit: 500, def: 500, luk: 100 };
   const nivel = 750;
   const rar = look >= 14 ? 7 : 6;
+  const setRef = cls === "archer"
+    ? { h: "abyssmask", a: "abyssvest", w: "abyssbow", s: "abysshunter" }
+    : cls === "cleric"
+      ? { h: "serafhalo", a: "serafrobe", w: "serafscepter", s: "seraphgold" }
+      : { h: "thunderhelm", a: "thunderplate", w: "thunderaxe", s: "thunderlord" };
   const itens = [
-    { slot: "helmet", rarity: 7, itemLevel: 300, kind: "thunderhelm", set: "thunderlord", look: 0, sockets: 6 },
-    { slot: "armor", rarity: 7, itemLevel: 300, kind: "thunderplate", set: "thunderlord", look: 0, sockets: 6 },
-    { slot: "weapon", rarity: 7, itemLevel: 300, kind: "thunderaxe", set: "thunderlord", look: 0, sockets: 6 },
+    { slot: "helmet", rarity: 7, itemLevel: 300, kind: setRef.h, set: setRef.s, look: 0, sockets: 6 },
+    { slot: "armor", rarity: 7, itemLevel: 300, kind: setRef.a, set: setRef.s, look: 0, sockets: 6 },
+    { slot: "weapon", rarity: 7, itemLevel: 300, kind: setRef.w, set: setRef.s, look: 0, sockets: 6 },
     { slot: "ring", rarity: rar, itemLevel: 300, kind: "ring", look, sockets: rar >= 7 ? 6 : 5 },
   ].map((it) => {
     aplicarAtributosPadraoNoItem(it);
     it.gems = Array.from({ length: it.sockets }, () => criarGemaPreset("topaz", it.slot, 5, 300, 0.5));
     return it;
   });
-  const st = calcularStatusSimulados("warrior", nivel, base, itens);
-  return Math.round(calcularFc("warrior", st));
+  const st = calcularStatusSimulados(cls, nivel, base, itens);
+  return Math.round(calcularFc(cls, st));
 }
 
 function formatarBonusCurto(b) {
@@ -130,6 +174,16 @@ function construirCatalogoItens() {
       tagUtilidade: util.tag,
       motivoUtilidade: util.motivo,
       fcRef,
+      fcPorClasse: {
+        warrior: calcularFcPadraoAnel(look, "warrior"),
+        archer: calcularFcPadraoAnel(look, "archer"),
+        cleric: calcularFcPadraoAnel(look, "cleric"),
+      },
+      utilPorClasse: {
+        warrior: UTILIDADE_ANEIS_POR_CLASSE.warrior[look] || util,
+        archer: UTILIDADE_ANEIS_POR_CLASSE.archer[look] || util,
+        cleric: UTILIDADE_ANEIS_POR_CLASSE.cleric[look] || util,
+      },
       detalhes: [
         `Bônus 2/3: ${formatarBonusCurto(setInfo.b2)}`,
         `Bônus 3/3: ${formatarBonusCurto(setInfo.b3)}`,
@@ -160,6 +214,16 @@ function construirCatalogoItens() {
       tagUtilidade: util.tag,
       motivoUtilidade: util.motivo,
       fcRef,
+      fcPorClasse: {
+        warrior: calcularFcPadraoAnel(look, "warrior"),
+        archer: calcularFcPadraoAnel(look, "archer"),
+        cleric: calcularFcPadraoAnel(look, "cleric"),
+      },
+      utilPorClasse: {
+        warrior: UTILIDADE_ANEIS_POR_CLASSE.warrior[look] || util,
+        archer: UTILIDADE_ANEIS_POR_CLASSE.archer[look] || util,
+        cleric: UTILIDADE_ANEIS_POR_CLASSE.cleric[look] || util,
+      },
       detalhes: [
         `Foco: ${anel.foco || "Equilibrado"}`,
         `Onde conseguir: ${anel.obtencao || "Chefes / Forja"}`,
@@ -223,9 +287,25 @@ function desenharTodosSprites() {
   });
 }
 
+function obterItemContextualizado(item) {
+  if (item.categoria === "ring" && ["warrior", "archer", "cleric"].includes(categoriaAtual)) {
+    const u = item.utilPorClasse?.[categoriaAtual];
+    const fc = item.fcPorClasse?.[categoriaAtual];
+    return {
+      ...item,
+      tierUtilidade: u?.tier || item.tierUtilidade,
+      tagUtilidade: u?.tag || item.tagUtilidade,
+      motivoUtilidade: u?.motivo || item.motivoUtilidade,
+      fcRef: fc ?? item.fcRef,
+    };
+  }
+  return item;
+}
+
 function renderizarDetalhe() {
   if (!containerDetalhe) return;
-  const item = CATALOGO_TIERLIST.find((x) => x.id === itemSelecionadoId);
+  const raw = CATALOGO_TIERLIST.find((x) => x.id === itemSelecionadoId);
+  const item = raw ? obterItemContextualizado(raw) : null;
   if (!item) {
     containerDetalhe.innerHTML = `<div class="muted small">Clique em qualquer conjunto ou anel acima para ver os bônus, passiva, onde conseguir e FC simulado.</div>`;
     return;
@@ -255,9 +335,15 @@ function renderizarDetalhe() {
 
 function renderizarTabela() {
   if (!containerTabela) return;
-  const filtrados = CATALOGO_TIERLIST.filter((item) =>
-    categoriaAtual === "todos" ? true : item.categoria === categoriaAtual
-  );
+  const filtrados = CATALOGO_TIERLIST
+    .filter((item) => {
+      if (categoriaAtual === "todos") return true;
+      if (["warrior", "archer", "cleric"].includes(categoriaAtual)) {
+        return item.categoria === categoriaAtual || item.categoria === "ring";
+      }
+      return item.categoria === categoriaAtual;
+    })
+    .map(obterItemContextualizado);
 
   const grupos = modoAtual === "fc"
     ? atribuirTiersPorFc(filtrados)
