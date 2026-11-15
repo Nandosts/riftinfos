@@ -18,7 +18,7 @@ import { escaparHtml, formatadorInteiro, formatarGemaTexto } from "../formato.mj
 import { perfilCarregadoP1 } from "../perfil.mjs";
 import { renderizarCompararMelhorias, renderizarPainelGerenciadorBuilds } from "./builds.mjs";
 import { vincularEventosSimulador } from "./controles.mjs";
-import { limitarTierGema, obterOrigemBuildSimulador, resumoCurtoGemaBotao, rotuloTierGema, simulacao, slotsAbertosSimulador } from "./estado.mjs";
+import { limitarTierGema, obterOrigemBuildSimulador, obterTierEngaste, resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
 import {
   construirBarraModoCriativoHtml,
   construirModoFichaVisualHtml,
@@ -70,6 +70,8 @@ function renderizarSimulador() {
       seletorFocoRestaurar = `[data-sim-gem-btn="${elementoFocadoAtivo.dataset.simGemBtn}"]`;
     } else if (elementoFocadoAtivo.dataset?.simSlotTier) {
       seletorFocoRestaurar = `[data-sim-slot-tier="${elementoFocadoAtivo.dataset.simSlotTier}"]`;
+    } else if (elementoFocadoAtivo.dataset?.simEngasteTier) {
+      seletorFocoRestaurar = `[data-sim-engaste-tier="${elementoFocadoAtivo.dataset.simEngasteTier}"]`;
     } else if (elementoFocadoAtivo.dataset?.simSelecaoSlot || elementoFocadoAtivo.dataset?.simSelecionarSlot) {
       const v = elementoFocadoAtivo.dataset.simSelecionarSlot;
       if (v !== undefined) seletorFocoRestaurar = `[data-sim-selecionar-slot="${v}"]`;
@@ -224,37 +226,27 @@ function renderizarSimulador() {
         const antigas = Array.isArray(item.gems) ? item.gems : [];
         item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
       }
-      const tierSlot = limitarTierGema(item.gemTierPadrao, item.rarity);
       const qtdGemasAtivas = item.gems.slice(0, maxGemas).filter(Boolean).length;
-
-      const botoesTierHtml = [1, 2, 3, 4, 5, 6]
-        .map(
-          (t) => `
-          <button type="button" class="btn-tier-gema ${tierSlot === t ? "ativa" : ""}" data-sim-slot-tier="${idxSlot}:${t}" ${t > limitarTierGema(6, item.rarity) ? 'disabled title="Prismáticas exigem peças Imortais ou Arcanas"' : ""}>
-            ${rotuloTierGema(t)}
-          </button>
-        `
-        )
-        .join("");
+      const maxTier = limitarTierGema(6, item.rarity);
 
       const linhasGemasHtml = Array.from({ length: maxGemas }, (_, idxGema) => {
         const gemaAtual = item.gems[idxGema] || null;
-        const tipoAtual = gemaAtual?.type || null;
+        const tipoAtual = gemaAtual?.type || gemaAtual?.kind || null;
+        const tierEngaste = obterTierEngaste(item, idxGema);
 
         const botoesOpcoesHtml = Object.entries(catalogoGemas)
           .map(([tk, tv]) => {
             const estaSelecionada = tipoAtual === tk;
-            const tierExibicao = estaSelecionada ? gemaAtual.tier || tierSlot : tierSlot;
             const subtexto = estaSelecionada
               ? formatarGemaTexto(gemaAtual).replace(/^[^:]+:\s*/, "")
-              : resumoCurtoGemaBotao(tk, item.slot, tierExibicao, item.itemLevel);
+              : resumoCurtoGemaBotao(tk, item.slot, tierEngaste, item.itemLevel);
             return `
               <button
                 type="button"
                 class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
                 data-sim-gem-btn="${idxSlot}:${idxGema}:${tk}"
                 aria-pressed="${estaSelecionada ? "true" : "false"}"
-                title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Engastar ${tv.nome} T${tierSlot}`}"
+                title="${estaSelecionada ? "Clique para desselecionar esta gema" : `Engastar ${tv.nome} T${tierEngaste}`}"
               >
                 <strong class="gema-titulo-btn"><span class="gema-ponto-cor" style="background:${tv.cor};"></span>${tv.nome}</strong>
                 <small class="gema-sub-btn">${escaparHtml(subtexto)}</small>
@@ -264,8 +256,16 @@ function renderizarSimulador() {
           .join("");
 
         return `
-          <div class="sim-gema-linha">
-            <span class="sim-gema-indice">#${idxGema + 1}</span>
+          <div class="sim-gema-linha com-tier">
+            <label class="sim-gema-indice">
+              <span>#${idxGema + 1}</span>
+              <select data-sim-engaste-tier="${idxSlot}:${idxGema}" aria-label="Tier do engaste ${idxGema + 1}">
+                ${Array.from({ length: maxTier }, (_, indice) => {
+                  const tier = indice + 1;
+                  return `<option value="${tier}" ${tierEngaste === tier ? "selected" : ""}>T${tier}</option>`;
+                }).join("")}
+              </select>
+            </label>
             ${botoesOpcoesHtml}
           </div>
         `;
@@ -311,7 +311,6 @@ function renderizarSimulador() {
                   <p class="small muted" style="margin:2px 0 0 0; font-size:0.75rem;">Modo: ${simulacao.modoRolagemGemaSimulador === "max" ? "Teto 115%" : simulacao.modoRolagemGemaSimulador === "media" ? "Média 100%" : "Sorteio 85% a 115%"}. Não altera o jogo.</p>
                 </div>
                 <div class="sim-tier-bar">
-                  ${botoesTierHtml}
                   <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Recalcula as gemas engastadas nesta peça">🎲 Re-rolar</button>
                   <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
                   <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>

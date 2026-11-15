@@ -1,14 +1,15 @@
 import { catalogoGemas } from "../dados.mjs";
 import { escaparHtml, formatarGemaTexto } from "../formato.mjs";
-import { limitarTierGema, resumoCurtoGemaBotao, rotuloTierGema } from "./estado.mjs";
+import { limitarTierGema, obterTierEngaste, resumoCurtoGemaBotao, rotuloTierGema } from "./estado.mjs";
 
 export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, engaste, prefixo = "sim", rolagem }) {
   const maxGemasAtivo = Math.max(0, Math.min(6, Number(itemAtivo.sockets ?? 6)));
-  const tierSlotAtivo = limitarTierGema(itemAtivo.gemTierPadrao, itemAtivo.rarity);
   const qtdGemasAtivas = itemAtivo.gems.slice(0, maxGemasAtivo).filter(Boolean).length;
   const engasteAtivo = Math.min(Math.max(0, maxGemasAtivo - 1), Math.max(0, engaste));
+  const tierDoEngaste = (indice) => limitarTierGema(itemAtivo.tiersEngastes?.[indice] ?? obterTierEngaste(itemAtivo, indice), itemAtivo.rarity);
+  const tierAtivo = tierDoEngaste(engasteAtivo);
   const botoesTierHtml = [1, 2, 3, 4, 5, 6].map((t) => `
-    <button type="button" class="btn-tier-gema ${tierSlotAtivo === t ? "ativa" : ""}" data-${prefixo}-slot-tier="${idxAtivo}:${t}" aria-pressed="${tierSlotAtivo === t}" ${t > limitarTierGema(6, itemAtivo.rarity) ? 'disabled title="Prismáticas exigem peças Imortais ou Arcanas"' : ""}>
+    <button type="button" class="btn-tier-gema ${tierAtivo === t ? "ativa" : ""}" data-${prefixo}-slot-tier="${idxAtivo}:${engasteAtivo}:${t}" aria-pressed="${tierAtivo === t}" ${t > limitarTierGema(6, itemAtivo.rarity) ? 'disabled title="Prismáticas exigem peças Imortais ou Arcanas"' : ""}>
       ${rotuloTierGema(t)}
     </button>
   `).join("");
@@ -16,8 +17,9 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
   const sockets6Html = Array.from({ length: maxGemasAtivo }, (_, idxGema) => {
     const gema = itemAtivo.gems[idxGema] || null;
     const selecionado = idxGema === engasteAtivo;
-    const infoGema = gema?.type ? catalogoGemas[gema.type] : null;
-    const tierGema = gema?.tier || tierSlotAtivo;
+    const tipoGema = gema?.type || gema?.kind;
+    const infoGema = catalogoGemas[tipoGema];
+    const tierGema = tierDoEngaste(idxGema);
     const resumoCurto = gema
       ? formatarGemaTexto(gema).replace(/^[^:]+:\s*/, "").split(" · ")[0]
       : "Vazio";
@@ -30,11 +32,11 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
         aria-pressed="${selecionado}"
         title="${escaparHtml(`Engaste ${idxGema + 1}: ${gema ? formatarGemaTexto(gema) : "Vazio"}`)}"
       >
-        <span class="rs-socket-num">#${idxGema + 1}</span>
+        <span class="rs-socket-num">#${idxGema + 1} · T${tierGema}</span>
         <span class="rs-socket-icon">
           ${
             infoGema
-              ? `<canvas class="rs-canvas-gema-socket" data-${prefixo}-canvas-gema="${gema.type}:${tierGema}:1" width="16" height="16"></canvas>`
+              ? `<canvas class="rs-canvas-gema-socket" data-${prefixo}-canvas-gema="${tipoGema}:${tierGema}:1" width="16" height="16"></canvas>`
               : `<span class="rs-socket-empty-diamond">◇</span>`
           }
         </span>
@@ -45,11 +47,11 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
   }).join("");
 
   const gemaNoEngasteAtivo = itemAtivo.gems[engasteAtivo] || null;
-  const tipoNoEngasteAtivo = gemaNoEngasteAtivo?.type || null;
+  const tipoNoEngasteAtivo = gemaNoEngasteAtivo?.type || gemaNoEngasteAtivo?.kind;
 
   const opcoesPedraEngasteAtivoHtml = Object.entries(catalogoGemas).map(([tk, tv]) => {
     const estaSelecionada = tipoNoEngasteAtivo === tk;
-    const tierExibicao = estaSelecionada ? gemaNoEngasteAtivo.tier || tierSlotAtivo : tierSlotAtivo;
+    const tierExibicao = tierAtivo;
     const subtexto = estaSelecionada
       ? formatarGemaTexto(gemaNoEngasteAtivo).replace(/^[^:]+:\s*/, "")
       : resumoCurtoGemaBotao(tk, itemAtivo.slot, tierExibicao, itemAtivo.itemLevel, rolagem);
@@ -60,7 +62,7 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
         class="btn-gema-opcao ${estaSelecionada ? "ativa" : ""}"
         data-${prefixo}-gem-btn="${idxAtivo}:${engasteAtivo}:${tk}"
         aria-pressed="${estaSelecionada ? "true" : "false"}"
-        title="${estaSelecionada ? "Clique para remover a pedra deste engaste" : `Colocar ${tv.nome} T${tierSlotAtivo} no Engaste #${engasteAtivo + 1}`}"
+        title="${estaSelecionada ? "Clique para remover a pedra deste engaste" : `Colocar ${tv.nome} T${tierAtivo} no Engaste #${engasteAtivo + 1}`}"
       >
         <strong class="gema-titulo-btn">
           <canvas class="rs-canvas-gema-mini" data-${prefixo}-canvas-gema="${tk}:${tierExibicao}:1" width="16" height="16"></canvas>
@@ -78,7 +80,6 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
           <span>ENGASTES DE GEMAS (${qtdGemasAtivas}/${maxGemasAtivo})</span>
         </div>
         <div class="sim-tier-bar">
-          ${botoesTierHtml}
           <button type="button" class="btn-mini" data-${prefixo}-gem-reroll="${idxAtivo}" title="Recalcula as gemas desta peça">🎲 Re-rolar</button>
           <button type="button" class="btn-mini" data-${prefixo}-gem-limpar="${idxAtivo}" title="Remove todas as gemas desta peça">Limpar</button>
         </div>
@@ -91,7 +92,7 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
 
       <div class="rs-stone-picker">
         <div class="rs-stone-picker-head">
-          <span>Escolher pedra para o <strong>Engaste #${engasteAtivo + 1}</strong>:</span>
+          <span>Engaste #${engasteAtivo + 1}</span>
           <div class="rs-stone-picker-actions">
             ${gemaNoEngasteAtivo ? `
               ${maxGemasAtivo > 1 ? `<button type="button" class="btn-mini btn-atalho-ativo" data-${prefixo}-gem-repetir-ativo="${idxAtivo}:${engasteAtivo}" title="Preencher os engastes com gemas do mesmo tipo e tier">
@@ -102,6 +103,9 @@ export function construirEditorEngastes({ item: itemAtivo, chavePeca: idxAtivo, 
               </button>
             ` : ""}
           </div>
+        </div>
+        <div class="sim-tier-bar" role="group" aria-label="Tier do engaste selecionado">
+          ${botoesTierHtml}
         </div>
         <div class="rs-stone-options-row">
           ${opcoesPedraEngasteAtivoHtml}

@@ -1231,6 +1231,22 @@ button.rs-bag-card:hover {
   margin-top: 8px;
 }
 
+.sim-gema-linha.com-tier {
+  grid-template-columns: 56px repeat(5, minmax(0, 1fr));
+}
+
+.com-tier .sim-gema-indice {
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px;
+}
+
+.com-tier .sim-gema-indice select {
+  min-height: 26px;
+  padding: 2px;
+  font-size: 0.75rem;
+}
+
 .rs-socket-btn {
   display: grid;
   justify-items: center;
@@ -1385,6 +1401,9 @@ button:disabled {
 @media (max-width: 520px) {
   .sim-gema-linha {
     grid-template-columns: 26px repeat(2, minmax(0, 1fr));
+  }
+  .sim-gema-linha.com-tier {
+    grid-template-columns: 56px repeat(2, minmax(0, 1fr));
   }
   .sim-gema-indice {
     grid-row: span 3;

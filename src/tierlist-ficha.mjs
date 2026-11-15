@@ -82,7 +82,7 @@ export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtiv
             `).join("")}
           </div>
           <h3 class="tl-ficha-atributos-titulo">Gemas de ${escaparHtml(pecaAtiva.name)}</h3>
-          <p class="note small">O tier e os engastes deste slot são compartilhados por todos os itens do ranking.</p>
+          <p class="note small">Alterar a gema ou o tier atualiza esse mesmo engaste em todos os itens do ranking.</p>
           ${construirEditorEngastes({
             item: pecaAtiva, chavePeca: slotAtivo, engaste: engasteAtivo, prefixo: "tl", rolagem: 1,
           })}

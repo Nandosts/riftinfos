@@ -9,6 +9,7 @@ import {
 } from "../dados.mjs";
 
 const origemPorBuild = new WeakMap();
+const tiersEngastesVazios = new WeakMap();
 
 function obterOrigemBuildSimulador() {
   return origemPorBuild.get(simulacao.estadoSimulador);
@@ -47,6 +48,21 @@ function sortearRolagemGema() {
 
 function limitarTierGema(tier, raridade = 7) {
   return Math.min(raridade >= 6 ? 6 : 5, Math.max(1, Math.trunc(Number(tier)) || 5));
+}
+
+function obterTierEngaste(item, indice) {
+  const tier = item.gems?.[indice]?.tier ?? tiersEngastesVazios.get(item)?.get(indice) ?? item.gemTierPadrao;
+  return limitarTierGema(tier, item.rarity);
+}
+
+function definirTierEngaste(item, indice, tier) {
+  const tierValido = limitarTierGema(tier, item.rarity);
+  if (!tiersEngastesVazios.has(item)) tiersEngastesVazios.set(item, new Map());
+  tiersEngastesVazios.get(item).set(indice, tierValido);
+  const gema = item.gems?.[indice];
+  if (gema && gema.tier !== tierValido) {
+    item.gems[indice] = criarGemaPreset(gema.type || gema.kind, item.slot, tierValido, item.itemLevel);
+  }
 }
 
 function rotuloTierGema(tier) {
@@ -413,6 +429,7 @@ export {
   aplicarTrocaAnelSimulador,
   criarGemaPreset,
   criarModeloSimuladorPadrao,
+  definirTierEngaste,
   equiparConjuntoCompletoSimulador,
   equiparPecaConjuntoSimulador,
   limparVisualImportado,
@@ -422,6 +439,7 @@ export {
   obterNomeOficialPecaConjunto,
   obterOrigemBuildSimulador,
   obterResumoPassivasBuildSimulador,
+  obterTierEngaste,
   recalcularGemasBuildComModo,
   recalcularGemasItem,
   resumoCurtoGemaBotao,

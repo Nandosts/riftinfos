@@ -13,12 +13,13 @@ import {
   aplicarTrocaAnelSimulador,
   criarGemaPreset,
   criarModeloSimuladorPadrao,
+  definirTierEngaste,
   equiparConjuntoCompletoSimulador,
   equiparPecaConjuntoSimulador,
   limparVisualImportado,
-  limitarTierGema,
   importarPerfilParaSimulador,
   obterNomeOficialPecaConjunto,
+  obterTierEngaste,
   recalcularGemasBuildComModo,
   recalcularGemasItem,
   simulacao,
@@ -412,15 +413,15 @@ function vincularEventosSimulador() {
         const antigas = Array.isArray(item.gems) ? item.gems : [];
         item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
       }
-      const tierSlot = Number(item.gemTierPadrao || 5);
       const gemaAtual = item.gems[idxGema];
+      const tier = obterTierEngaste(item, idxGema);
 
-      if (gemaAtual && gemaAtual.type === tipoClicado) {
+      if ((gemaAtual?.type || gemaAtual?.kind) === tipoClicado) {
         // Desseleciona se já estava selecionada (ao clicar novamente, o espaço fica vazio)
         item.gems[idxGema] = null;
       } else {
         // Engasta uma nova gema respeitando o modo de rolagem atual
-        item.gems[idxGema] = criarGemaPreset(tipoClicado, item.slot, tierSlot, item.itemLevel);
+        item.gems[idxGema] = criarGemaPreset(tipoClicado, item.slot, tier, item.itemLevel);
       }
       renderizarSimulador();
     });
@@ -438,19 +439,14 @@ function vincularEventosSimulador() {
     });
   });
 
-  // Seletor de Tier da peça (atualiza o tier padrão e converte as gemas ativas da peça para o novo tier)
-  containerSimulador.querySelectorAll("[data-sim-slot-tier]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+  containerSimulador.querySelectorAll("[data-sim-slot-tier], [data-sim-engaste-tier]").forEach((controle) => {
+    controle.addEventListener(controle.matches("select") ? "change" : "click", () => {
+      const [slot, indice, tier = controle.value] = (controle.dataset.simSlotTier ?? controle.dataset.simEngasteTier).split(":");
+      const item = simulacao.estadoSimulador.itens[Number(slot)];
+      const engaste = Number(indice);
+      if (!item || engaste < 0 || engaste >= (item.sockets ?? 6)) return;
       simulacao.simuladorEditadoManual = true;
-      const [idxSlotStr, tierStr] = e.currentTarget.dataset.simSlotTier.split(":");
-      const idxSlot = Number(idxSlotStr);
-      const novoTier = Number(tierStr) || 5;
-      const item = simulacao.estadoSimulador.itens[idxSlot];
-      if (!item) return;
-      item.gemTierPadrao = limitarTierGema(novoTier, item.rarity);
-      if (Array.isArray(item.gems)) {
-        item.gems = item.gems.map((g) => g ? criarGemaPreset(g.type || g.kind, item.slot, item.gemTierPadrao, item.itemLevel) : null);
-      }
+      definirTierEngaste(item, engaste, tier);
       renderizarSimulador();
     });
   });

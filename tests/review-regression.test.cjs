@@ -170,9 +170,17 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   assert.equal(fcDoCard('ring_19'), fcTeia);
   click('[data-tl-card="set_abysshunter"]');
   assert.equal(painel.querySelector('[data-tl-gem-btn="weapon:0:sapphire"]').getAttribute('aria-pressed'), 'true');
-  conferirMudanca('set_auroraborealis', () => click('[data-tl-slot-tier="weapon:6"]'));
+  conferirMudanca('set_auroraborealis', () => click('[data-tl-slot-tier="weapon:0:6"]'));
   assert.match(detalhe(), /T6 Prismática/);
   assert.match(painel.querySelector('[data-tl-gem-btn="weapon:0:sapphire"]').textContent, /\+67 VEL/);
+  const rotuloEngaste = (indice) => painel.querySelector(`[data-tl-selecionar-engaste="${indice}"] .rs-socket-num`).textContent;
+  assert.match(rotuloEngaste(0), /T6/);
+  assert.match(rotuloEngaste(1), /T5/);
+  click('[data-tl-selecionar-engaste="1"]');
+  click('[data-tl-slot-tier="weapon:1:3"]');
+  assert.match(rotuloEngaste(0), /T6/);
+  assert.match(rotuloEngaste(1), /T3/);
+  assert.match(rotuloEngaste(2), /T5/);
   conferirMudanca('set_auroraborealis', () => alterar('#tierlist-anel-referencia', '14'));
   assert.deepEqual(slots(), ['weapon', 'helmet', 'armor', 'ring']);
   assert.match(detalhe(), /Anel do Eclipse Arcano/);
@@ -189,8 +197,8 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   assert.deepEqual(slots(), []);
 });
 
-test('Prismatic gems use the game scales and survive shared builds', async () => {
-  const { criarGemaPreset, adequarTierGemas } = await import('../src/simulador/estado.mjs');
+test('Mixed gem tiers preserve the game scales and survive shared builds', async () => {
+  const { criarGemaPreset, adequarTierGemas, definirTierEngaste, obterTierEngaste, recalcularGemasItem } = await import('../src/simulador/estado.mjs');
   const gema = criarGemaPreset('sapphire', 'weapon', 6, 300, 1);
   assert.deepEqual([gema.tier, gema.stat, gema.value, gema.stat2, gema.value2, gema.pct2], [6, 'spd', 67, 'def', 75, true]);
   const original = build();
@@ -198,9 +206,15 @@ test('Prismatic gems use the game scales and survive shared builds', async () =>
   arma.itemLevel = 300;
   arma.gemTierPadrao = 6;
   arma.gems[0] = gema;
+  arma.gems[2] = null;
+  definirTierEngaste(arma, 2, 3);
+  assert.equal(obterTierEngaste(arma, 2), 3);
+  arma.gems[2] = criarGemaPreset('ruby', 'weapon', obterTierEngaste(arma, 2), 300, 1);
+  recalcularGemasItem(arma, 1);
   const decoded = await sharing.decodificarBuildDeHash(await sharing.serializarBuildParaHash(original));
   assert.equal(decoded.buildA.itens[0].gemTierPadrao, 6);
   assert.equal(decoded.buildA.itens[0].gems[0].value2, 75);
+  assert.deepEqual(decoded.buildA.itens[0].gems.slice(0, 3).map(gema => gema.tier), [6, 5, 3]);
   arma.rarity = 4;
   adequarTierGemas(arma);
   assert.equal(arma.gems[0].tier, 5);
