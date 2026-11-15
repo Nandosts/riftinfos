@@ -12,7 +12,7 @@ O servidor usa apenas a biblioteca padrão do Python. Não é necessário instal
 
 ## Rodar localmente
 
-Abra um terminal na pasta `rift-forjas`, onde está o arquivo `servidor.py`.
+Abra um terminal na pasta do repositório, onde está o arquivo `servidor.py`.
 
 ### macOS e Linux
 
@@ -47,6 +47,10 @@ Mantenha o terminal aberto durante o uso. Para encerrar o servidor, pressione **
 O simulador também pode ser usado sem consultar um perfil. As builds e o histórico salvos ficam no navegador utilizado; não são sincronizados entre dispositivos.
 
 Ao editar os arquivos HTML, CSS ou JavaScript, atualize a página para carregar as mudanças. Não é preciso reiniciar o servidor. Se mudar `servidor.py`, encerre e inicie o servidor novamente.
+
+## API pública do RiftStream
+
+Veja as rotas, os parâmetros e exemplos em [API.md](API.md). Para as rotas que usam a sessão do jogador, veja [API private.md](API%20private.md).
 
 ## Onde editar
 
