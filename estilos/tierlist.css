@@ -91,7 +91,7 @@
 
 .tl-linha {
   display: grid;
-  grid-template-columns: 92px 1fr;
+  grid-template-columns: 92px minmax(0, 1fr);
   min-height: 102px;
   border-bottom: 2px solid #2b2746;
 }
@@ -122,6 +122,7 @@
   font-weight: 600;
   opacity: 0.82;
   letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
 }
 
 .tl-tier-splus .tl-tier-badge { background: #ff5e6c; }
@@ -131,15 +132,15 @@
 .tl-tier-c .tl-tier-badge { background: #70a1ff; }
 
 .tl-itens-linha {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 126px), 1fr));
   gap: 8px;
   padding: 10px;
   background: #171429;
 }
 
 .tl-linha-vazia {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   color: var(--muted);
@@ -148,7 +149,7 @@
 }
 
 .tl-card {
-  width: 126px;
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -188,6 +189,10 @@
   display: block;
 }
 
+.tl-card :is(.tl-card-nome, .tl-card-classe, .tl-card-tag) {
+  max-inline-size: 100%;
+}
+
 .tl-card-nome {
   font-size: 0.76rem;
   line-height: 1.2;
@@ -206,7 +211,17 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.07);
   color: var(--cyan);
-  white-space: nowrap;
+  line-height: 1.35;
+}
+
+.tl-card :is(.tl-card-nome, .tl-card-classe),
+.tl-card-tag {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tl-card > .tl-card-tag {
+  margin-block-start: auto;
 }
 
 .tl-card.arcano .tl-card-tag.rar {
@@ -224,7 +239,7 @@
   margin-top: 18px;
   padding: 16px 18px;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -254,6 +269,10 @@
   margin-bottom: 6px;
 }
 
+.tl-detalhe-topo > * {
+  max-inline-size: 100%;
+}
+
 .tl-detalhe-titulo {
   font-family: var(--pix);
   font-size: 1.05rem;
@@ -271,16 +290,29 @@
 
 @media (max-width: 640px) {
   .tl-linha {
-    grid-template-columns: 64px 1fr;
+    grid-template-columns: 76px minmax(0, 1fr);
   }
   .tl-tier-badge {
     font-size: 1.2rem;
   }
-  .tl-card {
-    width: 106px;
+  .tl-itens-linha {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 106px), 1fr));
   }
   .tl-detalhe {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
+@media (max-width: 420px) {
+  .tl-linha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tl-tier-badge {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 10px;
+    border-right: 0;
+    border-bottom: 2px solid #2b2746;
+  }
+}
