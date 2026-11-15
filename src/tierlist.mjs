@@ -16,50 +16,50 @@ let modoAtual = "utilidade"; // "utilidade" | "fc"
 let categoriaAtual = "todos"; // "todos" | "warrior" | "archer" | "cleric" | "ring"
 let itemSelecionadoId = null;
 
-// Classificação prática de utilidade (Chefe, Raid, Ondas, Suporte) baseada nos efeitos reais
+// Classificação prática de utilidade (Chefe, Raid, Ondas, Suporte) deixando claro pontos fortes e limitações
 const UTILIDADE_CONJUNTOS = {
   // Guerreiro
-  singular: { tier: "S+", tag: "Chefe / DPS%", motivo: "Insubstituível contra chefes de zona alta: tira 4% da vida máxima do chefe a cada 13s ignorando defesa." },
-  thunderlord: { tier: "S", tag: "Dano + Stun", motivo: "Maior dano bruto Arcano do Guerreiro (+48% ATK, +15% VEL) com raio em cadeia a cada 11s e atordoamento." },
-  tamer: { tier: "S", tag: "Sangramento", motivo: "Equilibrado em ataque e defesa; aplica sangramento puro que ignora defesa e reduz velocidade de ataque do alvo." },
-  chrono: { tier: "A", tag: "Maior Stun do Jogo", motivo: "Maior duração de atordoamento/congelamento do jogo (1,7s monstros / 0,9s chefe a cada 14s), excelente para controle." },
-  obsidian: { tier: "A", tag: "Tanque / Escudo", motivo: "Focado em sobrevivência máxima (+48% HP, +40% DEF) com escudo de 10% a cada 12s; menor DPS entre os Arcanos." },
-  strongman: { tier: "B", tag: "Stun Curto", motivo: "Bom ataque e stun curto de perto (1,3s / 0,5s chefe a cada 12s), mas perde em alcance e dano para Trovão/Domador." },
-  ember: { tier: "B", tag: "Auto-Revive", motivo: "Útil como set de entrada na Raid pelo auto-revive (50% HP), porém superado por Anel do Coração do Vazio / Fênix." },
-  gore: { tier: "B", tag: "Roubo de Vida", motivo: "Bom sustento solo no começo dos Imortais (25% lifesteal a cada 8s), mas escala menos no endgame." },
+  singular: { tier: "S+", tag: "Chefe / DPS%", motivo: "Por que é tão bom: arranca 4% da vida máxima do chefe a cada 13s ignorando defesa, dando muito mais DPS que qualquer Arcano em zonas altas. Limitação: tem menos status brutos/FC por ser Imortal e o corte percentual não brilha tanto em mobs fracos." },
+  thunderlord: { tier: "S", tag: "Dano + Stun", motivo: "Por que é tão bom: maior DPS físico Arcano do Guerreiro (+48% ATK, +15% VEL) com raio em cadeia a cada 11s + stun rápido. Limitação: contra chefes de zona altíssima, perde em dano para a Singularidade." },
+  tamer: { tier: "S", tag: "Sangramento", motivo: "Por que é tão bom: mistura bom dano com sobrevivência (+22% HP, +18% DEF) e aplica sangramento puro que ignora defesa e desacelera o alvo. Limitação: tem menos explosão imediata que o Senhor do Trovão em lutas curtas." },
+  chrono: { tier: "A", tag: "Maior Stun do Jogo", motivo: "Por que é tão bom: tem o maior atordoamento/congelamento do jogo (1,7s em monstros / 0,9s em chefe a cada 14s na tela toda). Limitação: por ser Imortal, entrega menos ATK, Vida e FC que os conjuntos Arcanos." },
+  obsidian: { tier: "A", tag: "Tanque / Escudo", motivo: "Por que é tão bom: dá o maior FC e a maior resistência do Guerreiro (+48% HP, +40% DEF) + escudo de 10% a cada 12s. Limitação: tem o menor bônus ofensivo (+15% ATK) e o menor DPS entre os Arcanos." },
+  strongman: { tier: "B", tag: "Stun Curto", motivo: "Por que não é tão bom: apesar dos +47% ATK e +25% HP, o stun é curto e só acerta inimigos colados (até 140px) a cada 12s, perdendo em alcance e dano para Trovão e Domador." },
+  ember: { tier: "B", tag: "Auto-Revive", motivo: "Por que não é tão bom: o auto-revive (50% HP) ajuda só no começo da Raid, mas fica obsoleto assim que você consegue o Anel do Coração do Vazio ou Fênix Rubra, além de ter pouco dano." },
+  gore: { tier: "B", tag: "Roubo de Vida", motivo: "Por que não é tão bom: o roubo de vida (25% a cada 8s) ajuda no início dos Imortais, mas perde espaço para o Anel do Sanguessuga e para sets Arcanos com muito mais status." },
 
   // Arqueiro
-  abysshunter: { tier: "S+", tag: "DPS Chefe + Cura", motivo: "Maior potencial ofensivo Arcano (+58% ATK, +20% VEL, +14% CRÍT) e disparo de 3,2× ATK no alvo de maior vida + autocura." },
-  auroraborealis: { tier: "S", tag: "DPS + Escudo", motivo: "Combina ótimo dano em área (1,4× ATK) com escudo de 10% HP para o time inteiro a cada 12s." },
-  firework: { tier: "S", tag: "Dano Explosivo", motivo: "Forte em grupos e chefe (2,4× ATK no alvo principal a cada 10s com +48% ATK, +18% VEL e +12% CRÍT)." },
-  trapeze: { tier: "A", tag: "Velocidade", motivo: "Muito rápido (+33% VEL) e bate em até 4 alvos a cada 9s (1,8× ATK), ótimo para limpar ondas." },
-  predator: { tier: "A", tag: "100% Crítico", motivo: "Mesmo sendo Imortal, garante 100% de Crítico por 3,5s a cada 9s — o melhor Imortal de dano para Arqueiro." },
-  tempest: { tier: "B", tag: "Lentidão", motivo: "Bom set Imortal de transição com +37% VEL e redução de velocidade nos inimigos." },
-  dragon: { tier: "B", tag: "Dano Imortal", motivo: "Bom bônus de ataque Imortal (+60% ATK) com baforada de fogo a cada 11s." },
-  luna: { tier: "C", tag: "Início Imortal", motivo: "Bons status iniciais de Imortal, mas efeito em área (2 flechas) fica atrás dos demais." },
+  abysshunter: { tier: "S+", tag: "DPS Chefe + Cura", motivo: "Por que é tão bom: maior conjunto ofensivo do Arqueiro (+58% ATK, +20% VEL, +14% CRÍT), dispara 3,2× ATK no inimigo de maior vida e ainda se cura em 8% HP a cada 11s. Limitação: não dá escudo para o grupo como o Aurora." },
+  auroraborealis: { tier: "S", tag: "DPS + Escudo", motivo: "Por que é tão bom: entrega o maior FC do Arqueiro com ótimo dano em área (1,4× ATK) + escudo de 10% HP para o time todo a cada 12s. Limitação: em dano puro de alvo único, fica um pouco atrás do Caçador Abissal." },
+  firework: { tier: "S", tag: "Dano Explosivo", motivo: "Por que é tão bom: forte em ondas e chefe (+48% ATK, +18% VEL, +12% CRÍT) batendo 2,4× ATK no alvo principal a cada 10s. Limitação: não tem autocura nem escudo defensivo." },
+  trapeze: { tier: "A", tag: "Velocidade", motivo: "Por que é tão bom: muita velocidade (+33% VEL) e dispara em até 4 alvos a cada 9s (1,8× ATK), ótimo para limpar ondas. Limitação: bônus de ATK bem menor (+22%) para chefes." },
+  predator: { tier: "A", tag: "100% Crítico", motivo: "Por que é tão bom: garante 100% de Crítico por 3,5s a cada 9s (+45% ATK, +22% CRÍT), sendo o melhor Imortal de dano. Limitação: por ser Imortal, tem base menor e 5 engastes de gema contra 6 dos Arcanos." },
+  tempest: { tier: "B", tag: "Lentidão", motivo: "Por que não é tão bom: dá bastante velocidade (+37% VEL), mas seu efeito só desacelera inimigos sem dar dano extra explosivo nem sobrevivência." },
+  dragon: { tier: "B", tag: "Dano Imortal", motivo: "Por que não é tão bom: tem bom +60% ATK, mas a baforada (2,4× ATK a cada 11s) não compensa a falta de velocidade e os status menores de Imortal." },
+  luna: { tier: "C", tag: "Início Imortal", motivo: "Por que não é tão bom: só adiciona 2 flechas extras de 55% na skill a cada 8s, ficando bem abaixo de Predador e de qualquer Arcano." },
 
   // Clérigo
-  seraphgold: { tier: "S+", tag: "Cura + Escudo", motivo: "Melhor suporte geral do jogo: +90% HP, +65% ATK e cura de 20–30% HP + escudo de 8% no time a cada 14s." },
-  fortune: { tier: "S+", tag: "Escudo em Grupo", motivo: "Rei da proteção na Raid e chefes: aplica escudo de 25% HP por 7s + cura de 10% no time a cada 12s." },
-  worldtree: { tier: "S+", tag: "Revive na Raid", motivo: "Mesmo sendo Imortal, revive 1 aliado morto a cada 15s (50% HP) — insubstituível na Raid Covil de Vexxaris." },
-  eclipsepriest: { tier: "S", tag: "Stun + Dano", motivo: "Melhor Clérigo ofensivo e de controle: +85% ATK e atordoa a tela inteira (1,3s monstros / 0,5s chefe) a cada 15s." },
-  communion: { tier: "A", tag: "Buff +30% ATK", motivo: "Excelente set Imortal de suporte ofensivo (+30% ATK para o time por 5s + 25% de cura a cada 12s)." },
-  illusion: { tier: "A", tag: "Híbrido", motivo: "Status Arcanos altos (+75% ATK, +60% HP), mas efeito aleatório (1/3 cura, 1/3 escudo, 1/3 dano) reduz previsibilidade." },
-  constel: { tier: "B", tag: "Escudo Imortal", motivo: "Versão Imortal da Madame Cartomante (escudo de 20% HP por 6s a cada 16s)." },
-  echo: { tier: "C", tag: "Cura Dupla 18s", motivo: "A cada 18s zera apenas o cooldown da própria skill de cura do Clérigo (não reseta passivas de arma nem habilidades de aliados); entrega pouca utilidade perto de Árvore-Mundo, Comunhão e Constelação." },
+  seraphgold: { tier: "S+", tag: "Cura + Escudo", motivo: "Por que é tão bom: melhor suporte completo do jogo (+90% HP, +65% ATK, +10% VEL) — cura 20–30% HP e dá 8% de escudo para todo o time a cada 14s. Limitação: não revive aliados mortos como a Árvore-Mundo." },
+  fortune: { tier: "S+", tag: "Escudo em Grupo", motivo: "Por que é tão bom: rei da proteção na Raid e chefes, aplicando escudo de 25% HP por 7s + 10% de cura no time inteiro a cada 12s. Limitação: tem o menor bônus de ataque entre os Clérigos Arcanos." },
+  worldtree: { tier: "S+", tag: "Revive na Raid", motivo: "Por que é tão bom: é o único conjunto de alto nível que revive 1 aliado morto a cada 15s (com 50% HP), sendo indispensável na Raid Covil de Vexxaris. Limitação: por ser Imortal, tem menos status e FC que os Arcanos." },
+  eclipsepriest: { tier: "S", tag: "Stun + Dano", motivo: "Por que é tão bom: melhor Clérigo de dano e controle (+85% ATK, +20% VEL), atordoando a tela inteira (1,3s monstros / 0,5s chefe) a cada 15s. Limitação: não dá cura extra nem escudo na passiva da arma." },
+  communion: { tier: "A", tag: "Buff +30% ATK", motivo: "Por que é tão bom: dá +30% ATK por 5s e cura 25% HP para o time todo a cada 12s. Limitação: status base Imortais ficam atrás de Serafim e Cartomante." },
+  illusion: { tier: "A", tag: "Híbrido", motivo: "Por que não é tão bom quanto os S+: tem ótimos status Arcanos (+75% ATK, +60% HP), mas o efeito a cada 10s é aleatório (1/3 cura em 1 alvo, 1/3 escudo, 1/3 dano), tirando a confiabilidade na Raid." },
+  constel: { tier: "B", tag: "Escudo Imortal", motivo: "Por que não é tão bom: funciona como uma versão menor da Madame Cartomante (escudo de 20% por 6s a cada 16s sem a cura extra e com menos HP)." },
+  echo: { tier: "C", tag: "Cura Dupla 18s", motivo: "Por que não é tão bom: a cada 18s zera apenas o cooldown da própria skill de cura do Clérigo (não reseta passivas de arma nem habilidades de aliados), ficando muito atrás de Árvore-Mundo, Comunhão e Constelação." },
 };
 
 const UTILIDADE_ANEIS = {
-  18: { tier: "S+", tag: "Raid · ATK/CRÍT", motivo: "Exclusivo da Raid Covil de Vexxaris: maior pacote bruto de Ataque e Crítico do jogo para maximizar dano e FC ofensivo." },
-  14: { tier: "S+", tag: "Eco +20% DPS", motivo: "Eco do Eclipse repete 100% do golpe em 20% das vezes (+20% DPS médio em chefe) e ricocheteia 60% em 2 alvos." },
-  15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Essencial na Raid e em builds de sobrevivência: revive automaticamente com 70% HP + 40% escudo e dá ótima Vida/Defesa." },
-  19: { tier: "S", tag: "Raid · Tanque/VEL", motivo: "Exclusivo da Raid Covil de Vexxaris: maior ganho de Vida, Defesa e +18% Velocidade para resistir na linha de frente." },
-  16: { tier: "S", tag: "Escala +40% ATK", motivo: "Ganha até +40% ATK acumulando abates na onda/fase e tem +18% VEL; excelente para limpar ondas e farmar." },
-  17: { tier: "A", tag: "Limpa Controle", motivo: "A cada 10s remove stun/lentidão, dá 12% escudo e cura 8% HP; ótimo anel defensivo utilitário." },
-  10: { tier: "A", tag: "Sangramento", motivo: "Melhor anel Imortal contra chefes de defesa muito alta: aplica sangramento que ignora defesa (60% ATK/s por 3s)." },
-  13: { tier: "B", tag: "Revive Imortal", motivo: "Ótima opção Imortal antes do Coração do Vazio: garante auto-revive com 40% HP." },
-  12: { tier: "B", tag: "Finalizador", motivo: "+60% dano quando o alvo está abaixo de 30% de vida; bom em Imortal, perde para passivas Arcanas." },
-  11: { tier: "S", tag: "Roubo de Vida 8%", motivo: "Cura 8% de TODO o dano causado sem cooldown (golpes, skills e procs): enche a vida inteira em 1–2 hits contra chefes se você não tomar hit-kill." },
+  18: { tier: "S+", tag: "Raid · ATK/CRÍT", motivo: "Por que é tão bom: exclusivo da Raid Covil de Vexxaris com a maior curva de Ataque e Crítico brutos do jogo (~4,05 ATK e ~0,64 CRÍT por nível). Limitação: não tem efeito especial extra na luta." },
+  14: { tier: "S+", tag: "Eco +20% DPS", motivo: "Por que é tão bom: tem alto ATK/CRÍT e 20% de chance de repetir 100% do golpe (+20% DPS médio em chefe) além de ricochetear 60% em 2 alvos. Limitação: o eco não duplica o corte percentual da Singularidade." },
+  15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Por que é tão bom: dá auto-revive garantido (70% HP + 40% escudo) com muita Vida e Defesa, salvando runs inteiras na Raid. Limitação: tem menos ATK/VEL que os anéis puramente ofensivos." },
+  19: { tier: "S", tag: "Raid · Tanque/VEL", motivo: "Por que é tão bom: exclusivo da Raid com o maior ganho bruto de Vida, Defesa e +18% Velocidade, liderando em FC. Limitação: tem menos ATK/CRÍT e não possui passiva de auto-revive." },
+  16: { tier: "S", tag: "Escala +40% ATK", motivo: "Por que é tão bom: ganha até +40% ATK acumulando abates e tem +18% VEL, sendo excelente em ondas. Limitação: em chefe solo sem adds para matar, o bônus demora para carregar." },
+  11: { tier: "S", tag: "Roubo de Vida 8%", motivo: "Por que é tão bom: cura 8% de TODO o dano causado sem cooldown (golpes, skills e passivas), enchendo a vida em 1–2 hits contra chefes. Limitação: por ser Imortal, tem 5 gemas/status menores e não salva de hit-kill." },
+  17: { tier: "A", tag: "Limpa Controle", motivo: "Por que não é tão bom quanto os S+: limpa stun/lentidão e dá 12% escudo + 8% cura a cada 10s, mas entrega menos ATK e menos sobrevivência de emergência que o Coração do Vazio." },
+  10: { tier: "A", tag: "Sangramento", motivo: "Por que não é tão bom quanto os Arcanos: o sangramento que ignora defesa (60% ATK/s por 3s) é útil contra chefes altos, mas seus atributos brutos de Imortal são bem menores." },
+  13: { tier: "B", tag: "Revive Imortal", motivo: "Por que não é tão bom: garante auto-revive com 40% HP para quem ainda não tem o Coração do Vazio, porém é diretamente superado por ele em tudo." },
+  12: { tier: "B", tag: "Finalizador", motivo: "Por que não é tão bom: os +60% de dano só ativam quando o inimigo já está abaixo de 30% de vida, perdendo muito valor na maior parte da luta." },
 };
 
 function calcularFcPadraoConjunto(setKey, setInfo) {
