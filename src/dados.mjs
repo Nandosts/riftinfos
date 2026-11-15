@@ -92,7 +92,7 @@ const catalogoArmas = {
     skillMult: 1.5,
     skillAlvos: 1,
     revive: true,
-    efeito: { tipo: "revive", cada: 0, mult: 0, texto: "Uma vez por jornada ou Raid: renasce com 60% de HP e escudo de 30% do HP máximo por 4s. O revive da arma pode acumular com o de um anel." },
+    efeito: { tipo: "revive", cada: 0, mult: 0, texto: "1x por jornada: renasce com 60% de HP + 30% de escudo." },
   },
   gorecleaver: {
     nome: "Ceifa-Reis",
@@ -100,7 +100,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "buff_atk", cada: 12, dur: 4, atkMult: 1.6, steal: 0.25, texto: "A cada 12s, ganha +60% de ataque e recupera 25% do dano direto em vida durante 4s." },
+    efeito: { tipo: "buff_atk", cada: 12, dur: 4, atkMult: 1.6, steal: 0.25, texto: "A cada 12s por 4s: +60% ATK e 25% de roubo de vida." },
   },
   chronoblade: {
     nome: "Lâmina do Cronarca",
@@ -108,7 +108,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "stun", cada: 14, stunMob: 1.7, stunBoss: 0.9, texto: "A cada 14s, congela os inimigos visíveis por 1,7s (0,9s em chefes)." },
+    efeito: { tipo: "stun", cada: 14, stunMob: 1.7, stunBoss: 0.9, texto: "A cada 14s: congela todos os inimigos por 1,7s (Chefe 0,9s)." },
   },
   singblade: {
     nome: "Lâmina da Singularidade",
@@ -116,7 +116,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "singularity", cada: 13, pctMob: 0.25, pctBoss: 0.04, texto: "Em ciclo de 13s, a implosão leva 1,4s para atingir os inimigos. Causa 25% do HP máximo em monstros e 4% em chefes, ignorando defesa." },
+    efeito: { tipo: "singularity", cada: 13, pctMob: 0.25, pctBoss: 0.04, texto: "A cada 13s (+1,4s): causa 25% da vida máx. (Chefe 4%) ignorando defesa." },
   },
   tamerwhip: {
     nome: "Chicote do Domador",
@@ -124,7 +124,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 11, mult: 1.3, texto: "A cada 11s, causa 1,3× de dano nos inimigos visíveis e aplica sangramento de 50% do ATK/s por 5,5s, que ignora defesa." },
+    efeito: { tipo: "dano", cada: 11, mult: 1.3, texto: "A cada 11s: chicoteia todos os inimigos (1,3×) e aplica sangramento." },
   },
   strongmallet: {
     nome: "Marreta do Homem-Forte",
@@ -132,7 +132,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 12, mult: 1.6, texto: "A cada 12s, causa uma onda de choque de 1,6× em até 140 px e atordoa por 1,3s (0,5s em chefes)." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.6, texto: "A cada 12s: onda de choque em área (1,6×) + stun (1,3s / Chefe 0,5s)." },
   },
   obsidblade: {
     nome: "Montante de Obsidiana",
@@ -140,7 +140,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 12, mult: 1.8, texto: "A cada 12s, causa uma onda de magma de 1,8× em até 200 px e ganha escudo de 10% do próprio HP máximo por 6s." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.8, texto: "A cada 12s: onda de magma até 200px (1,8×) + escudo de 10% do HP máx." },
   },
   thunderaxe: {
     nome: "Machado do Trovão",
@@ -148,7 +148,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 11, mult: 2.4, alvos: 5, decaimento: 0.85, texto: "A cada 11s, lança um raio em até 5 alvos. Começa em 2,4×, perde 15% do dano por salto e atordoa por 0,8s (0,4s em chefes)." },
+    efeito: { tipo: "dano", cada: 11, mult: 2.4, alvos: 5, decaimento: 0.85, texto: "A cada 11s: raio em cadeia em até 5 alvos (2,4× decaindo 0,85×) + stun." },
   },
 
   // Arqueiro
@@ -215,7 +215,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 12, mult: 1.4, texto: "A cada 12s, causa 1,4× de dano nos inimigos visíveis e dá escudo de 10% do HP máximo de cada aliado vivo por 5s." },
+    efeito: { tipo: "dano", cada: 12, mult: 1.4, texto: "A cada 12s: chuva da aurora (1,4×) + escudo de 10% do HP no time." },
   },
   abyssbow: {
     nome: "Arco Abissal",
@@ -223,7 +223,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.1,
     skillAlvos: 3,
-    efeito: { tipo: "dano", cada: 11, mult: 3.2, texto: "A cada 11s, causa 3,2× no alvo com mais HP atual e 1× nos demais inimigos visíveis. Recupera 8% do próprio HP máximo." },
+    efeito: { tipo: "dano", cada: 11, mult: 3.2, texto: "A cada 11s: maré abissal (3,2× no alvo de maior HP / 1,0× demais) + autocura 8%." },
   },
 
   // Clérigo
@@ -243,7 +243,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "eco", cada: 18, texto: "A cada 18s, prepara um reset de recarga para a próxima Luz Divina. Um segundo lançamento depende de ainda haver aliados precisando de cura." },
+    efeito: { tipo: "eco", cada: 18, texto: "A cada 18s: zera a recarga da próxima skill (lançamento duplo)." },
   },
   commscepter: {
     nome: "Cetro da Comunhão Rubra",
@@ -251,7 +251,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "buff_time", cada: 12, dur: 5, texto: "A cada 12s, cura 25% do HP máximo dos aliados vivos e dá +30% de ataque por 5s." },
+    efeito: { tipo: "buff_time", cada: 12, dur: 5, texto: "A cada 12s por 5s: cura 25% do HP máx. no time e dá +30% ATK." },
   },
   conststaff: {
     nome: "Cajado da Constelação",
@@ -276,7 +276,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "dano_carta", cada: 10, mult: 1.6, texto: "A cada 10s, sorteia cura de 40% do HP no aliado mais ferido, escudo de 12% do HP no grupo por 5s ou dano de 1,6× nos inimigos visíveis." },
+    efeito: { tipo: "dano_carta", cada: 10, mult: 1.6, texto: "A cada 10s sorteia 1 carta (33% cura 40% HP / 33% escudo 12% / 33% dano 1,6×)." },
   },
   crystalball: {
     nome: "Bola de Cristal da Madame",
@@ -292,7 +292,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "escudo_cura", cada: 14, texto: "A cada 14s, cura 20% do HP máximo de cada aliado vivo (30% se estiver abaixo de metade da vida) e dá escudo de 8% do HP por 5s." },
+    efeito: { tipo: "escudo_cura", cada: 14, texto: "A cada 14s: cura 20% HP (30% se <50% vida) + escudo de 8% no time." },
   },
   eclipsestaff: {
     nome: "Cajado do Eclipse",
@@ -300,7 +300,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillTipo: "cura",
     curaMult: 0.85,
-    efeito: { tipo: "dano", cada: 15, mult: 1.4, texto: "A cada 15s, causa 1,4× nos inimigos visíveis e atordoa por 1,3s (0,5s em chefes)." },
+    efeito: { tipo: "dano", cada: 15, mult: 1.4, texto: "A cada 15s: eclipse total em todos os inimigos (1,4×) + stun." },
   },
 };
 
@@ -343,7 +343,7 @@ const catalogoAneis = {
     foco: "Ofensivo + Sangramento (DoT)",
     obtencao: "Drop raríssimo de chefes (Nv. 100+) ou Forja Imortal (4 anéis Lendários, 35% base).",
     escalaPorNivel: { atk: 1.65, def: 0.50, hp: 2.66, crit: 0.25, spd: 14 },
-    efeito: "Acertos diretos aplicam sangramento de 25% do ATK/s por 2,5s como base. O sangramento ignora defesa.",
+    efeito: "Passiva: seus golpes e flechas aplicam sangramento contínuo por 4s (35% do ATK/s que ignora a defesa do inimigo).",
   },
   11: {
     nome: "Anel do Sanguessuga",
@@ -351,7 +351,7 @@ const catalogoAneis = {
     foco: "Sustentação + Roubo de Vida",
     obtencao: "Drop raríssimo de chefes (Nv. 100+) ou Forja Imortal (4 anéis Lendários, 35% base).",
     escalaPorNivel: { atk: 1.33, def: 1.01, hp: 5.75, crit: 0.17, spd: 12 },
-    efeito: "Recupera 8% do dano direto que passa pela defesa e pelo escudo, sem recarga, enquanto o portador estiver vivo. Inclui skills e passivas como a Singularidade. Ticks de sangramento ficam fora.",
+    efeito: "Passiva: recupera 8% de todo o dano direto causado em pontos de vida.",
   },
   12: {
     nome: "Anel do Carrasco",
@@ -359,7 +359,7 @@ const catalogoAneis = {
     foco: "Execução (ATK/CRÍT)",
     obtencao: "Drop raríssimo de chefes (Nv. 100+) ou Forja Imortal (4 anéis Lendários, 35% base).",
     escalaPorNivel: { atk: 1.83, def: 0.50, hp: 2.32, crit: 0.32, spd: 10 },
-    efeito: "Causa +60% de dano direto contra inimigos com 30% de vida ou menos. Inclui a Singularidade. Ticks de sangramento ficam fora.",
+    efeito: "Passiva: causa +60% de dano contra qualquer inimigo ou chefe que esteja com 30% ou menos de vida.",
   },
   13: {
     nome: "Anel da Fênix Rubra",
@@ -368,15 +368,15 @@ const catalogoAneis = {
     foco: "Tanque + Auto-Revive",
     obtencao: "Drop raríssimo de chefes (Nv. 100+) ou Forja Imortal (4 anéis Lendários, 35% base).",
     escalaPorNivel: { atk: 1.01, def: 1.36, hp: 6.95, crit: 0.13, spd: 8 },
-    efeito: "Uma vez por jornada ou Raid, renasce com 40% de vida e escudo de 20% do HP máximo por 3s. Pode acumular com o revive da Brasa Eterna.",
+    efeito: "Passiva: 1× por jornada (ou na Raid), ao morrer você renasce na hora com 40% de vida e um escudo de 20% do HP máx.",
   },
   14: {
     nome: "Anel do Eclipse Arcano",
     raridadeMin: 7,
-    foco: "Dano direto + Eco",
+    foco: "DPS Ofensivo + Eco Duplo",
     obtencao: "Drop raríssimo de chefes (Zona 13+) ou Forja Arcana (4 anéis Imortais, 25% base).",
     escalaPorNivel: { atk: 3.684, def: 1.222, hp: 5.930, crit: 0.566, spd: 16 },
-    efeito: "Acertos elegíveis ricocheteiam 60% do dano em até 2 inimigos próximos e têm 20% de chance de repetir 100% do golpe no alvo principal. Inclui skills e a Singularidade com o herói vivo. Pisão e ticks de sangramento ficam fora.",
+    efeito: "Eco do Eclipse: todo golpe/flecha ricocheteia 60% do dano em até 2 inimigos próximos e tem 20% de chance de ecoar 100% do dano novamente no alvo principal.",
   },
   15: {
     nome: "Anel do Coração do Vazio",
@@ -385,15 +385,15 @@ const catalogoAneis = {
     foco: "Tanque EHP + Auto-Revive Explosivo",
     obtencao: "Drop raríssimo de chefes (Zona 13+) ou Forja Arcana (4 anéis Imortais, 25% base).",
     escalaPorNivel: { atk: 2.458, def: 2.714, hp: 14.873, crit: 0.279, spd: 12 },
-    efeito: "Renascer do Vazio: 1× por jornada (ou na Raid), ao cair você renasce na hora com 70% HP + escudo de 40% HP por 5s e contra-ataca os inimigos visíveis com multiplicador de 2×.",
+    efeito: "Renascer do Vazio: 1× por jornada (ou na Raid), ao cair você renasce na hora com 70% HP + escudo de 40% HP por 5s e causa 200% do seu ATK em todos os inimigos na tela.",
   },
   16: {
     nome: "Anel do Ceifador Cósmico",
     raridadeMin: 7,
-    foco: "Velocidade + Almas e Ceifa",
+    foco: "Velocidade + Acúmulo de Almas (+40% ATK)",
     obtencao: "Drop raríssimo de chefes (Zona 13+) ou Forja Arcana (4 anéis Imortais, 25% base).",
     escalaPorNivel: { atk: 3.415, def: 1.461, hp: 6.854, crit: 0.433, spd: 18 },
-    efeito: "Abates seus ou de aliados dão 1 alma (+4% de ataque por alma). As almas expiram após 12s sem novo abate. Na 10ª alma, dispara uma ceifa de 1,6× nos inimigos visíveis e zera a contagem.",
+    efeito: "Colheita de Almas: cada inimigo abatido na live (por você ou aliado) dá 1 alma (+4% ATK por alma, até +40% com 10). Na 10ª alma, dispara Ceifa de 160% ATK em todos os inimigos e reinicia.",
   },
   17: {
     nome: "Anel do Prisma Estelar",
@@ -401,7 +401,7 @@ const catalogoAneis = {
     foco: "Suporte em Grupo + Purificação",
     obtencao: "Drop raríssimo de chefes (Zona 13+) ou Forja Arcana (4 anéis Imortais, 25% base).",
     escalaPorNivel: { atk: 2.210, def: 2.210, hp: 12.871, crit: 0.222, spd: 14 },
-    efeito: "A cada 10s, purifica controles e sangramento do grupo e dá 3s de proteção contra controle. Usa o HP máximo do portador para o escudo em grupo de 12% por 4s e a cura de 8% no aliado mais ferido.",
+    efeito: "Pulso Cristalino: a cada 10s remove todos os controles/sangramento do grupo, aplica escudo de 12% HP por 4s, cura 8% HP no aliado mais ferido e dá 3s de imunidade a controle.",
   },
   18: {
     nome: "Anel da Presa de Ixtharra",

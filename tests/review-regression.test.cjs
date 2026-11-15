@@ -123,7 +123,7 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   for (const categoria of ['todos', 'ring', 'warrior', 'archer', 'cleric']) {
     click(`[data-tl-cat="${categoria}"]`);
     click('[data-tl-card="ring_14"]');
-    assert.match(detalhe(), /Singularidade com o herói vivo/);
+    assert.match(detalhe(), /Eco do Eclipse/);
     assert.match(detalhe(), /20% de chance/);
   }
   click('[data-tl-card="set_echo"]');
