@@ -258,6 +258,48 @@
       curto: "Combinação de equipamentos, bônus de conjunto, gemas e distribuição de atributos escolhida para o personagem.",
       detalhes: "Conjunto de decisões estratégicas para maximizar dano (DPS), sustentação e cura (HPS) ou sobrevivência física (EHP).",
       categoria: "equipamentos"
+    },
+    raid_vexxaris: {
+      termo: "Raid: Covil de Vexxaris (Como abrir, entrar e funcionar)",
+      curto: "Raid cooperativa de 4 ondas contra a Rainha Ixtharra (1 zona abaixo do recorde da live). Exige 1 Casulo de Vexxaris para abrir e confirmação via $raid CÓDIGO no chat.",
+      detalhes: "1) Abrir: apenas 1 jogador usa o Casulo de Vexxaris na mochila ('Meu personagem' -> 'Usar: romper o Casulo') estando em uma live online com overlay ativo. 2) Lobby: a marcha normal pausa, surge uma fogueira e um código na tela. Todos (inclusive quem já estava na live ou veio de outra) precisam digitar $raid CÓDIGO no chat antes do tempo acabar; se não atingir o mínimo de jogadores, a Raid é cancelada e o Casulo volta para quem usou. 3) Quem não digita o código fica fora da tela durante as 4 ondas (por isso parece que 'todo mundo caiu'), mas não perde a vaga na live: ao fim da Raid, o canal retoma a mesma Zona e Onda e todos voltam. 4) Na Raid não há revive por tempo (2/3 min): quem morre só volta com auto-revive (Brasa Eterna, Fênix Rubra, Coração do Vazio) ou revive de Clérigo (Cetro da Vida, Árvore-Mundo).",
+      categoria: "chefes"
+    },
+    casulo_vexxaris: {
+      termo: "Casulo de Vexxaris (Chave da Raid)",
+      curto: "Consumível Lendário raríssimo que abre o lobby da Raid Covil de Vexxaris no canal em que você está jogando.",
+      detalhes: "Como conseguir: drop raríssimo de chefes de zona nas lives (o atributo Sorte aumenta a chance de drops até 100 pontos). Não pode ser vendido/comprado no Mercado nem fabricado na Forja ou Alquimia. Ao usá-lo na mochila ('Meu personagem' -> 'Usar: romper o Casulo'), você já entra automaticamente na Raid e abre o código na tela da live para os demais jogadores digitarem $raid CÓDIGO.",
+      categoria: "chefes"
+    },
+    aneis_raid: {
+      termo: "Anéis da Raid: Presa de Ixtharra (18) e Teia Escarlate (19)",
+      curto: "Anéis Arcanos exclusivos do Covil de Vexxaris. Não possuem proc periódico, concentrando o orçamento em atributos brutos altíssimos.",
+      detalhes: "Diferente dos anéis Arcanos 14 a 17 (que têm efeitos periódicos/condicionais no motor de combate e saem na Forja Arcana), os anéis 18 e 19 só caem na Raid e focam 100% em atributos base que escalam direto o FC, ataques, skills e EHP: • Anel da Presa de Ixtharra (look 18): focado em muito Ataque e Crítico brutos (com Vida e Defesa de brinde, ~4,05 ATK/nv e ~0,64 CRÍT/nv estimados). • Anel da Teia Escarlate (look 19): focado em muita Vida, Defesa e Velocidade (com Ataque de brinde, ~16,20 HP/nv, ~2,95 DEF/nv e +18% VEL estimados).",
+      categoria: "equipamentos"
+    },
+    comparativo_aneis: {
+      termo: "Comparativo de Anéis Arcanos e Imortais (Atributos por Nível)",
+      curto: "Cada anel possui sua própria distribuição de ATK, DEF, HP, CRÍT por nível do item e VEL fixa.",
+      detalhes: "Curvas medidas na API por nível do item (Nv): • Eclipse Arcano (14): 3,68 ATK/nv, 0,57 CRÍT/nv, 1,22 DEF/nv, 5,93 HP/nv, 16% VEL + Eco 60%/duplo 20%. • Ceifador Cósmico (16): 3,42 ATK/nv, 0,43 CRÍT/nv, 1,46 DEF/nv, 6,85 HP/nv, 18% VEL + até +40% ATK por almas. • Coração do Vazio (15): 2,46 ATK/nv, 0,28 CRÍT/nv, 2,71 DEF/nv, 14,87 HP/nv, 12% VEL + Revive 70% HP. • Prisma Estelar (17): 2,21 ATK/nv, 0,22 CRÍT/nv, 2,21 DEF/nv, 12,87 HP/nv, 14% VEL + Purificação/Escudo/Cura a cada 10s. • Imortais (10 a 13): Sede Escarlate (1,65 ATK/nv, sangramento puro), Carrasco (1,83 ATK/nv, +60% dano <=30% HP), Sanguessuga (5,75 HP/nv, 8% lifesteal) e Fênix Rubra (6,95 HP/nv, revive 40% HP).",
+      categoria: "equipamentos"
+    },
+    alquimia: {
+      termo: "Alquimia (Reciclar 5 Fragmentos -> Criar Item Garantido)",
+      curto: "Transforma equipamentos não usados em fragmentos (1 por item) e junta 5 fragmentos iguais para criar 1 item novo garantido (sem risco de falha).",
+      detalhes: "1) Reciclar: cada equipamento destruído (exceto equipados, favoritos ou com gemas) vira 1 fragmento daquele slot e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos do mesmo slot e raridade, você cria 1 peça nova 100% garantida (sem roleta). 3) Faixas por nível de Alquimia: Nv. 1 cria itens nível 0–24; Nv. 2 cria nível 25–49; Nv. 3 cria nível 50–79; Nv. 4 cria nível 80–110 (liberado até raridade Lendária).",
+      categoria: "forjas"
+    },
+    aprimorar: {
+      termo: "Aprimorar Item (Sacrificar Itens por EXP)",
+      curto: "Transforma até 30 itens extras do mesmo slot em experiência para subir o nível (itemLevel) e os atributos de um equipamento principal.",
+      detalhes: "Escolha o equipamento que deseja evoluir e selecione até 30 peças do mesmo tipo (arma, elmo, armadura ou anel) para destruir como 'pó de EXP'. O custo em ouro escala com a raridade e a experiência das peças sacrificadas, e o jogo exibe o ganho exato de nível e FC antes de confirmar.",
+      categoria: "forjas"
+    },
+    transmog_auras: {
+      termo: "Transmog e Auras Cosméticas",
+      curto: "A Transmog copia o visual de outro item (consumindo a origem), e as auras agora são itens cosméticos independentes.",
+      detalhes: "No patch de 14/11/2026, o brilho que antes vinha embutido nos anéis e conjuntos Arcanos virou um item cosmético separado (slot: 'cosmetic') que você escolhe equipar ou forjar. Já a Transmog permite transferir a aparência de um item para outro do mesmo slot, consumindo o item usado como modelo visual.",
+      categoria: "equipamentos"
     }
   };
 
@@ -297,7 +339,22 @@
     cura_estimada: "cura",
     build: "build",
     fc: "fc",
-    fc_total: "fc"
+    fc_total: "fc",
+    raid: "raid_vexxaris",
+    vexxaris: "raid_vexxaris",
+    ixtharra: "raid_vexxaris",
+    covil: "raid_vexxaris",
+    casulo: "casulo_vexxaris",
+    raidcall: "casulo_vexxaris",
+    aneis: "comparativo_aneis",
+    anel: "comparativo_aneis",
+    presa_ixtharra: "aneis_raid",
+    teia_escarlate: "aneis_raid",
+    alquimia: "alquimia",
+    aprimorar: "aprimorar",
+    transmog: "transmog_auras",
+    aura: "transmog_auras",
+    auras: "transmog_auras"
   };
 
   /**

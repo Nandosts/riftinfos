@@ -342,14 +342,14 @@ function construirModoFichaVisualHtml(
   if (ehAnel) {
     const anelComumAtivo = !Number(itemAtivo.look);
     const listaAneis = [
-      { look: 0, nome: "Anel Comum", raridadeMin: 5, efeito: "Apenas atributos base e 6 engastes de gemas." },
+      { look: 0, nome: "Anel Comum", raridadeMin: 5, foco: "Base padrão", efeito: "Apenas atributos base e 6 engastes de gemas." },
       ...Object.entries(catalogoAneis)
         .sort((a, b) => (b[1].raridadeMin || 6) - (a[1].raridadeMin || 6) || Number(b[0]) - Number(a[0]))
-        .map(([k, v]) => ({ look: Number(k), nome: v.nome, raridadeMin: v.raridadeMin || 7, efeito: v.efeito })),
+        .map(([k, v]) => ({ look: Number(k), nome: v.nome, raridadeMin: v.raridadeMin || 7, foco: v.foco || "", efeito: v.efeito })),
     ].filter((an) => {
       if (!termoFiltro) return true;
       const rarNome = nomesRaridade[an.raridadeMin || 6] || "";
-      return `${an.nome} ${rarNome} ${an.efeito}`.toLowerCase().includes(termoFiltro);
+      return `${an.nome} ${rarNome} ${an.foco} ${an.efeito}`.toLowerCase().includes(termoFiltro);
     });
 
     const cardsAneisHtml = listaAneis.length > 0
@@ -374,7 +374,7 @@ function construirModoFichaVisualHtml(
               </div>
               <div class="rs-bag-compact-info">
                 <strong style="color:${corRar};">${escaparHtml(an.nome)}</strong>
-                <span class="rs-bag-compact-sub">${nomesRaridade[rarIdx]}</span>
+                <span class="rs-bag-compact-sub">${nomesRaridade[rarIdx]}${an.foco ? ` · ${escaparHtml(an.foco)}` : ""}</span>
               </div>
               ${equipado ? `<span class="rs-bag-equip-tag">✓</span>` : ""}
             </button>
@@ -489,6 +489,10 @@ function construirModoFichaVisualHtml(
   const textoPassivaPecaAtiva = ehAnel
     ? (infoAnelAtivo?.efeito || "Sem efeito passivo especial.")
     : (infoArmaAtiva?.efeito?.texto || infoArmaAtiva?.notaSkill || infoKindOficialAtivo?.effect || "");
+  const escAnel = infoAnelAtivo?.escalaPorNivel;
+  const textoCurvaAnelAtivo = escAnel
+    ? `Curva por nível (${infoAnelAtivo.estimado ? "perfil estimado da Raid" : "medida na API"}): ~${String(escAnel.atk).replace(".", ",")} ATK · ${String(escAnel.def).replace(".", ",")} DEF · ${String(escAnel.hp).replace(".", ",")} HP · ${String(escAnel.crit).replace(".", ",")} CRÍT (+${escAnel.spd}% VEL fixa)`
+    : "";
 
   const blocoDetalhesPecaSelecionadaHtml = (infoSetAtivo || textoPassivaPecaAtiva)
     ? `
@@ -507,6 +511,8 @@ function construirModoFichaVisualHtml(
           </div>
         ` : ""}
         ${textoPassivaPecaAtiva ? `<div class="rs-icard-lore-ef">★ ${escaparHtml(textoPassivaPecaAtiva)}</div>` : ""}
+        ${infoAnelAtivo?.obtencao ? `<div class="small muted" style="margin-top:4px;">📍 <strong>Como conseguir:</strong> ${escaparHtml(infoAnelAtivo.obtencao)}</div>` : ""}
+        ${textoCurvaAnelAtivo ? `<div class="small muted" style="margin-top:2px;">📊 ${escaparHtml(textoCurvaAnelAtivo)}</div>` : ""}
       </div>
     `
     : "";

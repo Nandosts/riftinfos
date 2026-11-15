@@ -9,6 +9,7 @@ import {
 import { perfilCarregadoP1, statusConsulta } from "../perfil.mjs";
 import {
   aplicarAtributosPadraoNoItem,
+  aplicarTrocaAnelSimulador,
   criarGemaPreset,
   criarModeloSimuladorPadrao,
   equiparConjuntoCompletoSimulador,
@@ -199,13 +200,7 @@ function vincularEventosSimulador() {
       const look = Number(e.currentTarget.dataset.simEquiparAnel) || 0;
       const anel = simulacao.estadoSimulador.itens[3];
       if (!anel) return;
-      if (Number(anel.look) !== look) limparVisualImportado(anel);
-      anel.look = look;
-      anel.name = catalogoAneis[look]?.nome || "Anel Comum";
-      if (simulacao.autoCalcularStatsItemSimulador && catalogoAneis[look]?.raridadeMin) {
-        anel.rarity = catalogoAneis[look].raridadeMin;
-        aplicarAtributosPadraoNoItem(anel, false);
-      }
+      aplicarTrocaAnelSimulador(anel, look);
       renderizarSimulador();
     });
   });
@@ -363,7 +358,7 @@ function vincularEventosSimulador() {
       if (campo === "rarity" || campo === "itemLevel" || campo === "look") {
         item[campo] = Number(e.target.value) || 0;
         if (campo === "look") {
-          item.name = catalogoAneis[item.look]?.nome || "Anel Comum";
+          aplicarTrocaAnelSimulador(item, item.look);
         }
         if (simulacao.autoCalcularStatsItemSimulador && (campo === "rarity" || campo === "itemLevel")) {
           aplicarAtributosPadraoNoItem(item, campo === "itemLevel");

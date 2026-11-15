@@ -104,7 +104,7 @@ function recalcularGemasBuildComModo(rollForcado = undefined) {
   });
 }
 
-function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250) {
+function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250, look = 0) {
   const idxRaridade = Math.min(7, Math.max(0, Number(raridade) || 0));
   const multRar = multiplicadoresRaridadeItem[idxRaridade] ?? 1.0;
   const nv = Math.max(1, Number(itemLevel) || 1);
@@ -136,6 +136,21 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
       spd: Math.max(4, Math.round(9 * multRar)),
     };
   }
+
+  const infoAnel = catalogoAneis[Number(look)];
+  if (infoAnel?.escalaPorNivel) {
+    const esc = infoAnel.escalaPorNivel;
+    const rarBaseAnel = infoAnel.raridadeMin || 7;
+    const fatorRar = (multiplicadoresRaridadeItem[idxRaridade] ?? 1.0) / (multiplicadoresRaridadeItem[rarBaseAnel] ?? 1.0);
+    return {
+      atk: Math.round(nv * esc.atk * fatorRar),
+      def: Math.round(nv * esc.def * fatorRar),
+      hp: Math.round(nv * esc.hp * fatorRar),
+      crit: Math.round(nv * esc.crit * fatorRar),
+      spd: Math.max(4, Math.round(esc.spd * fatorRar)),
+    };
+  }
+
   return {
     atk: Math.round(nv * 3.68 * multRar),
     def: Math.round(nv * 2.40 * multRar),
@@ -147,7 +162,7 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
 
 function aplicarAtributosPadraoNoItem(item, recalcularGemas = true) {
   if (!item) return;
-  const stats = calcularAtributosPadraoPeca(item.slot, simulacao.estadoSimulador.cls, item.rarity, item.itemLevel);
+  const stats = calcularAtributosPadraoPeca(item.slot, simulacao.estadoSimulador.cls, item.rarity, item.itemLevel, item.look);
   item.atk = stats.atk;
   item.def = stats.def;
   item.hp = stats.hp;
@@ -263,12 +278,49 @@ function importarPerfilParaSimulador(perfil) {
     atributos: { ...attrs },
     itens: itensImportados,
   };
+  const anelOrig = (perfil.equipped || []).find((item) => item.slot === "ring");
   origemPorBuild.set(simulacao.estadoSimulador, {
     nome: perfil.displayName || perfil.login,
     classe: perfil.cls,
     cosmetico: perfil.equipped?.find((item) => item.slot === "cosmetic")?.kind,
+    anelImportado: anelOrig
+      ? {
+          look: Number(anelOrig.look) || 0,
+          rarity: Number(anelOrig.rarity) || 7,
+          itemLevel: Number(anelOrig.itemLevel) || 100,
+          atk: Number(anelOrig.atk) || 0,
+          def: Number(anelOrig.def) || 0,
+          hp: Number(anelOrig.hp) || 0,
+          crit: Number(anelOrig.crit) || 0,
+          spd: Number(anelOrig.spd) || 0,
+        }
+      : null,
   });
   simulacao.simuladorEditadoManual = false;
+}
+
+function aplicarTrocaAnelSimulador(anel, novoLook) {
+  if (!anel) return;
+  const look = Number(novoLook) || 0;
+  if (Number(anel.look) !== look) limparVisualImportado(anel);
+  anel.look = look;
+  const infoAnel = catalogoAneis[look];
+  anel.name = infoAnel?.nome || "Anel Comum";
+  if (infoAnel?.raridadeMin) {
+    anel.rarity = infoAnel.raridadeMin;
+  }
+  const origem = obterOrigemBuildSimulador();
+  const imp = origem?.anelImportado;
+  if (imp && imp.look === look && imp.itemLevel === Number(anel.itemLevel)) {
+    anel.rarity = imp.rarity;
+    anel.atk = imp.atk;
+    anel.def = imp.def;
+    anel.hp = imp.hp;
+    anel.crit = imp.crit;
+    anel.spd = imp.spd;
+    return;
+  }
+  aplicarAtributosPadraoNoItem(anel, false);
 }
 
 const slotsAbertosSimulador = new Set([0]);
@@ -338,6 +390,7 @@ function obterResumoPassivasBuildSimulador() {
 
 export {
   aplicarAtributosPadraoNoItem,
+  aplicarTrocaAnelSimulador,
   criarGemaPreset,
   criarModeloSimuladorPadrao,
   equiparConjuntoCompletoSimulador,

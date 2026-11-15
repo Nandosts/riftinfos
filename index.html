@@ -23,12 +23,12 @@
   <link rel="stylesheet" href="estilos/ficha.css">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
-  <script src="sprites.js?v=20261114h" defer></script>
-  <script src="explicacoes.js" defer></script>
-  <script src="analise.js?v=20261114h" defer></script>
-  <script src="historico.js?v=20261114h" defer></script>
+  <script src="sprites.js?v=20261114i" defer></script>
+  <script src="explicacoes.js?v=20261114i" defer></script>
+  <script src="analise.js?v=20261114i" defer></script>
+  <script src="historico.js?v=20261114i" defer></script>
   <script src="compartilhamento.js?v=3" defer></script>
-  <script type="module" src="app.mjs?v=20261114h"></script>
+  <script type="module" src="app.mjs?v=20261114i"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -243,6 +243,94 @@
           <div id="lista-equipamentos" class="lista-equipamentos"></div>
           <p class="note">A fatia em FC divide 100% do ganho de equipamentos entre cada peça e gema. O indicador "Se desequipar" mostra a perda marginal imediata caso você remova a peça (pois ataque, crítico, vida e defesa multiplicam entre si).</p>
         </div>
+
+        <details class="detalhes-glossario-global" style="margin-top:14px;">
+          <summary class="sumario-glossario-global">💍 Comparativo Real dos Anéis Arcanos e Imortais (Quanto cada um contribui por nível + onde conseguir)</summary>
+          <div class="painel-glossario-interno" style="display:grid; gap:10px; font-size:0.86rem; line-height:1.45;">
+            <p style="margin:0;">
+              No código do jogo (<code>index-CXlW0_-D.js</code>), cada anel tem uma <strong>distribuição própria de atributos por nível do item</strong>. Os 4 Anéis Arcanos de Zona 13+/Forja (<code>14</code> a <code>17</code>) possuem um <strong>efeito periódico/condicional de combate</strong>, enquanto os 2 novos Anéis Arcanos exclusivos da Raid (<code>18</code> e <code>19</code>) não têm proc periódico e concentram o orçamento inteiro em <strong>atributos brutos altíssimos</strong> (que entram 100% no cálculo de FC, golpes normais, skills e EHP):
+            </p>
+            <div class="table-wrap" tabindex="0" role="region" aria-label="Comparativo de atributos e efeitos dos anéis">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Anel</th>
+                    <th scope="col">Como conseguir</th>
+                    <th scope="col">Curva por Nível (ATK / DEF / HP / CRÍT / VEL)</th>
+                    <th scope="col">Exemplo Nv. 300 (sem gemas)</th>
+                    <th scope="col">Passiva / Papel na Build</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel da Presa de Ixtharra</strong> <small>(Arcano · #18)</small></td>
+                    <td>Drop exclusivo ao vencer a <strong>Raid Covil de Vexxaris</strong> (não sai na Forja Arcana comum)</td>
+                    <td><code>~4,05 ATK</code> · <code>1,35 DEF</code> · <code>6,50 HP</code> · <code>0,64 CRÍT</code> · <code>16% VEL</code> <small class="muted">(perfil Raid)</small></td>
+                    <td><strong>~1.215 ATK</strong> · 405 DEF · 1.950 HP · <strong>+19,2% CRÍT</strong> · +16% VEL</td>
+                    <td>Sem proc periódico: maior pacote de <strong>Ataque + Crítico brutos</strong> para maximizar FC ofensivo, golpes e dano de habilidades.</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel da Teia Escarlate</strong> <small>(Arcano · #19)</small></td>
+                    <td>Drop exclusivo ao vencer a <strong>Raid Covil de Vexxaris</strong> (não sai na Forja Arcana comum)</td>
+                    <td><code>~2,65 ATK</code> · <code>2,95 DEF</code> · <code>16,20 HP</code> · <code>0,25 CRÍT</code> · <code>18% VEL</code> <small class="muted">(perfil Raid)</small></td>
+                    <td>795 ATK · <strong>885 DEF</strong> · <strong>4.860 HP</strong> · +7,5% CRÍT · <strong>+18% VEL</strong></td>
+                    <td>Sem proc periódico: maior pacote de <strong>Vida + Defesa + Velocidade</strong> para elevar o EHP físico e o <em>SpeedBonus</em> (&gt;4,6/s).</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel do Eclipse Arcano</strong> <small>(Arcano · #14)</small></td>
+                    <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
+                    <td><code>3,68 ATK</code> · <code>1,22 DEF</code> · <code>5,93 HP</code> · <code>0,57 CRÍT</code> · <code>16% VEL</code></td>
+                    <td><strong>1.105 ATK</strong> · 367 DEF · 1.779 HP · <strong>+17,0% CRÍT</strong> · +16% VEL</td>
+                    <td><strong>Eco do Eclipse:</strong> ricocheteia 60% do dano em até 2 inimigos próximos e 20% das vezes repete 100% do golpe no alvo principal (+20% DPS médio em alvo único).</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel do Ceifador Cósmico</strong> <small>(Arcano · #16)</small></td>
+                    <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
+                    <td><code>3,42 ATK</code> · <code>1,46 DEF</code> · <code>6,85 HP</code> · <code>0,43 CRÍT</code> · <code>18% VEL</code></td>
+                    <td><strong>1.025 ATK</strong> · 438 DEF · 2.056 HP · +13,0% CRÍT · <strong>+18% VEL</strong></td>
+                    <td><strong>Colheita de Almas:</strong> cada inimigo abatido por qualquer aliado dá +4% ATK (até 10 almas = +40% ATK). Na 10ª alma, causa 160% ATK em todos os inimigos e reinicia.</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel do Coração do Vazio</strong> <small>(Arcano · #15)</small></td>
+                    <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
+                    <td><code>2,46 ATK</code> · <code>2,71 DEF</code> · <code>14,87 HP</code> · <code>0,28 CRÍT</code> · <code>12% VEL</code></td>
+                    <td>737 ATK · <strong>814 DEF</strong> · <strong>4.462 HP</strong> · +8,4% CRÍT · +12% VEL</td>
+                    <td><strong>Renascer do Vazio:</strong> 1× por jornada (ou na Raid), ao morrer renasce na hora com 70% HP + escudo de 40% HP (5s) e explode 200% ATK em todos os inimigos.</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#eb34b1;">Anel do Prisma Estelar</strong> <small>(Arcano · #17)</small></td>
+                    <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
+                    <td><code>2,21 ATK</code> · <code>2,21 DEF</code> · <code>12,87 HP</code> · <code>0,22 CRÍT</code> · <code>14% VEL</code></td>
+                    <td>663 ATK · 663 DEF · <strong>3.861 HP</strong> · +6,7% CRÍT · +14% VEL</td>
+                    <td><strong>Pulso Cristalino:</strong> a cada 10s limpa stun/gelo/medo/silêncio/sangramento/lentidão do time, dá escudo de 12% HP (4s), cura 8% HP no mais ferido e dá 3s de imunidade.</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#ff2d3d;">Anéis Imortais (#10 a #13)</strong></td>
+                    <td>Chefes Nv. 100+ ou <strong>Forja Imortal</strong> (4 anéis Lendários, 35% base) · negociáveis no Mercado</td>
+                    <td>
+                      <strong>Sede Escarlate (#10):</strong> <code>1,65 ATK</code> · <code>2,66 HP</code> · <code>14% VEL</code><br>
+                      <strong>Carrasco (#12):</strong> <code>1,83 ATK</code> · <code>0,32 CRÍT</code> · <code>10% VEL</code><br>
+                      <strong>Sanguessuga (#11):</strong> <code>1,33 ATK</code> · <code>5,75 HP</code> · <code>12% VEL</code><br>
+                      <strong>Fênix Rubra (#13):</strong> <code>1,01 ATK</code> · <code>6,95 HP</code> · <code>1,36 DEF</code>
+                    </td>
+                    <td>
+                      <strong>#10:</strong> 495 ATK · 798 HP<br>
+                      <strong>#12:</strong> 549 ATK · +9,6% CRÍT<br>
+                      <strong>#11:</strong> 399 ATK · 1.725 HP<br>
+                      <strong>#13:</strong> 303 ATK · 2.085 HP
+                    </td>
+                    <td>
+                      <strong>#10:</strong> Sangramento contínuo (ignora DEF).<br>
+                      <strong>#12:</strong> +60% dano em inimigos &le;30% HP.<br>
+                      <strong>#11:</strong> 8% de roubo de vida sobre o dano.<br>
+                      <strong>#13:</strong> 1× por jornada renasce com 40% HP + 20% escudo.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- ABA 4: SIMULADOR INTERATIVO DE FC, BUILD E MELHORIAS -->
@@ -285,6 +373,20 @@
             <p class="texto-condicoes">Ataques contínuos · sem ajuda de aliados · sem cura ou escudo externo · alvo com defesa correspondente à zona e onda.</p>
           </div>
         </div>
+
+        <details class="detalhes-glossario-global" style="margin-bottom:14px;">
+          <summary class="sumario-glossario-global">🕷️ Como funciona a Raid Covil de Vexxaris (Como conseguir o Casulo, $raid CÓDIGO, pausa da live e drops)</summary>
+          <div class="painel-glossario-interno" style="display:grid; gap:8px; font-size:0.86rem; line-height:1.45;">
+            <ul style="margin:0 0 0 18px; padding:0; display:grid; gap:6px;">
+              <li><strong>Como conseguir o Casulo de Vexxaris (a chave da Raid):</strong> é um item consumível Lendário raríssimo (<code>kind: "raidcall"</code>) que cai de <strong>chefes de zona</strong> nas lives. O atributo <strong>Sorte (LUK)</strong> aumenta a chance de drops até os 100 pontos. Ele <strong>não pode ser vendido/comprado no Mercado</strong> nem fabricado na Forja ou Alquimia.</li>
+              <li><strong>Como abrir a Raid (apenas 1 jogador precisa ter o Casulo):</strong> quem tem o Casulo vai em <em>Meu personagem</em> no site do jogo (estando em uma live ao vivo com overlay ligado), clica no item e aperta <strong>"Usar: romper o Casulo"</strong>. Quem rompeu o Casulo já entra automaticamente.</li>
+              <li><strong>Como os outros jogadores entram (<code>$raid CÓDIGO</code>):</strong> ao romper o Casulo, o jogo monta um acampamento (fogueira) e mostra um <strong>código na tela da live</strong>. Durante a contagem regressiva, <strong>todo mundo precisa digitar <code>$raid CÓDIGO</code> no chat</strong> — tanto quem já estava naquela live com <code>$jogar</code> quanto quem vier de outra live. Se não atingir o mínimo de jogadores antes do tempo acabar, a Raid é cancelada e o Casulo volta para a mochila de quem o usou.</li>
+              <li><strong>As outras pessoas continuam lutando? Por que parece que "desconectou todo mundo"?</strong> Não desconecta da conta! Enquanto a Raid acontece, <strong>a marcha normal da live fica pausada</strong> e o overlay exibe na tela <strong>somente os jogadores que digitaram <code>$raid CÓDIGO</code></strong>. Quem já estava na live mas estava AFK (e não digitou o código) fica fora da tela durante as 4 ondas da Raid. Assim que a Raid termina (vitória ou derrota), a live retoma exatamente a <strong>mesma Zona e Onda</strong> em que estava e todos os jogadores voltam a aparecer normalmente.</li>
+              <li><strong>Dificuldade, 4 ondas e morte sem revive por tempo:</strong> a dificuldade equivale a <strong>1 zona abaixo do recorde da live</strong> (escalando com o tamanho do grupo). São 4 etapas: <em>1. Boca da Caverna</em> → <em>2. Túneis de Seda (Guardião de Quitina)</em> → <em>3. O Berçário</em> → <em>4. Rainha Ixtharra (3 fases: Rainha do Ninho, A Predadora e Fúria do Ninho)</em>. Dentro da Raid <strong>não existe renascimento automático de 2 ou 3 minutos</strong>: quem morre só levanta com auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>Recompensas da Raid:</strong> vencer garante ouro, EXP e sorteio individual de itens com chance maior de <strong>Imortais</strong> que um chefe comum, além da chance raríssima de itens <strong>Arcanos</strong> e dos 2 anéis exclusivos da Raid: <strong>Anel da Presa de Ixtharra</strong> (muito ATK/CRÍT) e <strong>Anel da Teia Escarlate</strong> (muita Vida/DEF/VEL).</li>
+            </ul>
+          </div>
+        </details>
 
         <form id="form-monstros" class="painel-controle-grid">
           <div class="campo">
@@ -441,28 +543,42 @@
         <div class="painel-glossario-interno">
           <div class="campo campo-busca-glossario">
             <label for="input-busca-glossario">Filtrar termos, siglas e fórmulas</label>
-            <input id="input-busca-glossario" type="search" placeholder="Ex: DoT, EHP, DPS, HPS, ASPD, TTK, Fúria, Gelo, True Damage, Cap...">
+            <input id="input-busca-glossario" type="search" placeholder="Ex: Raid, Casulo, Anel, Alquimia, Aprimorar, DoT, EHP, DPS, Gelo, Cap...">
           </div>
           <div id="conteudo-glossario-busca"></div>
         </div>
       </details>
       <details id="detalhes-atualizacoes-modelo" class="detalhes-glossario-global" style="margin-top:8px;">
-        <summary class="sumario-glossario-global">📋 Atualizações do modelo e patches do jogo (v2026.11.14)</summary>
-        <div class="painel-glossario-interno" style="display:grid; gap:10px; font-size:0.86rem; line-height:1.45;">
+        <summary class="sumario-glossario-global">📘 Guia das Mecânicas Novas (Raid Vexxaris, Novos Anéis, Alquimia) &amp; Patch v2026.11.14</summary>
+        <div class="painel-glossario-interno" style="display:grid; gap:14px; font-size:0.86rem; line-height:1.5;">
           <div>
-            <strong style="color:var(--gold);">Patch 14/11/2026 — Covil de Vexxaris, Alquimia e Auras Cosméticas (<code>index-CXlW0_-D.js</code>)</strong>
-            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:4px;">
-              <li><strong>Coeficientes de FC (<code>k</code>) atualizados:</strong> Guerreiro <code>0,40</code> (antes <code>0,60</code>), Clérigo <code>0,56</code> (antes <code>0,84</code>) e Arqueiro <code>0,56</code> (antes <code>0,75</code>).</li>
-              <li><strong>Passivas de armas Imortais e Arcanas corrigidas:</strong> golpes periódicos de armas (como <em>Varinha da Cartola</em>, <em>Machado do Trovão</em>, <em>Arco Abissal</em> etc.) agora usam <code>imHit</code>/<code>rollDamage</code> no jogo, recebendo <strong>crítico</strong> e <strong>bônus de velocidade acima de 4,6/s</strong>.</li>
-              <li><strong>Novos anéis da Raid (Covil de Vexxaris):</strong> adicionados <em>Anel da Presa de Ixtharra</em> (foco em ataque/crítico) e <em>Anel da Teia Escarlate</em> (foco em vida/defesa) com seus sprites e auras.</li>
-              <li><strong>Auras cosméticas separadas:</strong> o brilho de anéis e conjuntos Arcanos passou a ser um item cosmético próprio (<code>slot: "cosmetic"</code>), preservado ao importar o personagem no Simulador.</li>
+            <strong style="color:var(--gold); font-size:0.94rem;">🕷️ 1. Raid Cooperativa: Covil de Vexxaris — Como funciona na prática</strong>
+            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
+              <li><strong>Como conseguir o Casulo de Vexxaris:</strong> é um consumível Lendário raríssimo (<code>raidcall</code>) obtido no drop de <strong>chefes de zona</strong> nas lives (a <em>Sorte</em> ajuda no drop até os 100 pontos). Não pode ser vendido no Mercado nem criado na Forja/Alquimia.</li>
+              <li><strong>Como abrir e como entrar:</strong> apenas <strong>1 pessoa</strong> usa o Casulo em <em>Meu personagem → Usar: romper o Casulo</em> numa live online. Isso pausa a marcha normal, monta o acampamento (fogueira) e mostra um <strong>código na tela da live</strong>. Todo mundo (mesmo quem já estava na live com <code>$jogar</code> ou quem veio de outra live) precisa digitar <code>$raid CÓDIGO</code> no chat durante a contagem. Se não atingir o mínimo de jogadores, a Raid não inicia e o Casulo é devolvido a quem usou.</li>
+              <li><strong>O que acontece com quem não digita o código?</strong> Enquanto as 4 ondas da Raid acontecem, a live normal fica <strong>pausada</strong> e o overlay mostra na tela <strong>apenas quem digitou <code>$raid CÓDIGO</code></strong>. Quem estava AFK na live não perde a vaga nem o progresso: apenas fica oculto durante a Raid e volta automaticamente à tela assim que a Raid termina, na mesma Zona e Onda de antes.</li>
+              <li><strong>Combate nas 4 ondas e Morte:</strong> dificuldade = <strong>1 zona abaixo do recorde da live</strong>. São 4 ondas seguidas (<em>Boca da Caverna</em>, <em>Túneis de Seda</em>, <em>O Berçário</em> e <em>Rainha Ixtharra</em> em 3 fases). Lá dentro <strong>não há renascimento por tempo (2 ou 3 min)</strong>: quem morre só volta com item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou revive de Clérigo (<em>Cetro da Vida</em>, <em>Cajado da Árvore-Mundo</em>).</li>
             </ul>
           </div>
-          <div style="border-top:1px solid var(--line); padding-top:8px;">
-            <strong style="color:var(--cyan);">Patch 09/11/2026 — Novos conjuntos Arcanos e Gelo na Forja (<code>index-Bw4Xm9JJ.js</code>)</strong>
-            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:4px;">
-              <li><strong>6 conjuntos Arcanos clássicos:</strong> <em>Titã de Obsidiana</em>, <em>Senhor do Trovão</em>, <em>Serafim Dourado</em>, <em>Sacerdote do Eclipse</em>, <em>Aurora Boreal</em> e <em>Caçador Abissal</em>.</li>
-              <li><strong>Bônus de Gelo (Pity) na Forja:</strong> +2 p.p. de chance por falha seguida na mesma peça e raridade (até +10 p.p. no Nv.5).</li>
+
+          <div style="border-top:1px solid var(--line); padding-top:10px;">
+            <strong style="color:#eb34b1; font-size:0.94rem;">💍 2. Quanto os Novos Anéis Contribuem? (Presa de Ixtharra #18 vs Teia Escarlate #19 vs Arcanos #14–#17)</strong>
+            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
+              <li><strong>Diferença estrutural no código:</strong> os 4 Anéis Arcanos de Zona 13+/Forja (<em>Eclipse Arcano #14</em>, <em>Coração do Vazio #15</em>, <em>Ceifador Cósmico #16</em> e <em>Prisma Estelar #17</em>) possuem uma <strong>passiva de combate (proc)</strong> além dos atributos. Já os 2 novos Anéis Arcanos exclusivos da Raid (<strong>#18</strong> e <strong>#19</strong>) não possuem proc periódico e concentram o orçamento inteiro em <strong>atributos brutos</strong> (que entram 100% no FC, no ataque básico, nas skills e no EHP):</li>
+              <li><strong>Anel da Presa de Ixtharra (#18 · Exclusivo Raid):</strong> focado em <strong>muito Ataque e Crítico</strong>, com Vida e Defesa de brinde (perfil ~<code>4,05 ATK/nv</code> · <code>0,64 CRÍT/nv</code> · <code>1,35 DEF/nv</code> · <code>6,50 HP/nv</code> · <code>+16% VEL</code>; no Nv. 300: <strong>~1.215 ATK e +19,2% CRÍT</strong> vs 1.105 ATK e +17,0% CRÍT do <em>Eclipse Arcano #14</em>).</li>
+              <li><strong>Anel da Teia Escarlate (#19 · Exclusivo Raid):</strong> focado em <strong>muita Vida e Defesa</strong>, com Ataque e Velocidade de brinde (perfil ~<code>16,20 HP/nv</code> · <code>2,95 DEF/nv</code> · <code>2,65 ATK/nv</code> · <code>0,25 CRÍT/nv</code> · <code>+18% VEL</code>; no Nv. 300: <strong>~4.860 HP, 885 DEF e +18% VEL</strong> vs 4.462 HP, 814 DEF e +12% VEL do <em>Coração do Vazio #15</em>).</li>
+              <li><em>Dica:</em> Na aba <strong>Equipamentos</strong> há uma tabela comparativa completa de todos os anéis (#10 a #19), e no <strong>Simulador</strong> clicar em qualquer anel já aplica automaticamente a curva de atributos daquele anel para comparar o impacto imediato em FC, DPS e EHP.</li>
+            </ul>
+          </div>
+
+          <div style="border-top:1px solid var(--line); padding-top:10px;">
+            <strong style="color:var(--cyan); font-size:0.94rem;">⚗️ 3. Alquimia, Aprimorar, Transmog, Auras e Alterações de Cálculo (Patches 09/11 e 14/11/2026)</strong>
+            <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
+              <li><strong>Alquimia (5 fragmentos = 1 item garantido):</strong> cada item destruído na aba Reciclar vira <strong>1 fragmento</strong> daquele slot e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong>, você cria 1 peça nova da mesma raridade <strong>sem roleta (100% de sucesso)</strong>. Faixas de nível por nível de Alquimia: <strong>Nv. 1 (0–24)</strong>, <strong>Nv. 2 (25–49)</strong>, <strong>Nv. 3 (50–79)</strong> e <strong>Nv. 4 (80–110)</strong>, liberado até raridade Lendária.</li>
+              <li><strong>Aprimorar Equipamento:</strong> escolha 1 item principal e sacrifique até 30 itens extras do mesmo slot como experiência para elevar o nível (<code>itemLevel</code>) e o FC da peça pagando ouro.</li>
+              <li><strong>Gelo na Forja (+2 p.p. por falha):</strong> cada falha seguida na mesma peça e raridade soma +2 pontos percentuais na próxima tentativa daquela forja (até +10 p.p. com 5 falhas seguidas). Um sucesso zera o bônus daquela peça/raridade.</li>
+              <li><strong>Transmog, Auras e Mercado:</strong> a Transmog copia apenas a aparência de outro item (consumindo o item de origem); as auras de anéis e sets Arcanos agora são itens cosméticos independentes (<code>slot: "cosmetic"</code>) que podem ser forjados; e equipamentos <strong>Imortais</strong> agora podem ser negociados no Mercado (Arcanos, itens de evento e Casulo continuam restritos).</li>
+              <li><strong>Ajustes matemáticos no motor do jogo (14/11/2026):</strong> coeficientes de FC (<code>k</code>) ajustados para <code>0,40</code> no Guerreiro e <code>0,56</code> no Clérigo e Arqueiro; passivas periódicas de dano de armas Imortais e Arcanas passaram a usar <code>imHit</code>/<code>rollDamage</code> (agora recebem <strong>crítico</strong> e <strong>SpeedBonus &gt; 4,6/s</strong>).</li>
             </ul>
           </div>
         </div>

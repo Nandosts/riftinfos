@@ -16,7 +16,7 @@ from pathlib import Path
 DIRETORIO_BASE = os.path.dirname(os.path.abspath(__file__))
 URL_API_BASE = "https://z6ywq6r3ub.execute-api.us-east-1.amazonaws.com"
 URL_SITE_JOGO = "https://riftstream.com.br/"
-BUNDLE_REFERENCIA = "index-CXlW0_-D.js"
+BUNDLE_REFERENCIA = "index-XMmLTBXc.js"
 
 def requisicao_http(url, timeout=12):
     """Executa GET HTTP retornando (status, corpo_texto, headers)."""
