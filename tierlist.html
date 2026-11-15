@@ -19,11 +19,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
   <link rel="stylesheet" href="style.css?v=20261115a">
-  <link rel="stylesheet" href="estilos/tierlist.css?v=20261115h">
+  <link rel="stylesheet" href="estilos/ficha.css">
+  <link rel="stylesheet" href="estilos/tierlist.css?v=20261115i">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261114i" defer></script>
-  <script type="module" src="src/tierlist.mjs?v=20261115h"></script>
+  <script type="module" src="src/tierlist.mjs?v=20261115i"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -55,9 +56,6 @@
         <p id="tierlist-descricao-modo" class="note" style="margin:6px 0 0;">
           Avaliação do Nando para chefes e Raid. Em cada tier, a ordem dá mais peso a proteção do grupo, dano em chefes e sobrevivência.
         </p>
-        <p id="tierlist-metodologia-fc" class="note" hidden>
-          Conjuntos usam arma, elmo e armadura, sem anel. Anéis são testados sozinhos. Em Todos e Anéis, a classe de referência dos anéis é Guerreiro.
-        </p>
       </div>
     </div>
 
@@ -75,6 +73,16 @@
         <button type="button" class="tl-btn" data-tl-cat="cleric">Clérigo</button>
         <button type="button" class="tl-btn" data-tl-cat="ring">Anéis</button>
       </div>
+    </section>
+
+    <section id="tierlist-controles-fc" class="panel tl-controles" aria-label="Cenário global de FC" hidden>
+      <label for="tierlist-anel-referencia">Anel nos conjuntos
+        <select id="tierlist-anel-referencia">
+          <option value="0">Sem anel</option>
+        </select>
+      </label>
+      <button id="tierlist-restaurar-fc" class="tl-btn" type="button">Restaurar cenário</button>
+      <p class="note small">Os conjuntos usam as três peças e o anel escolhido aqui. Cada anel no ranking é calculado sozinho, com Guerreiro em Todos e Anéis.</p>
     </section>
 
     <div class="tl-legenda">

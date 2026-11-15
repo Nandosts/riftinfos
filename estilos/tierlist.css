@@ -291,17 +291,28 @@
   min-width: 0;
 }
 
-.tl-ficha-cabecalho,
+.tl-ficha-visual {
+  margin-top: 12px;
+  align-items: start;
+}
+
+.tl-ficha-visual .rs-slots4 {
+  grid-template-columns: repeat(4, minmax(0, 58px));
+}
+
+.tl-ficha-visual .tl-slot-vazio {
+  color: var(--muted);
+  cursor: default;
+}
+
+.tl-ficha-visual .tl-ficha-atributos-titulo {
+  margin-top: 16px;
+}
+
 .tl-ficha-peca-topo {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.tl-ficha-cabecalho {
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 14px;
 }
 
 .tl-ficha-fc h4,
@@ -311,8 +322,7 @@
 }
 
 .tl-ficha-total {
-  display: grid;
-  gap: 2px;
+  margin-top: 12px;
 }
 
 .tl-ficha-total strong {
@@ -320,7 +330,6 @@
   font-size: 1.25rem;
 }
 
-.tl-ficha-paineis,
 .tl-ficha-equipamentos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
@@ -328,7 +337,6 @@
   margin-block: 8px 14px;
 }
 
-.tl-ficha-bloco,
 .tl-ficha-peca {
   min-width: 0;
   padding: 10px 12px;
@@ -363,6 +371,35 @@
 .tl-ficha-atributos dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
+}
+
+.tl-ficha-engastes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+  gap: 8px;
+}
+
+.tl-ficha-engastes label {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tl-ficha-engastes select {
+  min-height: 38px;
+  padding: 4px 6px;
+  font-size: 0.85rem;
+}
+
+#tierlist-controles-fc > label {
+  flex: 0 1 22rem;
+  min-width: 0;
+}
+
+#tierlist-controles-fc > p {
+  flex-basis: 100%;
+  margin: 0;
 }
 
 @media (max-width: 640px) {

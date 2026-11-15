@@ -2,6 +2,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  catalogoGemas,
   coresRaridade,
   nomesClasses,
 } from "./dados.mjs";
@@ -13,6 +14,8 @@ import { renderizarFichaFc } from "./tierlist-ficha.mjs";
 const containerTabela = document.querySelector("#tierlist-tabela");
 const containerDetalhe = document.querySelector("#tierlist-detalhe");
 const descricaoModo = document.querySelector("#tierlist-descricao-modo");
+const controlesFc = document.querySelector("#tierlist-controles-fc");
+const selectAnelReferencia = document.querySelector("#tierlist-anel-referencia");
 
 let modoAtual = "utilidade"; // "utilidade" | "fc"
 let categoriaAtual = "todos"; // "todos" | "warrior" | "archer" | "cleric" | "ring"
@@ -21,6 +24,8 @@ let itemSelecionadoId = null;
 const NIVEL_ITEM_REFERENCIA = 300;
 const NIVEL_PERSONAGEM_REFERENCIA = 750;
 const ATRIBUTOS_REFERENCIA = { str: 140, agi: 140, vit: 140, def: 140, luk: 140 };
+const gemasPorSlot = new Map();
+let anelReferencia = 0;
 
 const UTILIDADE_CONJUNTOS = {
   singular: { tier: "S+", prioridade: 20, tag: "Dano em chefes", motivo: "A implosão escala com a vida máxima do chefe e ignora defesa. Combina com o Eclipse Arcano para dano e com o Sanguessuga para recuperar vida.", limite: "O dano vem em pulsos. A implosão tem 1,4s de atraso e pode cair fora da janela em que o chefe recebe dano." },
@@ -70,7 +75,10 @@ function calcularFcReferencia(classe, pecas) {
     item.itemLevel = NIVEL_ITEM_REFERENCIA;
     item.sockets = item.rarity === 7 ? 6 : 5;
     aplicarAtributosPadraoNoItem(item);
-    item.gems = Array.from({ length: item.sockets }, () => criarGemaPreset("topaz", item.slot, 5, item.itemLevel, 1));
+    item.gems = Array.from({ length: item.sockets }, (_, index) => {
+      const tipo = gemasPorSlot.get(`${item.slot}:${index}`) ?? "topaz";
+      return criarGemaPreset(tipo, item.slot, 5, item.itemLevel, 1);
+    });
     return item;
   });
   const status = calcularStatusSimulados(classe, NIVEL_PERSONAGEM_REFERENCIA, ATRIBUTOS_REFERENCIA, itens);
@@ -128,6 +136,10 @@ function formatarBonusCurto(b) {
 
 function construirCatalogoItens() {
   const lista = [];
+  const anel = catalogoAneis[anelReferencia];
+  const anelDoConjunto = anel ? [{
+    slot: "ring", kind: "ring", name: anel.nome, rarity: anel.raridadeMin, look: anelReferencia,
+  }] : [];
   for (const [key, setInfo] of Object.entries(catalogoConjuntos)) {
     if ((setInfo.raridadePadrao || 0) < 6) continue;
     const arma = catalogoArmas[setInfo.armaKind];
@@ -137,6 +149,7 @@ function construirCatalogoItens() {
       { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
       { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
       { slot: "armor", kind: setInfo.armaduraKind, name: setInfo.armaduraNome, rarity, set: key },
+      ...anelDoConjunto,
     ]);
     const bonusConjunto = [
       `Bônus 2/3: ${formatarBonusCurto(setInfo.b2)}`,
@@ -161,6 +174,7 @@ function construirCatalogoItens() {
       limiteUtilidade: util.limite,
       referenciaFc,
       bonusConjunto,
+      curvaEstimada: anel?.estimado,
       detalhes: [
         ...bonusConjunto,
         `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || "Sem efeito extra."}`,
@@ -213,7 +227,7 @@ function construirCatalogoItens() {
   return lista;
 }
 
-const CATALOGO_TIERLIST = construirCatalogoItens();
+let catalogoTierList = construirCatalogoItens();
 
 function atribuirTiersPorFc(itensFiltrados) {
   const ordenados = [...itensFiltrados].sort((a, b) => b.referenciaFc.fc - a.referenciaFc.fc);
@@ -253,12 +267,13 @@ function atribuirTiersPorUtilidade(itensFiltrados) {
 function desenharTodosSprites() {
   if (!window.RiftSprites) return;
   document.querySelectorAll("canvas[data-tl-sprite]").forEach((canvas) => {
-    const item = CATALOGO_TIERLIST.find((x) => x.id === canvas.dataset.tlSprite);
+    const item = catalogoTierList.find((x) => x.id === canvas.dataset.tlSprite);
     if (!item) return;
     const escala = Number(canvas.dataset.tlEscala || 3);
-    if (canvas.dataset.tlPeca !== undefined) {
+    if (canvas.hasAttribute("data-tl-heroi") || canvas.dataset.tlPeca !== undefined) {
       const { classe, itens } = obterItemContextualizado(item).referenciaFc;
-      window.RiftSprites.desenharIconeItem(canvas, itens[Number(canvas.dataset.tlPeca)], classe, escala);
+      if (canvas.hasAttribute("data-tl-heroi")) window.RiftSprites.iniciarPalcoHeroi(canvas, classe, itens);
+      else window.RiftSprites.desenharIconeItem(canvas, itens[Number(canvas.dataset.tlPeca)], classe, escala);
       return;
     }
     window.RiftSprites.desenharIconeItem(
@@ -287,7 +302,7 @@ function obterItemContextualizado(item) {
 
 function renderizarDetalhe() {
   if (!containerDetalhe) return;
-  const raw = CATALOGO_TIERLIST.find((x) => x.id === itemSelecionadoId);
+  const raw = catalogoTierList.find((x) => x.id === itemSelecionadoId);
   const item = raw ? obterItemContextualizado(raw) : null;
   if (!item) {
     containerDetalhe.innerHTML = `<div class="muted small">Clique em qualquer conjunto ou anel acima para ver os bônus, passiva, onde conseguir e FC simulado.</div>`;
@@ -321,7 +336,7 @@ function renderizarDetalhe() {
 
 function renderizarTabela() {
   if (!containerTabela) return;
-  const filtrados = CATALOGO_TIERLIST
+  const filtrados = catalogoTierList
     .filter((item) => {
       if (categoriaAtual === "todos") return true;
       if (["warrior", "archer", "cleric"].includes(categoriaAtual)) {
@@ -345,8 +360,7 @@ function renderizarTabela() {
       ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate."
       : "Avaliação do Nando para chefes e Raid. Em cada tier, a ordem dá mais peso a proteção do grupo, dano em chefes e sobrevivência.";
   }
-  const metodologiaFc = document.querySelector("#tierlist-metodologia-fc");
-  if (metodologiaFc) metodologiaFc.hidden = modoAtual !== "fc";
+  if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
 
   const linhasMeta = [
     { key: "S+", classe: "tl-tier-splus", sub: modoAtual === "fc" ? "Topo FC" : "Meta" },
@@ -420,6 +434,38 @@ document.querySelectorAll("[data-tl-cat]").forEach((btn) => {
     document.querySelectorAll("[data-tl-cat]").forEach((b) => b.classList.toggle("ativa", b === btn));
     renderizarTabela();
   });
+});
+
+function atualizarCenarioFc() {
+  catalogoTierList = construirCatalogoItens();
+  renderizarTabela();
+}
+
+if (selectAnelReferencia) {
+  for (const look of Object.keys(UTILIDADE_ANEIS)) {
+    selectAnelReferencia.add(new window.Option(catalogoAneis[look].nome, look));
+  }
+  selectAnelReferencia.value = String(anelReferencia);
+  selectAnelReferencia.addEventListener("change", () => {
+    anelReferencia = Number(selectAnelReferencia.value);
+    atualizarCenarioFc();
+  });
+}
+
+document.querySelector("#tierlist-restaurar-fc")?.addEventListener("click", () => {
+  gemasPorSlot.clear();
+  anelReferencia = 0;
+  if (selectAnelReferencia) selectAnelReferencia.value = "0";
+  atualizarCenarioFc();
+});
+
+containerDetalhe?.addEventListener("change", (event) => {
+  const chave = event.target.dataset.tlGema;
+  const tipo = event.target.value;
+  if (!chave || (tipo !== "none" && !Object.hasOwn(catalogoGemas, tipo))) return;
+  gemasPorSlot.set(chave, tipo);
+  atualizarCenarioFc();
+  containerDetalhe.querySelector(`[data-tl-gema="${chave}"]`)?.focus({ preventScroll: true });
 });
 
 renderizarTabela();
