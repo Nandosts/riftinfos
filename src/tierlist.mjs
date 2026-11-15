@@ -46,7 +46,7 @@ const UTILIDADE_CONJUNTOS = {
   communion: { tier: "A", tag: "Buff +30% ATK", motivo: "Excelente set Imortal de suporte ofensivo (+30% ATK para o time por 5s + 25% de cura a cada 12s)." },
   illusion: { tier: "A", tag: "Híbrido", motivo: "Status Arcanos altos (+75% ATK, +60% HP), mas efeito aleatório (1/3 cura, 1/3 escudo, 1/3 dano) reduz previsibilidade." },
   constel: { tier: "B", tag: "Escudo Imortal", motivo: "Versão Imortal da Madame Cartomante (escudo de 20% HP por 6s a cada 16s)." },
-  echo: { tier: "B", tag: "Cura Dupla 18s", motivo: "Útil se bem utilizado para sustento: zera o cooldown da própria skill de cura do Clérigo a cada 18s (não reseta passivas de aliados como a Singularidade)." },
+  echo: { tier: "C", tag: "Cura Dupla 18s", motivo: "A cada 18s zera apenas o cooldown da própria skill de cura do Clérigo (não reseta passivas de arma nem habilidades de aliados); entrega pouca utilidade perto de Árvore-Mundo, Comunhão e Constelação." },
 };
 
 const UTILIDADE_ANEIS = {
