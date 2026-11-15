@@ -124,11 +124,23 @@ test.describe("Tier List (funcional completo)", () => {
     await expect(btnRepetir).toBeVisible();
     await btnRepetir.click();
 
-    // Limpar gema, limpar peça e rerrolar
-    const btnLimparGema = page.locator("[data-tl-limpar-gema]");
-    if (await btnLimparGema.isVisible()) {
-      await btnLimparGema.click();
-    }
+    // Limpar 1 gema ([data-tl-gem-limpar-unico]), re-rolar ([data-tl-gem-reroll]) e limpar peça ([data-tl-gem-limpar])
+    const btnLimparUnico = page.locator("[data-tl-gem-limpar-unico]");
+    await expect(btnLimparUnico).toBeVisible();
+    await btnLimparUnico.click();
+    await expect(page.locator('[data-tl-selecionar-engaste="0"]')).toContainText(/Vazio/i);
+
+    const btnReroll = page.locator("[data-tl-gem-reroll]");
+    await expect(btnReroll).toBeVisible();
+    await btnReroll.click();
+
+    const btnLimparPeca = page.locator("[data-tl-gem-limpar]");
+    await expect(btnLimparPeca).toBeVisible();
+    await btnLimparPeca.click();
+    await expect(page.locator("#tierlist-detalhe")).toContainText("ENGASTES DE GEMAS (0/5)");
+
+    // Coloca Safira T6 novamente para verificar propagação entre conjuntos
+    await page.getByRole("button", { name: "T6 Prismática" }).click();
     await page.locator('[data-tl-gem-btn$=":sapphire"]').first().click();
 
     // Verifica propagação ao trocar para outro conjunto na mesma peça

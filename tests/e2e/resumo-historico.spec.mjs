@@ -15,13 +15,13 @@ test.describe("Resumo e Histórico", () => {
     await expect(page.locator("#conteudo-resumo-perfil")).toContainText("Reconstruído pelo Motor");
     await expect(page.locator("#conteudo-resumo-perfil")).toContainText("Pontos de Atenção");
 
-    // Aciona atalho dos Pontos de Atenção ("Simular em Chefes ↗")
-    const btnChefes = page.locator('#conteudo-resumo-perfil button:has-text("Simular em Chefes")');
-    if (await btnChefes.isVisible()) {
-      await btnChefes.click();
-      await expect(page.locator("#aba-monstros")).toHaveAttribute("aria-selected", "true");
-      await page.click("#aba-resumo");
-    }
+    // Aciona atalho dos Pontos de Atenção sem condicional silencioso
+    const btnAtalho = page.locator("#bloco-pontos-atencao .ponto-atencao-acao-btn").first();
+    await expect(btnAtalho).toBeVisible();
+    const abaDestino = await btnAtalho.getAttribute("data-acao-aba");
+    await btnAtalho.click();
+    await expect(page.locator(`#aba-${abaDestino}`)).toHaveAttribute("aria-selected", "true");
+    await page.click("#aba-resumo");
 
     // Clérigo
     await page.selectOption("#select-personagem", "cleric");
@@ -100,12 +100,25 @@ test.describe("Resumo e Histórico", () => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa isolamento de histórico no desktop");
     await prepararPagina(page, "/index.html");
 
-    // Preenche 105 registros para twitch:nando:archer via localStorage antes da consulta para testar o limite de 100
+    // Preenche 105 registros distintos para twitch:nando:archer e verifica truncamento no limite de 100
     await page.fill("#input-nick", "nando");
     await page.click('#formulario-busca button[type="submit"]');
     await expect(page.locator("#cabecalho-perfil")).toBeVisible();
-    await page.click("#btn-salvar-snapshot");
-    await expect(page.locator("#select-snap-a option")).toHaveCount(1);
+
+    const totalApos105 = await page.evaluate(() => {
+      for (let i = 1; i <= 105; i++) {
+        window.RiftHistorico.salvarSnapshotConsulta("twitch", "nando", "archer", {
+          level: 200 + i,
+          power: 100000000 + i * 1000,
+          counters: { fuse_arc_try: i },
+          equipped: [],
+        });
+      }
+      return window.RiftHistorico.obterHistoricoPersonagem("twitch", "nando", "archer").length;
+    });
+    expect(totalApos105).toBe(100);
+    await page.click('#formulario-busca button[type="submit"]');
+    await expect(page.locator("#select-snap-a option")).toHaveCount(100);
 
     // Consulta kick:nando (mesmo nick, plataforma diferente) — histórico deve estar zerado
     await page.fill("#input-nick", "kick:nando");

@@ -309,9 +309,11 @@ function renderizarEventosEConquistas(perfil) {
     </div>
   `).join("");
 
-  const avisoVip = perfil.vip === false
-    ? `<div class="card-info-linha"><span>Baú & VIP</span><strong>Free (${perfil.vip ? "VIP" : "sem passe VIP"})</strong></div>`
-    : `<div class="card-info-linha"><span>Status VIP</span><strong style="color:var(--gold);">Ativo (skip de forja liberado)</strong></div>`;
+  const avisoVip = perfil.vip === true
+    ? `<div class="card-info-linha"><span>Status VIP</span><strong style="color:var(--gold);">Ativo (skip de forja liberado)</strong></div>`
+    : perfil.vip === false
+      ? `<div class="card-info-linha"><span>Baú & VIP</span><strong>Free (sem passe VIP)</strong></div>`
+      : `<div class="card-info-linha"><span>Status VIP</span><strong class="muted">Não informado pela API</strong></div>`;
 
   containerEventosConquistas.innerHTML = `
     <h3 class="titulo-secao-comp">Jornada, Eventos & Canais Frequentados</h3>

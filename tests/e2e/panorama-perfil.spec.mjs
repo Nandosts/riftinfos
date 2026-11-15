@@ -166,6 +166,10 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     // Aguarda tempo suficiente para a resposta atrasada de Belky chegar e garante que não sobrescreveu Nando
     await page.waitForTimeout(450);
     await expect(page.locator("#modal-live-titulo")).toContainText("Nando");
+
+    // Fechar clicando fora (backdrop de #modal-escolha-live)
+    await page.mouse.click(5, 5);
+    await expect(modal).not.toBeVisible();
   });
 
   test("normalização de entrada de perfil, parâmetros iniciais e classe desconhecida", async ({ page }, testInfo) => {
@@ -175,36 +179,76 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     await expect(page.locator("#cabecalho-perfil")).toBeVisible();
     await expect(page.locator("#nome-jogador")).toContainText("Halscriolo");
 
-    const entradasValidas = [
+    const entradasTwitch = [
       "  @Halscriolo  ",
       "https://www.twitch.tv/halscriolo",
+      "https://riftstream.com.br/perfil/twitch/halscriolo",
       "twitch:halscriolo",
     ];
-    for (const entrada of entradasValidas) {
+    for (const entrada of entradasTwitch) {
       await page.fill("#input-nick", entrada);
       await page.click('#formulario-busca button[type="submit"]');
       await expect(page.locator("#nome-jogador")).toContainText("Halscriolo");
     }
 
-    await page.fill("#input-nick", "kick:nando");
-    await page.click('#formulario-busca button[type="submit"]');
-    await expect(page.locator("#nome-jogador")).toContainText("Nando");
+    const entradasKick = [
+      "kick:nando",
+      "https://kick.com/nando",
+      "https://riftstream.com.br/perfil/kick/nando",
+    ];
+    for (const entrada of entradasKick) {
+      await page.fill("#input-nick", entrada);
+      await page.click('#formulario-busca button[type="submit"]');
+      await expect(page.locator("#nome-jogador")).toContainText("Nando");
+      await expect(page.locator("#select-plataforma")).toHaveValue("kick");
+    }
 
-    // Campo vazio mostra aviso/erro sem quebrar
+    // Campo vazio e nick inválido mostram erro sem quebrar o perfil carregado
     await page.fill("#input-nick", "   ");
     await page.click('#formulario-busca button[type="submit"]');
     await expect(page.locator("#status-consulta")).not.toBeEmpty();
+
+    await page.fill("#input-nick", "nick invalido!!!");
+    await page.click('#formulario-busca button[type="submit"]');
+    await expect(page.locator("#status-consulta")).toContainText(/Informe um nick válido/i);
+    await expect(page.locator("#nome-jogador")).toContainText("Nando");
   });
 
-  test("consulta com perfil sem power e única classe disponível", async ({ page }, testInfo) => {
+  test("consulta com perfil sem power, sem equipamentos, avatar quebrado e única classe disponível", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa perfil sem power no desktop");
-    await prepararPagina(page, "/index.html");
+    let variante = "sempoder";
+    await prepararPagina(page, "/index.html", {
+      api: {
+        cenarios: {
+          profile: async (route) => {
+            const { PERFIS_MOCK } = await import("./helpers/mock-api.mjs");
+            const base = structuredClone(PERFIS_MOCK.sempoder.warrior);
+            if (variante === "semEquipAvatarQuebrado") {
+              base.equipped = [];
+              base.avatar = "http://127.0.0.1:4179/avatar-inexistente-404.png";
+            }
+            return route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              body: JSON.stringify(base),
+            });
+          },
+        },
+      },
+      permitirErrosConsole: true,
+    });
 
     await page.fill("#input-nick", "sempoder");
     await page.click('#formulario-busca button[type="submit"]');
     await expect(page.locator("#cabecalho-perfil")).toBeVisible();
     await expect(page.locator("#nome-jogador")).toContainText("JogadorSemPoderOficialComNomeBemLongoParaTeste");
     await expect(page.locator("#select-personagem option")).toHaveCount(1);
+    await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
+
+    variante = "semEquipAvatarQuebrado";
+    await page.fill("#input-nick", "sempoder");
+    await page.click('#formulario-busca button[type="submit"]');
+    await expect(page.locator("#cabecalho-perfil")).toBeVisible();
     await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
   });
 });

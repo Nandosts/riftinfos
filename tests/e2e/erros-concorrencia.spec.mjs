@@ -158,24 +158,40 @@ test.describe("Erros, Fallback e Concorrência (Entrega 3)", () => {
     await expect(page.locator("#conteudo-comparacao-perfil")).toContainText("JogadorSemPoderOficialComNomeBemLongoParaTeste");
   });
 
-  test("Simulador JSON inválido / >64 KiB e storage bloqueado preservam build atual", async ({ page }, testInfo) => {
+  test("Simulador JSON inválido / >64 KiB, hash inválido e storage bloqueado preservam build atual", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa validação de JSON no desktop");
-    await prepararPagina(page, "/index.html?aba=simulador");
+    await prepararPagina(page, "/index.html?aba=simulador#b=hash_invalido_corrompido");
+    await expect(page.locator("#simulador-container")).toBeVisible();
 
-    const inputArquivo = page.locator('#simulador-container input[type="file"]').first();
-    if (await inputArquivo.count()) {
-      await inputArquivo.setInputFiles({
-        name: "corrompido.json",
-        mimeType: "application/json",
-        buffer: Buffer.from("{json_corrompido", "utf8"),
-      });
-      await inputArquivo.setInputFiles({
-        name: "gigante.json",
-        mimeType: "application/json",
-        buffer: Buffer.from("x".repeat(70 * 1024), "utf8"),
-      });
-      await expect(page.locator("#simulador-container")).toBeVisible();
-    }
+    await page.locator("#painel-gerenciador-builds .detalhes-gerenciador-builds summary").click();
+    const inputArquivo = page.locator("#input-importar-json-build");
+    await expect(inputArquivo).toBeAttached();
+
+    const alertas = [];
+    page.on("dialog", async (d) => {
+      alertas.push(d.message());
+      await d.accept();
+    });
+
+    // JSON corrompido dispara alert e preserva build
+    await inputArquivo.setInputFiles({
+      name: "corrompido.json",
+      mimeType: "application/json",
+      buffer: Buffer.from("{json_corrompido", "utf8"),
+    });
+    await expect.poll(() => alertas.length).toBe(1);
+
+    // Arquivo >64 KiB dispara alert sincronamente e preserva build
+    await inputArquivo.setInputFiles({
+      name: "gigante.json",
+      mimeType: "application/json",
+      buffer: Buffer.from("x".repeat(70 * 1024), "utf8"),
+    });
+    await expect.poll(() => alertas.length).toBe(2);
+    expect(alertas[0]).toMatch(/corrompido/i);
+    expect(alertas[1]).toMatch(/64 KiB/i);
+
+    await expect(page.locator("#simulador-container")).toBeVisible();
   });
 });
 

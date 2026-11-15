@@ -43,16 +43,16 @@ Revisão visual de regressões: em caso de falha visual, o Playwright gera `expe
 |---|---|---|---|---|---|
 | 4. Resumo & Histórico | Resumo sem perfil, 3 classes, FC oficial/ausente e pontos de atenção + atalhos | `PERFIS_MOCK.{halscriolo,nando,sempoder}` | `tests/e2e/resumo-historico.spec.mjs` | E2E funcional | Passou |
 | 4. Resumo & Histórico | Histórico: salvar manual, duplicata, mudança de 1 gema/peça, autosave após reload e comparação | `PERFIS_MOCK.halscriolo` (versões 1 e 2) | `tests/e2e/resumo-historico.spec.mjs` | E2E persistência | Passou |
-| 4. Resumo & Histórico | Isolamento por `plataforma+nick+classe`, cancelar/confirmar limpeza | `PERFIS_MOCK.{nando,kick:nando}` | `tests/e2e/resumo-historico.spec.mjs` | E2E funcional | Passou |
+| 4. Resumo & Histórico | Isolamento por `plataforma+nick+classe`, limite de 100 registros (105 → 100), cancelar/confirmar limpeza | `PERFIS_MOCK.{nando,kick:nando}` | `tests/e2e/resumo-historico.spec.mjs` | E2E funcional | Passou |
 | 5. Forjas & Equipamentos | Histórico de forjas: normal, 0 tentativas, 0 sucessos e dados inconsistentes | `PERFIS_MOCK.sempoder` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
-| 5. Forjas & Equipamentos | Gelo/Fogo, atalho maior Gelo, planejador (bases, pergaminhos 0/10/20/25, evento, 10x, teto 100%) e VIP | `PERFIS_MOCK.{halscriolo,nando}` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
-| 5. Forjas & Equipamentos | Equipamentos: conjunto 3/3, análise "Se desequipar" e atalho para Simulador | `PERFIS_MOCK.halscriolo` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
-| 6. Simulador & Compartilhamento | Origem (exemplo/importar/restaurar), Ficha/Lista, 3 classes, auto-stats desligado e busca na galeria | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
-| 6. Simulador & Compartilhamento | Gemas T1–T6, seleção de engaste sem sobrescrever anterior, mistura de tiers, raridade e rótulos DPS/s vs FC | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
-| 6. Simulador & Compartilhamento | Builds salvas (nome longo + reload) e compartilhamento em contexto limpo | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E persistência | Passou |
-| 7. Chefes, Radar & Comparação | Chefes: origem, limites zona/onda/jogadores, escalas 70/100 e sync pela live | `PERFIS_MOCK.halscriolo`, `CANAIS_RUNS_PADRAO` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
-| 7. Chefes, Radar & Comparação | Radar: paginação, filtros locais sem reconsultar perfis e limpar filtros | `cenarios.board` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
-| 7. Chefes, Radar & Comparação | Comparação: P1 vs P2, Twitch vs Kick, atalho Clérigo (cura) e filtro Apenas diferenças | `PERFIS_MOCK.{halscriolo,nando}` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
+| 5. Forjas & Equipamentos | Gelo/Fogo (prioridade Gelo > Fogo, Fogo isolado, Gelo acima do teto), atalho maior Gelo, planejador (bases, pergaminhos 0/10/20/25, evento, 10x, teto 100%, negativos) e VIP (ativo, falso e ausente) | `PERFIS_MOCK.{halscriolo,nando,sempoder}` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
+| 5. Forjas & Equipamentos | Equipamentos: conjunto 3/3, soma exata das parcelas atribuídas vs ganho total de FC, "Se desequipar" e atalhos para Simulador e Chefes | `PERFIS_MOCK.halscriolo` | `tests/e2e/forjas-equipamentos.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Origem (exemplo/importar/restaurar), Ficha/Lista, 3 classes, auto-stats desligado e busca/filtros na galeria | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Gemas T1–T6, seleção de engaste sem sobrescrever anterior, mistura de tiers, raridade, rolagens e melhorias (FC/DPS/HP/cura + aplicar/desfazer) | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E funcional | Passou |
+| 6. Simulador & Compartilhamento | Builds salvas (salvar, duplicar, excluir, carregar c/ cancelar/confirmar, reload), JSON válido e link compartilhado em contexto limpo | `PERFIS_MOCK.halscriolo` | `tests/e2e/simulador-compartilhamento.spec.mjs` | E2E persistência | Passou |
+| 7. Chefes, Radar & Comparação | Chefes: origem, limites zona/onda/jogadores, escalas 70/100, Fúria 0s–75s e sync pela live | `PERFIS_MOCK.halscriolo`, `CANAIS_RUNS_PADRAO` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
+| 7. Chefes, Radar & Comparação | Radar: paginação, limite de 12 páginas, retry de perfis indisponíveis, filtros locais sem reconsultar perfis e ação VS c/ e s/ P1 | `cenarios.{board,profile}` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
+| 7. Chefes, Radar & Comparação | Comparação: P1 vs P2, Twitch vs Kick, Top 1 desabilitado quando P1 é o líder, atalho Clérigo (cura) e filtro Apenas diferenças | `PERFIS_MOCK.{halscriolo,nando}` | `tests/e2e/chefes-radar-comparacao.spec.mjs` | E2E funcional | Passou |
 
 ---
 
@@ -60,9 +60,16 @@ Revisão visual de regressões: em caso de falha visual, o Playwright gera `expe
 
 | área | estado | fixture | teste | tipo de cobertura | resultado |
 |---|---|---|---|---|---|
-| 3/7. Erros & Concorrência | Fallback AWS (503 na rota principal), concorrência A lenta vs B rápida, erros HTTP 404/503/JSON inválido/login incorreto, P1/P2 concorrente, share JSON inválido / >64 KiB e storage bloqueado | `cenarios.*`, `PERFIS_MOCK.*` | `tests/e2e/erros-concorrencia.spec.mjs` | E2E funcional | Passou (4/4) |
-| 5/6/7/8. Limites Numéricos | Teto de VEL em 4,6/s (`cadenciaReal` fixa, excesso vira `speedBonus = aspd / 4.6`), redução física independente (`DEF=100 → 80%`), chance acumulada com Gelo e mecânicas dos anéis | Casos explícitos calculados à mão | `tests/calculos-independentes.test.cjs` | Unitário independente | Passou (4/4) |
-| 9. Critério de Aceite | Regressões intencionais revertidas (ocultar link da Tier List em `index.html` → falha em `visual-baselines.spec.mjs`; alterar fórmula `reducaoDefesa` em `src/combate.mjs` → falha em `calculos-independentes.test.cjs`) + 2 runs consecutivos sem atualização de snapshots | Cópia temporária revertida | `npm test` + `npm run test:e2e` | Auditoria E2E / Unitária | Passou |
+| 3/7. Erros & Concorrência | Fallback AWS (503 na rota principal), concorrência A lenta vs B rápida, erros HTTP 404/503/JSON inválido/login incorreto, P1/P2 concorrente, hash inválido, JSON corrompido / >64 KiB e storage bloqueado | `cenarios.*`, `PERFIS_MOCK.*` | `tests/e2e/erros-concorrencia.spec.mjs` | E2E funcional | Passou (4/4) |
+| 5/6/7/8. Limites Numéricos | FC independente (`Guerreiro=2993`, `Clérigo/Arqueiro=4191`), DPS básico/skill, Cura (`healPower=2556`, não critica, escala com `speedBonus`), teto de VEL em 4,6/s (`cadenciaReal` fixa, excesso vira `speedBonus = aspd / 4.6`), redução física (`DEF=100 → 80%`), chance acumulada com Gelo e mecânicas dos anéis | Casos explícitos calculados à mão | `tests/calculos-independentes.test.cjs` | Unitário independente | Passou (5/5) |
+| 9. Critério de Aceite | Regressões intencionais revertidas (ocultar link da Tier List em `index.html` → falha em `visual-baselines.spec.mjs`; provocar overflow `2000px` em `index.html` → falha em `navegacao-responsividade.spec.mjs`; alterar fórmula `reducaoDefesa` em `src/combate.mjs` → falha em `calculos-independentes.test.cjs`) + 2 runs consecutivos sem atualização de snapshots | Cópia temporária revertida | `npm test` + `npm run test:e2e` | Auditoria E2E / Unitária | Passou |
+
+### Bugs Reais do Site Encontrados e Corrigidos
+
+1. `src/forjas.mjs`: o botão `#btn-abrir-planejador-maior-gelo` mutava elementos DOM sem atualizar `estadoPlanejador.{raridade,slot,geloManual}` antes de re-renderizar.
+2. `src/perfil.mjs`: `Historico.salvarSnapshotConsulta(...)` rodava após `renderizarPerfil(...)`, fazendo snapshots salvos automaticamente só aparecerem na próxima consulta.
+3. `src/forjas.mjs`: `perfil.vip` ausente (`undefined`/`null`) caía no mesmo ramo de `perfil.vip === true`, exibindo `"Ativo (skip de forja liberado)"` em vez de `"Não informado pela API"`.
+4. `src/radar.mjs`: `#btn-radar-tentar-indisponiveis` chamava `mapearComConcorrencia(..., undefined, ...)` e `executarWorker` acessava `sinalAborto.aborted` sem optional chaining (`?.`), lançando `TypeError` e travando o botão em `"Tentando novamente..."`.
 
 ### Execução e Revisão de Baselines (Playwright 1.65.1)
 

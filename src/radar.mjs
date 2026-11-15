@@ -87,7 +87,7 @@ async function mapearComConcorrencia(lista, limite, sinalAborto, trabalhadorFn, 
 
   async function executarWorker() {
     while (proximoIndice < lista.length) {
-      if (sinalAborto.aborted) return;
+      if (sinalAborto?.aborted) return;
       const i = proximoIndice++;
       try {
         resultados[i] = await trabalhadorFn(lista[i], i);
@@ -574,14 +574,15 @@ function renderizarResultadoRadar() {
         ultimosDadosRadar.listaFalhas,
         6,
         undefined,
-        async (p) => {
-          const res = await obterPerfilEmCache(p.login, p.cls);
-          if (!res) novasFalhas.push(p);
-          return res;
-        }
+        async (p) => obterPerfilEmCache(p.login, p.cls)
       );
-      const novosValidos = recuperados.filter(Boolean);
-      ultimosDadosRadar.perfis.push(...novosValidos);
+      ultimosDadosRadar.listaFalhas.forEach((p, idx) => {
+        if (recuperados[idx]) {
+          ultimosDadosRadar.perfis.push(recuperados[idx]);
+        } else {
+          novasFalhas.push(p);
+        }
+      });
       ultimosDadosRadar.listaFalhas = novasFalhas;
       if (ultimosDadosRadar.cobertura) {
         ultimosDadosRadar.cobertura.perfisAnalisados = ultimosDadosRadar.perfis.length;
