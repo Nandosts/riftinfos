@@ -51,7 +51,7 @@ const UTILIDADE_CONJUNTOS = {
 
 const UTILIDADE_ANEIS = {
   18: { tier: "S+", tag: "Raid · ATK/CRÍT", motivo: "Por que é tão bom: exclusivo da Raid Covil de Vexxaris com a maior curva de Ataque e Crítico brutos do jogo (~4,05 ATK e ~0,64 CRÍT por nível). Limitação: não tem efeito especial extra na luta." },
-  14: { tier: "S+", tag: "Eco +20% DPS", motivo: "Por que é tão bom: tem alto ATK/CRÍT e 20% de chance de repetir 100% do golpe (+20% DPS médio em chefe) além de ricochetear 60% em 2 alvos. Limitação: o eco não duplica o corte percentual da Singularidade." },
+  14: { tier: "S+", tag: "Eco +20% DPS", motivo: "Por que é tão bom: tem alto ATK/CRÍT, ricocheteia 60% do dano em até 2 alvos e tem 20% de chance de ecoar 100% do golpe (inclusive skills como a Singularidade). Limitação: depende de 20% de RNG e não oferece roubo de vida nem auto-revive." },
   15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Por que é tão bom: dá auto-revive garantido (70% HP + 40% escudo) com muita Vida e Defesa, salvando runs inteiras na Raid. Limitação: tem menos ATK/VEL que os anéis puramente ofensivos." },
   19: { tier: "S", tag: "Raid · Tanque/VEL", motivo: "Por que é tão bom: exclusivo da Raid com o maior ganho bruto de Vida, Defesa e +18% Velocidade, liderando em FC. Limitação: tem menos ATK/CRÍT e não possui passiva de auto-revive." },
   16: { tier: "S", tag: "Escala +40% ATK", motivo: "Por que é tão bom: ganha até +40% ATK acumulando abates e tem +18% VEL, sendo excelente em ondas. Limitação: em chefe solo sem adds para matar, o bônus demora para carregar." },
@@ -87,7 +87,7 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
     19: { tier: "S+", tag: "Tanque +18% VEL", motivo: "Melhor pacote bruto de Vida, Defesa e +18% Velocidade para o Guerreiro aguentar chefes pesados." },
     11: { tier: "S+", tag: "Roubo de Vida 8%", motivo: "Cura 8% de TODO o dano causado sem cooldown: com Singularidade ou DPS alto, enche a vida inteira em 1 hit." },
     18: { tier: "S", tag: "ATK/CRÍT Brutos", motivo: "Maior dano bruto para builds Arcanas ofensivas (Senhor do Trovão / Domador)." },
-    14: { tier: "S", tag: "Eco +20% DPS", motivo: "Repete 100% do golpe em 20% das vezes (+20% DPS em golpes normais)." },
+    14: { tier: "S", tag: "Eco +20% DPS", motivo: "Repete 100% do dano em 20% das vezes (+20% DPS nos golpes e também pode ecoar a explosão da Singularidade, além de ricochetear 60% em 2 alvos). Fica abaixo de Sanguessuga/Coração do Vazio apenas pela falta de cura ou auto-revive." },
     17: { tier: "S", tag: "Limpa Controle", motivo: "Remove stun/lentidão da linha de frente a cada 10s e ainda dá 12% escudo + 8% cura." },
     10: { tier: "A", tag: "Sangramento", motivo: "Bom contra chefes de defesa muito alta: aplica sangramento que ignora defesa." },
     16: { tier: "A", tag: "+40% ATK Ondas", motivo: "Escala até +40% ATK acumulando abates; ótimo em ondas, mais fraco em chefe solo." },
@@ -108,7 +108,7 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
   },
   cleric: {
     15: { tier: "S+", tag: "Auto-Revive 70%", motivo: "Anel #1 de suporte na Raid: garante que o Clérigo volte vivo (70% HP + 40% escudo) para continuar curando/revivendo o time." },
-    19: { tier: "S+", tag: "Vida/DEF +18% VEL", motivo: "Maior resistência e +18% Velocidade para o Clérigo ficar vivo e lançar curas mais rápido." },
+    19: { tier: "S", tag: "Vida/DEF + SpeedBonus", motivo: "Por que é bom: dá muita Vida e Defesa brutas para manter o Clérigo vivo, além de subir o SpeedBonus (potência da cura) e o FC. Limitação: após o teto de 4,6/s de velocidade, os +18% VEL não fazem bater nem lançar curas mais rápido (o cooldown da skill é fixo) e ele não tem auto-revive." },
     17: { tier: "S", tag: "Escudo + Limpa CC", motivo: "Ótima sinergia com Clérigo: limpa controles, aplica escudo de 12% e cura 8% a cada 10s." },
     18: { tier: "S", tag: "Muito ATK p/ Cura", motivo: "Maior Ataque e Crítico brutos, aumentando direto o valor das curas do Clérigo." },
     14: { tier: "A", tag: "Dano / Eclipse", motivo: "Boa opção se estiver jogando de Cajado do Eclipse focado em dano + stun." },
