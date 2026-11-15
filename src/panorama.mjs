@@ -9,7 +9,7 @@ import {
 } from "./chefes.mjs";
 import { atualizarCardP1Comparacao } from "./comparacao.mjs";
 import { nomesClasses } from "./dados.mjs";
-import { escaparHtml, formatadorInteiro, formatarNumeroCompacto } from "./formato.mjs";
+import { escaparHtml, formatadorInteiro, formatarNumeroCompacto, formatarZonaOndaDeOndas } from "./formato.mjs";
 import {
   consultarPerfil,
   inputNick,
@@ -270,8 +270,9 @@ function renderizarGradePanorama() {
   }[estadoLives];
   const tempoCriacao = formatarTempoRelativoCriacao(liveMaisNova?.createdAt);
 
+  const potencialMelhorZona = melhorZonaLive?.potentialWaves > 0 ? ` · Pot. ${formatarZonaOndaDeOndas(melhorZonaLive.potentialWaves)}` : "";
   const labelZona = melhorZonaLive ? `Z${melhorZonaLive.zone ?? 1} · Onda ${melhorZonaLive.wave ?? 1}` : labelVazio;
-  const descZona = melhorZonaLive ? `${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora)` : estadoLives === "carregando" ? "Sincronizando lives…" : "";
+  const descZona = melhorZonaLive ? `${escaparHtml(melhorZonaLive.nome)} (${formatadorInteiro.format(melhorZonaLive.playersNow || 0)} jogando agora${potencialMelhorZona})` : estadoLives === "carregando" ? "Sincronizando lives…" : "";
 
   const labelMaior = maiorLive ? `${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores` : labelVazio;
   const descMaior = maiorLive ? `${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais listados` : estadoLives === "carregando" ? "Sincronizando canais…" : "";
@@ -314,7 +315,12 @@ function renderizarGradePanorama() {
 
   if (panoramaAtualizacao) {
     const hora = atualizadoEm?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    const partes = [patch?.id && `Último patch: ${patch.id}`, hora && `Lives consultadas às ${hora}`].filter(Boolean);
+    const maiorPot = ultimosDadosPanorama.maiorPotencialOnline;
+    const partes = [
+      patch?.id && `Último patch: ${patch.id}`,
+      hora && `Lives consultadas às ${hora}`,
+      maiorPot?.potential > 0 && `Maior potencial online: ${maiorPot.name} (${formatarZonaOndaDeOndas(maiorPot.potential)})`,
+    ].filter(Boolean);
     if (estadoLives === "erro") partes.push("API de lives indisponível");
     panoramaAtualizacao.textContent = partes.join(" · ") || "Sincronizando lives…";
   }
@@ -347,6 +353,7 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
           login: it.login,
           zone: Number(ch?.zone) || null,
           wave: Number(ch?.wave) || null,
+          potentialWaves: Number(ch?.potentialWaves ?? it.potential) || 0,
           playersNow: playersEfetivos,
           createdAt: ch?.createdAt || "",
           twitchLogin: tw,
@@ -374,6 +381,7 @@ async function refinarDetalhesLivesPanorama(livesOnline) {
           nome: melhorZona.name,
           zone: melhorZona.zone,
           wave: melhorZona.wave,
+          potentialWaves: melhorZona.potentialWaves || 0,
           playersNow: melhorZona.playersNow,
           twitchLogin: melhorZona.twitchLogin,
           kickLogin: melhorZona.kickLogin,
@@ -444,6 +452,11 @@ async function carregarPanoramaGlobal() {
         playersNow: topLive.playersNow || 0,
         totalLives: livesOnline.length,
       };
+      const comPotencial = livesOnline.filter((l) => Number(l.potential) > 0);
+      comPotencial.sort((a, b) => Number(b.potential) - Number(a.potential));
+      ultimosDadosPanorama.maiorPotencialOnline = comPotencial[0]
+        ? { name: comPotencial[0].name, login: comPotencial[0].login, potential: Number(comPotencial[0].potential) }
+        : null;
     }
 
     renderizarGradePanorama();
@@ -485,10 +498,33 @@ function sincronizarTextosTopsUI() {
   if (perfilCarregadoP1) atualizarCardP1Comparacao(perfilCarregadoP1, plataformaCarregadaP1);
 }
 
+const CHAVE_CACHE_TOPS = "riftinfos:cache_tops_ranking:v1";
+const TTL_CACHE_TOPS_MS = 30 * 60 * 1000;
+
+function lerCacheTopsRanking() {
+  try {
+    const bruto = window.localStorage?.getItem(CHAVE_CACHE_TOPS);
+    if (!bruto) return null;
+    const parsed = JSON.parse(bruto);
+    if (!parsed?.atualizadoEm || Date.now() - parsed.atualizadoEm > TTL_CACHE_TOPS_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function salvarCacheTopsRanking(dados) {
+  try {
+    window.localStorage?.setItem(CHAVE_CACHE_TOPS, JSON.stringify({ ...dados, atualizadoEm: Date.now() }));
+  } catch {
+    // Ignora falha de storage
+  }
+}
+
 async function atualizarTop1Dinamicos() {
   const consultarTop = async (query, classe, porNivel = false) => {
     try {
-      const dados = await buscarJsonApi(`/api/ranking/characters?page=1&size=5${query}`, undefined, 5000);
+      const dados = await buscarJsonApi(`/api/ranking/characters?page=1&size=5${query}`, undefined, 15000);
       const top = dados?.items?.[0];
       if (!/^(?:kick:)?[a-z0-9_.-]{1,40}$/i.test(top?.login || "") ||
           !Object.hasOwn(nomesClasses, top.cls) || (classe && top.cls !== classe) ||
@@ -512,9 +548,44 @@ async function atualizarTop1Dinamicos() {
     consultarTop("&sort=level", undefined, true),
     ...classes.map((classe) => consultarTop(`&cls=${classe}`, classe)),
   ]);
-  top1GeralDinamico = geral;
-  topLevelDinamico = nivel;
-  classes.forEach((classe, idx) => { top1DinamicoPorClasse[classe] = tops[idx]; });
+
+  let nivelResolvido = nivel;
+  if (!nivelResolvido.nick) {
+    try {
+      const records = await buscarJsonApi("/api/ranking/records", undefined, 7000);
+      const tc = records?.topCharacter;
+      if (tc?.name && Object.hasOwn(nomesClasses, tc.cls) && Number.isFinite(tc.level)) {
+        nivelResolvido = {
+          nick: tc.name.replace(/^kick:/i, "").toLowerCase(),
+          plataforma: /^kick:/i.test(tc.name) ? "kick" : "twitch",
+          rotulo: tc.name,
+          power: null,
+          level: tc.level,
+          cls: tc.cls,
+        };
+      }
+    } catch {
+      // Sem fallback adicional
+    }
+  }
+
+  const cache = lerCacheTopsRanking();
+  top1GeralDinamico = geral.nick ? geral : cache?.geral?.nick ? cache.geral : geral;
+  topLevelDinamico = nivelResolvido.nick ? nivelResolvido : cache?.nivel?.nick ? cache.nivel : nivelResolvido;
+  classes.forEach((classe, idx) => {
+    const novo = tops[idx];
+    const salvo = cache?.porClasse?.[classe];
+    top1DinamicoPorClasse[classe] = novo.nick ? novo : salvo?.nick ? salvo : novo;
+  });
+
+  if (geral.nick || nivelResolvido.nick || tops.some((t) => t.nick)) {
+    salvarCacheTopsRanking({
+      geral: top1GeralDinamico,
+      nivel: topLevelDinamico,
+      porClasse: { ...top1DinamicoPorClasse },
+    });
+  }
+
   rankingsCarregando = false;
   sincronizarTextosTopsUI();
 }

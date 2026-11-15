@@ -7,6 +7,7 @@ import {
   formatadorDecimal1,
   formatadorInteiro,
   formatarNumeroCompacto,
+  formatarZonaOndaDeOndas,
 } from "./formato.mjs";
 import { perfilCarregadoP1 } from "./perfil.mjs";
 import { simulacao } from "./simulador/estado.mjs";
@@ -18,6 +19,7 @@ const inputMonstroJogadores = document.querySelector("#input-monstro-jogadores")
 const selectMonstroOrigem = document.querySelector("#select-monstro-origem");
 const selectMonstroLiveSync = document.querySelector("#select-monstro-live-sync");
 const containerResultadoMonstros = document.querySelector("#resultado-monstros");
+let ultimaLiveSincronizada = null;
 
 function calcularEscalaOnda(zona, onda, numJogadores) {
   const z = Math.max(1, Math.min(100, Number(zona) || 1));
@@ -223,8 +225,12 @@ function renderizarSimuladorMonstros() {
   }
 
   const zonasAtalho = [10, 13, 16, 18, 20, 22, 25];
+  const avisoLive = ultimaLiveSincronizada
+    ? `<p class="note-compacto" id="aviso-monstro-live-sync" style="margin-bottom:8px;">📡 Live sincronizada: <strong>${escaparHtml(ultimaLiveSincronizada.nome)}</strong>${ultimaLiveSincronizada.potencialOndas > 0 ? ` · Potencial médio: <strong>${formatarZonaOndaDeOndas(ultimaLiveSincronizada.potencialOndas)}</strong> (${formatadorInteiro.format(ultimaLiveSincronizada.potencialOndas)} ondas)` : " · Potencial ainda sem runs fechadas"}${ultimaLiveSincronizada.bestZone ? ` · Recorde: Z${ultimaLiveSincronizada.bestZone}-W${ultimaLiveSincronizada.bestWave || 1}` : ""}</p>`
+    : "";
 
   containerResultadoMonstros.innerHTML = `
+    ${avisoLive}
     <div class="barra-atalhos">
       <span class="rotulo-atalho">🎯 Zonas Rápidas:</span>
       ${zonasAtalho
@@ -378,12 +384,21 @@ export function configurarChefes() {
   if (selectMonstroLiveSync) {
     selectMonstroLiveSync.addEventListener("change", async (e) => {
       const canal = e.target.value;
-      if (!canal) return;
+      if (!canal) {
+        ultimaLiveSincronizada = null;
+        return;
+      }
       try {
         const info = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(canal)}`, undefined, 7000);
         if (info.zone) inputMonstroZona.value = info.zone;
         if (info.wave) inputMonstroOnda.value = info.wave;
         if (info.playersNow) inputMonstroJogadores.value = info.playersNow;
+        ultimaLiveSincronizada = {
+          nome: info.displayName || info.login || canal,
+          potencialOndas: Number(info.potentialWaves ?? info.potential) || 0,
+          bestZone: Number(info.bestZone) || 0,
+          bestWave: Number(info.bestWave) || 0,
+        };
         renderizarSimuladorMonstros();
       } catch {
         // Ignora erro pontual de sincronia

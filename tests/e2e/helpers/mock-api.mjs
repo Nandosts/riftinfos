@@ -335,6 +335,11 @@ export const CANAIS_RUNS_PADRAO = [
     name: "Nando",
     bestZone: 31,
     bestWave: 10,
+    potential: 285,
+    runs: [
+      { zone: 29, wave: 4, waves: 284, at: "2026-11-15T15:00:00-03:00" },
+      { zone: 28, wave: 6, waves: 286, at: "2026-11-15T14:20:00-03:00" },
+    ],
     playersNow: 18,
     online: true,
     createdAt: "2026-11-15T13:00:00-03:00",
@@ -474,14 +479,32 @@ export async function instalarMocksApi(page, opcoes = {}) {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            items: CANAIS_RUNS_PADRAO.map(({ login, name, bestZone, bestWave, playersNow, online }) => ({
+            items: CANAIS_RUNS_PADRAO.map(({ login, name, bestZone, bestWave, potential = 0, playersNow, online }) => ({
               login,
               name,
               bestZone,
               bestWave,
+              potential,
               playersNow,
               online,
             })),
+          }),
+        })
+      );
+    }
+
+    if (path === "/api/ranking/records") {
+      return aplicarModoResposta(route, cenarios.records, () =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            totalPlayers: 12062,
+            totalChannels: 1457,
+            playersNow: 996,
+            peakPlayers: { channel: "Belky", players: 426, at: "2026-11-08T23:26:31.828128" },
+            bestRun: { channel: "Belky", zone: 23, wave: 1 },
+            topCharacter: { name: "Halscriolo", cls: "warrior", level: 320 },
           }),
         })
       );
@@ -539,6 +562,10 @@ export async function instalarMocksApi(page, opcoes = {}) {
                   kickLogin: encontrado.kickLogin,
                   zone: encontrado.bestZone,
                   wave: encontrado.bestWave,
+                  bestZone: encontrado.bestZone,
+                  bestWave: encontrado.bestWave,
+                  potentialWaves: encontrado.potential || 0,
+                  runs: encontrado.runs || [],
                   playersNow: encontrado.playersNow,
                   createdAt: encontrado.createdAt,
                   online: encontrado.online,

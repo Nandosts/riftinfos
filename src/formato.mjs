@@ -52,6 +52,14 @@ function formatarGemaTexto(gema) {
   return partes.join(" · ") || "Atributo";
 }
 
+function formatarZonaOndaDeOndas(totalOndas) {
+  const ondas = Math.floor(Number(totalOndas) || 0);
+  if (ondas <= 0) return "—";
+  const zona = Math.floor((ondas - 1) / 10) + 1;
+  const onda = ((ondas - 1) % 10) + 1;
+  return `Z${zona}-W${onda}`;
+}
+
 export {
   escaparHtml,
   formatadorDecimal1,
@@ -61,4 +69,5 @@ export {
   formatarDuracaoSegundos,
   formatarGemaTexto,
   formatarNumeroCompacto,
+  formatarZonaOndaDeOndas,
 };

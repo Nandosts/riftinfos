@@ -300,6 +300,12 @@
       curto: "O Transmog copia o visual de outro item (consumindo o item copiado), e as auras agora são itens separados.",
       detalhes: "Desde 14/11/2026, o brilho que vinha junto nos anéis e sets Arcanos virou um item cosmético separado que você escolhe equipar ou forjar. Já o Transmog passa o visual de um item para outro do mesmo tipo, consumindo o item que foi usado como modelo.",
       categoria: "equipamentos"
+    },
+    potencial_live: {
+      termo: "Potencial da Live (Média das Últimas 5 Runs)",
+      curto: "Estimativa de até onde a sala deve ir, calculada pela média de ondas das últimas 5 runs completas (até o grupo inteiro cair).",
+      detalhes: "Cada run registrada conta quando todo o grupo cai na live. O valor em ondas totais é convertido para Zona e Onda pela fórmula oficial (ex.: 125 ondas = Z13-W5). Só aparece depois da primeira run fechada após a atualização.",
+      categoria: "combate"
     }
   };
 
@@ -333,6 +339,8 @@
     k_classe: "k_classe",
     mitigacao: "mitigacao_defesa",
     mitigacao_defesa: "mitigacao_defesa",
+    potencial: "potencial_live",
+    potencial_live: "potencial_live",
     armadura: "armadura",
     sobrevivencia: "sobrevivencia",
     cura: "cura",

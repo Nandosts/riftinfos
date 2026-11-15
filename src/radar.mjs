@@ -8,7 +8,7 @@ import {
   catalogoConjuntos,
   nomesClasses,
 } from "./dados.mjs";
-import { escaparHtml, formatarNumeroCompacto } from "./formato.mjs";
+import { escaparHtml, formatadorInteiro, formatarNumeroCompacto, formatarZonaOndaDeOndas } from "./formato.mjs";
 import { abrirModalEscolhaLive, cacheDetalhesCanais, carregarPanoramaGlobal } from "./panorama.mjs";
 import {
   consultarPerfil,
@@ -438,6 +438,15 @@ function renderizarResultadoRadar() {
     `;
   }).join("");
 
+  const potencialOndas = Number(canalInfo.potentialWaves ?? canalInfo.potential) || 0;
+  const textoPotencial = potencialOndas > 0
+    ? `${formatarZonaOndaDeOndas(potencialOndas)} (${formatadorInteiro.format(potencialOndas)} ondas)`
+    : "Aguardando 1ª run";
+  const ultimasRuns = Array.isArray(canalInfo.runs) ? canalInfo.runs.slice(0, 5) : [];
+  const resumoRuns = ultimasRuns.length > 0
+    ? ultimasRuns.map((run) => `Z${run.zone || "?"}-W${run.wave || "?"}`).join(" · ")
+    : "";
+
   const temFiltroAtivo = Boolean(filtroItem || filtroClasse || buscaTexto);
 
   containerResultadoRadar.innerHTML = `
@@ -483,6 +492,8 @@ function renderizarResultadoRadar() {
       <article class="card-info">
         <h4>Estado da Live Agora</h4>
         <div class="card-info-linha"><span>Onda Atual / Recorde</span><strong>Z${canalInfo.zone || "?"}-W${canalInfo.wave || "?"} · Z${canalInfo.bestZone || "?"}-W${canalInfo.bestWave || "?"}</strong></div>
+        <div class="card-info-linha"><span title="Estimativa de até onde a live deve ir pela média das últimas 5 runs completas">Potencial (média 5 runs)</span><strong>${textoPotencial}</strong></div>
+        ${resumoRuns ? `<div class="card-info-linha"><span>Últimas ${ultimasRuns.length} runs</span><strong>${escaparHtml(resumoRuns)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Jogadores Agora</span><strong>${playersOnlineCanal} (+${penalidadeSala.toFixed(0)}% HP nos monstros)</strong></div>
         <div class="card-info-linha"><span>Guerra de Lives</span><strong>${canalInfo.battleWins || 0}V / ${canalInfo.battleLosses || 0}D</strong></div>
       </article>

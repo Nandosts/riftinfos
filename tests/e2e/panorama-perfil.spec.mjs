@@ -11,6 +11,8 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
 
     await expect(page.locator('[data-panorama-acao="live-melhor-zona"]')).toContainText("Nando");
     await expect(page.locator('[data-panorama-acao="live-melhor-zona"]')).toContainText("Z31");
+    await expect(page.locator('[data-panorama-acao="live-melhor-zona"]')).toContainText("Pot. Z29-W5");
+    await expect(page.locator("#panorama-atualizacao")).toContainText("Maior potencial online: Nando (Z29-W5)");
 
     await expect(page.locator('[data-panorama-acao="live-mais-nova"]')).toContainText("CanalNovo");
     await expect(page.locator('[data-panorama-acao="consultar-top1"]')).toContainText("Halscriolo");
@@ -46,7 +48,8 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     });
     await expect(page.locator("#top-pill-val-top1")).toContainText("Halscriolo");
 
-    // 3. Erro de ranking com lives disponíveis
+    // 3. Erro de ranking com lives disponíveis (sem cache prévio)
+    await page.evaluate(() => localStorage.clear());
     await prepararPagina(page, "/index.html", {
       api: {
         cenarios: {
@@ -57,6 +60,7 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     });
     await expect(page.locator('[data-panorama-acao="live-maior"]')).toContainText("Belky");
     await expect(page.locator("#top-pill-val-top1")).toContainText(/Indisponível|—/i);
+    await expect(page.locator("#top-pill-val-level")).toContainText("Halscriolo");
   });
 
   test("rankings e atalhos carregam plataforma, classe e parâmetros da URL corretamente", async ({ page }, testInfo) => {

@@ -138,3 +138,14 @@ test("mecânicas de anéis que justificam a Tier List: Eclipse+Singularidade, Sa
   assert.ok(mEco.dpsCombateMedio > 0 && Number.isFinite(mEco.dpsCombateMedio));
   assert.ok(mCronarca.dpsCombateMedio > 0 && Number.isFinite(mCronarca.dpsCombateMedio));
 });
+
+test("formatarZonaOndaDeOndas converte total de ondas em Z{zona}-W{onda} conforme fórmula oficial", async () => {
+  const { formatarZonaOndaDeOndas } = await importarModulo("src/formato.mjs");
+
+  assert.equal(formatarZonaOndaDeOndas(125), "Z13-W5");
+  assert.equal(formatarZonaOndaDeOndas(285), "Z29-W5");
+  assert.equal(formatarZonaOndaDeOndas(10), "Z1-W10");
+  assert.equal(formatarZonaOndaDeOndas(11), "Z2-W1");
+  assert.equal(formatarZonaOndaDeOndas(0), "—");
+  assert.equal(formatarZonaOndaDeOndas(null), "—");
+});

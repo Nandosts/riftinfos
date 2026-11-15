@@ -40,6 +40,13 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(page.locator("#input-monstro-onda")).toHaveValue("5");
     await expect(page.locator("#input-monstro-jogadores")).toHaveValue("45");
 
+    await selectSync.selectOption("kick:nando");
+    await expect(page.locator("#input-monstro-zona")).toHaveValue("31");
+    await expect(page.locator("#input-monstro-onda")).toHaveValue("10");
+    await expect(page.locator("#aviso-monstro-live-sync")).toContainText("Z29-W5");
+    await expect(page.locator("#aviso-monstro-live-sync")).toContainText("285 ondas");
+    await expect(page.locator("#aviso-monstro-live-sync")).toContainText("Recorde: Z31-W10");
+
     expect(erros).toEqual([]);
   });
 
@@ -92,6 +99,8 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(page.locator("#status-radar")).toContainText(/Varredura concluída/i, { timeout: 5000 });
     await expect(page.locator("#resultado-radar-live")).toContainText("limite de 12 páginas atingido");
     await expect(page.locator("#resultado-radar-live")).toContainText("1 temporariamente indisponíveis");
+    await expect(page.locator("#resultado-radar-live")).toContainText("Potencial (média 5 runs)");
+    await expect(page.locator("#resultado-radar-live")).toContainText("Aguardando 1ª run");
     await expect(page.locator("#resultado-radar-live [data-radar-comparar]")).toHaveCount(0);
 
     // Retry recupera o perfil indisponível
