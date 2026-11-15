@@ -106,6 +106,20 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
     .slice(0, 3)
     .map(card => card.dataset.tlCard);
   assert.deepEqual(primeirosSPlus(), ['ring_17', 'set_singular', 'set_worldtree']);
+  const painel = window.document.querySelector('#tierlist-detalhe');
+  const rolagens = [];
+  painel.scrollIntoView = ({ behavior }) => rolagens.push(behavior);
+  click('[data-tl-cat="ring"]');
+  assert.deepEqual(rolagens, []);
+  const prisma = window.document.querySelector('[data-tl-card="ring_17"]');
+  assert.match(prisma.getAttribute('aria-label'), /Arcano/);
+  assert.doesNotMatch(prisma.textContent, /Arcano/);
+  prisma.click();
+  assert.equal(window.document.activeElement, painel);
+  assert.deepEqual(rolagens, ['smooth']);
+  window.matchMedia = () => ({ matches: true });
+  click('[data-tl-card="ring_14"]');
+  assert.deepEqual(rolagens, ['smooth', 'auto']);
   for (const categoria of ['todos', 'ring', 'warrior', 'archer', 'cleric']) {
     click(`[data-tl-cat="${categoria}"]`);
     click('[data-tl-card="ring_14"]');

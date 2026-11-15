@@ -180,9 +180,9 @@
 }
 
 .tl-card.imortal {
-  --tl-rar-cor: #ffcd9a;
-  --tl-rar-fundo: #382720;
-  --tl-rar-borda: #bb7339;
+  --tl-rar-cor: #ff8690;
+  --tl-rar-fundo: #421e28;
+  --tl-rar-borda: #e04351;
 }
 
 .tl-card.selecionado {
@@ -231,19 +231,10 @@
   margin-block-start: auto;
 }
 
-.tl-raridade {
-  display: inline-block;
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: var(--tl-rar-cor);
-  background: var(--tl-rar-borda);
-  background: color-mix(in srgb, var(--tl-rar-borda) 30%, var(--tl-rar-fundo));
-  font-weight: 700;
-}
-
 /* Painel de detalhe do item clicado */
 .tl-detalhe {
   margin-top: 18px;
+  scroll-margin-top: 12px;
   padding: 16px 18px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

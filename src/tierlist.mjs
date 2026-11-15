@@ -2,6 +2,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  coresRaridade,
   nomesClasses,
 } from "./dados.mjs";
 import { calcularFc, calcularStatusSimulados } from "./combate.mjs";
@@ -297,7 +298,7 @@ function renderizarDetalhe() {
     return;
   }
 
-  const corRar = item.raridade === 7 ? "#eb34b1" : "#ff9d2e";
+  const corRar = coresRaridade[item.raridade];
   const tierAtual = `Tier de utilidade ${item.tierUtilidade} · ${item.tagUtilidade}`;
   const classeFc = item.classeFc ? ` (${nomesClasses[item.classeFc]})` : "";
   containerDetalhe.innerHTML = `
@@ -306,8 +307,7 @@ function renderizarDetalhe() {
     </div>
     <div>
       <div class="tl-detalhe-topo">
-        <h3 class="tl-detalhe-titulo" style="color:${corRar};">${escaparHtml(item.nome)}</h3>
-        <span class="tl-card-tag rar">${escaparHtml(item.raridadeNome)}</span>
+        <h3 class="tl-detalhe-titulo" style="color:${corRar};" aria-label="${escaparHtml(`${item.nome} · ${item.raridadeNome}`)}">${escaparHtml(item.nome)}</h3>
         <span class="tl-card-tag">${escaparHtml(item.categoriaLabel)}</span>
         <span class="tl-card-tag">${escaparHtml(tierAtual)}</span>
         <span class="tl-card-tag" style="color:var(--gold);">FC simulado${escaparHtml(classeFc)} · ${formatarNumeroCompacto(item.fcRef)}</span>
@@ -369,11 +369,12 @@ function renderizarTabela() {
               const badgeTag = modoAtual === "fc"
                 ? `${formatarNumeroCompacto(item.fcRef)} FC`
                 : item.tagUtilidade;
+              const rotulo = `${item.nome} · ${item.categoriaLabel} · ${item.raridadeNome} · ${badgeTag}`;
               return `
-                <button type="button" class="tl-card ${clsRar} ${clsSel}" data-tl-card="${escaparHtml(item.id)}" aria-pressed="${item.id === itemSelecionadoId}">
+                <button type="button" class="tl-card ${clsRar} ${clsSel}" data-tl-card="${escaparHtml(item.id)}" aria-pressed="${item.id === itemSelecionadoId}" aria-label="${escaparHtml(rotulo)}">
                   <canvas data-tl-sprite="${escaparHtml(item.id)}" data-tl-escala="3"></canvas>
                   <span class="tl-card-nome">${escaparHtml(item.nome)}</span>
-                  <span class="tl-card-classe">${escaparHtml(item.categoriaLabel)} <span class="tl-raridade">${escaparHtml(item.raridadeNome)}</span></span>
+                  <span class="tl-card-classe">${escaparHtml(item.categoriaLabel)}</span>
                   <span class="tl-card-tag">${escaparHtml(badgeTag)}</span>
                 </button>
               `;
@@ -400,6 +401,9 @@ function renderizarTabela() {
     btn.addEventListener("click", () => {
       itemSelecionadoId = btn.dataset.tlCard;
       renderizarTabela();
+      containerDetalhe?.focus({ preventScroll: true });
+      const reduzirMovimento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      containerDetalhe?.scrollIntoView?.({ behavior: reduzirMovimento ? "auto" : "smooth", block: "start" });
     });
   });
 }
