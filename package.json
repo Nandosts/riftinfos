@@ -1,0 +1,29 @@
+{
+  "name": "rift-forjas",
+  "version": "1.0.0",
+  "description": "Aplicativo web para consultar personagens do RiftStream, analisar forjas e equipamentos, simular builds, comparar jogadores e acompanhar lives.",
+  "main": "analise.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node tests/review-regression.test.cjs",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nandosts/riftstream-info.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nandosts/riftstream-info/issues"
+  },
+  "homepage": "https://github.com/Nandosts/riftstream-info#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}
