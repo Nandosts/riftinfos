@@ -102,6 +102,10 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   await import('../src/tierlist.mjs');
   const click = (selector) => window.document.querySelector(selector).click();
   const detalhe = () => window.document.querySelector('#tierlist-detalhe').textContent;
+  const primeirosSPlus = () => [...window.document.querySelectorAll('.tl-tier-splus [data-tl-card]')]
+    .slice(0, 3)
+    .map(card => card.dataset.tlCard);
+  assert.deepEqual(primeirosSPlus(), ['ring_17', 'set_singular', 'set_worldtree']);
   for (const categoria of ['todos', 'ring', 'warrior', 'archer', 'cleric']) {
     click(`[data-tl-cat="${categoria}"]`);
     click('[data-tl-card="ring_14"]');
@@ -111,7 +115,7 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   click('[data-tl-card="set_echo"]');
   assert.match(detalhe(), /Tier de utilidade C/);
   click('[data-tl-cat="warrior"]');
-  assert.equal(window.document.querySelector('.tl-tier-splus [data-tl-card^="ring_"]').dataset.tlCard, 'ring_14');
+  assert.deepEqual(primeirosSPlus(), ['set_singular', 'ring_14', 'ring_17']);
   click('[data-tl-modo="fc"]');
   click('[data-tl-card="set_obsidian"]');
   assert.match(detalhe(), /200,37M/);

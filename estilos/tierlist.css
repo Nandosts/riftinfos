@@ -149,15 +149,19 @@
 }
 
 .tl-card {
+  --tl-rar-cor: var(--muted);
+  --tl-rar-fundo: rgba(255, 255, 255, 0.035);
+  --tl-rar-borda: rgba(255, 255, 255, 0.16);
   min-inline-size: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 5px;
   padding: 8px 6px 7px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tl-rar-fundo);
+  border: 2px solid var(--tl-rar-borda);
   border-radius: 6px;
+  box-shadow: none;
   cursor: pointer;
   text-align: center;
   color: var(--text);
@@ -166,20 +170,23 @@
 
 .tl-card:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.075);
+  border-color: var(--tl-rar-cor);
 }
 
 .tl-card.arcano {
-  border-color: rgba(235, 52, 177, 0.45);
+  --tl-rar-cor: #ffc4ef;
+  --tl-rar-fundo: #34203e;
+  --tl-rar-borda: #b54c9e;
 }
 
 .tl-card.imortal {
-  border-color: rgba(255, 157, 46, 0.45);
+  --tl-rar-cor: #ffcd9a;
+  --tl-rar-fundo: #382720;
+  --tl-rar-borda: #bb7339;
 }
 
 .tl-card.selecionado {
   box-shadow: 0 0 0 2px var(--cyan);
-  background: rgba(86, 204, 242, 0.12);
 }
 
 .tl-card canvas {
@@ -224,14 +231,14 @@
   margin-block-start: auto;
 }
 
-.tl-card.arcano .tl-card-tag.rar {
-  color: #eb34b1;
-  background: rgba(235, 52, 177, 0.12);
-}
-
-.tl-card.imortal .tl-card-tag.rar {
-  color: #ff9d2e;
-  background: rgba(255, 157, 46, 0.12);
+.tl-raridade {
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: var(--tl-rar-cor);
+  background: var(--tl-rar-borda);
+  background: color-mix(in srgb, var(--tl-rar-borda) 30%, var(--tl-rar-fundo));
+  font-weight: 700;
 }
 
 /* Painel de detalhe do item clicado */
