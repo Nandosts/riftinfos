@@ -62,7 +62,9 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
       },
     });
     const card = page.locator('[data-panorama-acao="live-mais-nova"]');
+    const cardZona = page.locator('[data-panorama-acao="live-melhor-zona"]');
     await expect(card).toContainText("Canal mais novo online");
+    await expect(cardZona).toContainText("Maior zona online");
     await expect(card).toContainText("Estreante");
     expect(consultas.size).toBe(15);
 
@@ -76,11 +78,13 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     await atualizar.click();
     await expect.poll(() => consultas.get(estreante.login)).toBe(2);
     await expect(card).toContainText("Estreante");
-    expect(consultas.get("canal6")).toBe(1);
+    await expect.poll(() => consultas.get("canal6")).toBe(2);
+    await expect(cardZona).toContainText("Maior zona online");
 
     falharSegundaPagina = true;
     await atualizar.click();
     await expect(card).toContainText("Canal mais novo entre os consultados");
+    await expect(cardZona).toContainText("Maior zona entre lives consultadas");
     await expect(card).not.toContainText("Estreante");
     await expect(page.locator("#panorama-atualizacao")).toContainText("Consulta de canais novos incompleta");
   });
