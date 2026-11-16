@@ -47,6 +47,10 @@ const btnModalRadarLive = document.querySelector("#btn-modal-radar-live");
 const btnModalSimularChefe = document.querySelector("#btn-modal-simular-chefe");
 
 const cacheDetalhesCanais = new Map();
+const CHAVE_CRIACAO_CANAIS = "riftinfos:criacao_canais:v1";
+const TAMANHO_PAGINA_LIVES = 50;
+const CONCORRENCIA_DATAS_CANAIS = 6;
+let consultaPanoramaAtiva;
 
 const rankingIndisponivel = { rotulo: "Indisponível", nick: "", power: null, level: null };
 const top1DinamicoPorClasse = {
@@ -62,6 +66,7 @@ let ultimosDadosPanorama = {
   melhorZonaLive: null,
   maiorLive: null,
   liveMaisNova: null,
+  estadoCanalNovo: "carregando",
   patch: null,
   estadoLives: "carregando",
   atualizadoEm: null,
@@ -75,11 +80,11 @@ function formatarTempoRelativoCriacao(isoString) {
     const diffMs = Math.max(0, agora - data);
     if (!Number.isFinite(diffMs)) return "Data indisponível";
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 60) return `Entrou há ${Math.max(1, diffMin)}min`;
+    if (diffMin < 60) return `Criado há ${Math.max(1, diffMin)}min`;
     const diffHoras = Math.floor(diffMin / 60);
-    if (diffHoras < 24) return `Criada hoje (${diffHoras}h atrás)`;
+    if (diffHoras < 24) return `Criado há ${diffHoras}h`;
     const diffDias = Math.floor(diffHoras / 24);
-    return `Criada há ${diffDias}d`;
+    return `Criado há ${diffDias}d`;
   } catch {
     return "Recente";
   }
@@ -247,7 +252,7 @@ function vincularEventosGradePanorama() {
       } else if (acao === "live-mais-nova") {
         const live = ultimosDadosPanorama.liveMaisNova;
         if (live && live.canal) {
-          abrirModalEscolhaLive(live, "✨ Live Mais Nova Online");
+          abrirModalEscolhaLive(live, "✨ Canal mais novo online");
         }
       } else if (acao === "consultar-top1") {
         carregarAtalhoTop("top1");
@@ -258,7 +263,7 @@ function vincularEventosGradePanorama() {
 
 function renderizarGradePanorama() {
   if (!gradeRecordesGlobais) return;
-  const { melhorZonaLive, maiorLive, liveMaisNova, patch, estadoLives, atualizadoEm } = ultimosDadosPanorama;
+  const { melhorZonaLive, maiorLive, liveMaisNova, estadoCanalNovo, patch, estadoLives, atualizadoEm } = ultimosDadosPanorama;
   const acaoEmFoco = gradeRecordesGlobais.contains(document.activeElement)
     ? document.activeElement.dataset.panoramaAcao
     : null;
@@ -277,8 +282,12 @@ function renderizarGradePanorama() {
   const labelMaior = maiorLive ? `${formatadorInteiro.format(maiorLive.playersNow || 0)} jogadores` : labelVazio;
   const descMaior = maiorLive ? `${escaparHtml(maiorLive.nome)} · ${formatadorInteiro.format(maiorLive.totalLives || 0)} canais listados` : estadoLives === "carregando" ? "Sincronizando canais…" : "";
 
-  const labelNova = liveMaisNova ? escaparHtml(liveMaisNova.nome) : labelVazio;
-  const descNova = liveMaisNova ? `${tempoCriacao} · Z${liveMaisNova.zone ?? 1}-W${liveMaisNova.wave ?? 1}` : estadoLives === "carregando" ? "Sincronizando…" : "";
+  const consultaParcial = estadoCanalNovo === "parcial";
+  const labelNova = liveMaisNova ? escaparHtml(liveMaisNova.nome)
+    : estadoCanalNovo === "carregando" ? "Carregando…" : labelVazio;
+  const zonaNova = liveMaisNova?.zone && liveMaisNova?.wave ? ` · Z${liveMaisNova.zone}-W${liveMaisNova.wave}` : "";
+  const descNova = liveMaisNova ? `${tempoCriacao}${zonaNova}`
+    : estadoCanalNovo === "carregando" ? "Buscando datas de criação…" : "";
 
   const labelTop1 = top1GeralDinamico.nick ? `${formatarNumeroCompacto(top1GeralDinamico.power)} FC` : rankingsCarregando ? "Carregando…" : "Indisponível";
   const descTop1 = top1GeralDinamico.nick ? `${escaparHtml(top1GeralDinamico.rotulo)} (${nomesClasses[top1GeralDinamico.cls] || "Classe desconhecida"} Nv. ${formatadorInteiro.format(top1GeralDinamico.level || 0)})` : rankingsCarregando ? "Sincronizando rankings…" : "O ranking não respondeu.";
@@ -295,7 +304,7 @@ function renderizarGradePanorama() {
       <small>${descMaior}</small>
     </button>
     <button type="button" class="tile-panorama clicavel" data-panorama-acao="live-mais-nova" ${liveMaisNova ? "" : "disabled"} title="Clique para assistir à transmissão ou inspecionar no Radar (Twitch / Kick)">
-      <span>✨ Canal mais novo entre os consultados</span>
+      <span>✨ ${consultaParcial ? "Canal mais novo entre os consultados" : "Canal mais novo online"}</span>
       <strong>${labelNova}</strong>
       <small>${descNova}</small>
     </button>
@@ -322,118 +331,152 @@ function renderizarGradePanorama() {
       maiorPot?.potential > 0 && `Maior potencial online: ${maiorPot.name} (${formatarZonaOndaDeOndas(maiorPot.potential)})`,
     ].filter(Boolean);
     if (estadoLives === "erro") partes.push("API de lives indisponível");
+    if (consultaParcial) partes.push("Consulta de canais novos incompleta");
     panoramaAtualizacao.textContent = partes.join(" · ") || "Sincronizando lives…";
   }
 }
 
-async function refinarDetalhesLivesPanorama(livesOnline) {
+function lerDatasCriacaoCanais() {
   try {
-    const alvosMap = new Map();
-    [...livesOnline.slice(0, 5), ...livesOnline.slice(-6)].forEach((it) => {
-      if (it && it.login) alvosMap.set(it.login, it);
-    });
-    const alvos = [...alvosMap.values()];
-
-    const resultados = await Promise.allSettled(
-      alvos.map(async (it) => {
-        const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(it.login)}`, undefined, 5000);
-        const playersEfetivos = Number.isFinite(ch?.playersNow) ? ch.playersNow : Number(it.playersNow) || 0;
-        const ehKick = /^kick:/i.test(it.login);
-        const tw = ch?.twitchLogin !== undefined ? ch.twitchLogin : (ehKick ? null : it.login);
-        const kc = ch?.kickLogin !== undefined ? ch.kickLogin : (ehKick ? it.login.replace(/^kick:/i, "") : null);
-        if (ch) {
-          cacheDetalhesCanais.set(it.login.toLowerCase(), {
-            twitchLogin: tw,
-            kickLogin: kc,
-            displayName: ch?.displayName || it.name,
-          });
-        }
-        return {
-          name: it.name,
-          login: it.login,
-          zone: Number(ch?.zone) || null,
-          wave: Number(ch?.wave) || null,
-          potentialWaves: Number(ch?.potentialWaves ?? it.potential) || 0,
-          playersNow: playersEfetivos,
-          createdAt: ch?.createdAt || "",
-          twitchLogin: tw,
-          kickLogin: kc,
-        };
-      })
-    );
-
-    const detalhes = resultados
-      .filter((r) => r.status === "fulfilled" && r.value)
-      .map((r) => r.value);
-
-    if (detalhes.length > 0) {
-      const comZonaAtual = detalhes.filter((item) => item.zone && item.wave);
-      const melhorZona = comZonaAtual.reduce((melhor, item) => {
-        if (!melhor) return item;
-        const scoreItem = (item.zone || 1) * 100 + (item.wave || 1);
-        const scoreMelhor = (melhor.zone || 1) * 100 + (melhor.wave || 1);
-        return scoreItem > scoreMelhor ? item : melhor;
-      }, null);
-
-      if (melhorZona) {
-        ultimosDadosPanorama.melhorZonaLive = {
-          canal: melhorZona.login,
-          nome: melhorZona.name,
-          zone: melhorZona.zone,
-          wave: melhorZona.wave,
-          potentialWaves: melhorZona.potentialWaves || 0,
-          playersNow: melhorZona.playersNow,
-          twitchLogin: melhorZona.twitchLogin,
-          kickLogin: melhorZona.kickLogin,
-        };
-      }
-
-      const comCriacao = detalhes.filter((d) => d.zone && d.wave && Number.isFinite(Date.parse(d.createdAt)));
-      if (comCriacao.length > 0) {
-        comCriacao.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const maisNova = comCriacao[0];
-        ultimosDadosPanorama.liveMaisNova = {
-          canal: maisNova.login,
-          nome: maisNova.name,
-          createdAt: maisNova.createdAt,
-          zone: maisNova.zone,
-          wave: maisNova.wave,
-          playersNow: maisNova.playersNow,
-          twitchLogin: maisNova.twitchLogin,
-          kickLogin: maisNova.kickLogin,
-        };
-      }
-
-      if (ultimosDadosPanorama.maiorLive?.canal) {
-        const chMaior = cacheDetalhesCanais.get(ultimosDadosPanorama.maiorLive.canal.toLowerCase());
-        if (chMaior) {
-          ultimosDadosPanorama.maiorLive.twitchLogin = chMaior.twitchLogin;
-          ultimosDadosPanorama.maiorLive.kickLogin = chMaior.kickLogin;
-        }
-      }
-
-      renderizarGradePanorama();
-    }
+    return new Map(JSON.parse(localStorage.getItem(CHAVE_CRIACAO_CANAIS) || "[]"));
   } catch {
-    // Falha silenciosa mantendo dados prévios
+    return new Map();
   }
+}
+
+async function refinarDetalhesLivesPanorama(livesOnline, listaCompleta, sinal) {
+  const datasCriacao = lerDatasCriacaoCanais();
+  const detalhesPorCanal = new Map();
+
+  async function consultarCanal(live) {
+    try {
+      const ch = await buscarJsonApi(`/api/ranking/channel/${encodeURIComponent(live.login)}`, sinal, 5000);
+      if (Number.isFinite(Date.parse(ch?.createdAt))) datasCriacao.set(live.login, ch.createdAt);
+      const ehKick = /^kick:/i.test(live.login);
+      const detalhes = {
+        canal: live.login,
+        nome: live.name,
+        zone: Number(ch?.zone) || null,
+        wave: Number(ch?.wave) || null,
+        potentialWaves: Number(ch?.potentialWaves ?? live.potential) || 0,
+        playersNow: Number.isFinite(ch?.playersNow) ? ch.playersNow : Number(live.playersNow) || 0,
+        twitchLogin: ch?.twitchLogin !== undefined ? ch.twitchLogin : ehKick ? null : live.login,
+        kickLogin: ch?.kickLogin !== undefined ? ch.kickLogin : ehKick ? live.login.replace(/^kick:/i, "") : null,
+      };
+      detalhesPorCanal.set(live.login, detalhes);
+      cacheDetalhesCanais.set(live.login.toLowerCase(), {
+        twitchLogin: detalhes.twitchLogin,
+        kickLogin: detalhes.kickLogin,
+        displayName: detalhes.nome,
+      });
+      return detalhes;
+    } catch {
+      return null;
+    }
+  }
+
+  const amostra = [...new Set([...livesOnline.slice(0, 5), ...livesOnline.slice(-6)])];
+  const detalhes = await Promise.all(amostra.map(consultarCanal));
+  if (sinal.aborted) return;
+
+  ultimosDadosPanorama.melhorZonaLive = detalhes.reduce((melhor, live) => {
+    if (!live?.zone || !live.wave) return melhor;
+    if (!melhor || live.zone > melhor.zone || (live.zone === melhor.zone && live.wave > melhor.wave)) return live;
+    return melhor;
+  }, null);
+
+  const maiorLive = ultimosDadosPanorama.maiorLive;
+  const detalheMaior = detalhesPorCanal.get(maiorLive?.canal);
+  if (detalheMaior) {
+    maiorLive.twitchLogin = detalheMaior.twitchLogin;
+    maiorLive.kickLogin = detalheMaior.kickLogin;
+  }
+  renderizarGradePanorama();
+
+  const semData = livesOnline.filter((live) => !amostra.includes(live) && !Number.isFinite(Date.parse(datasCriacao.get(live.login))));
+  for (let i = 0; i < semData.length && !sinal.aborted; i += CONCORRENCIA_DATAS_CANAIS) {
+    await Promise.all(semData.slice(i, i + CONCORRENCIA_DATAS_CANAIS).map(consultarCanal));
+  }
+  if (sinal.aborted) return;
+
+  const comData = livesOnline.filter((live) => Number.isFinite(Date.parse(datasCriacao.get(live.login))));
+  const maisNova = comData.reduce((nova, live) =>
+    !nova || Date.parse(datasCriacao.get(live.login)) > Date.parse(datasCriacao.get(nova.login)) ? live : nova, null);
+  if (maisNova) {
+    const detalheMaisNova = detalhesPorCanal.get(maisNova.login) || await consultarCanal(maisNova);
+    if (sinal.aborted) return;
+    ultimosDadosPanorama.liveMaisNova = {
+      canal: maisNova.login,
+      nome: maisNova.name,
+      playersNow: maisNova.playersNow,
+      ...detalheMaisNova,
+      createdAt: datasCriacao.get(maisNova.login),
+    };
+  }
+
+  try {
+    localStorage.setItem(CHAVE_CRIACAO_CANAIS, JSON.stringify([...datasCriacao].slice(-500)));
+  } catch {
+  }
+  ultimosDadosPanorama.estadoCanalNovo = listaCompleta && comData.length === livesOnline.length ? "completo" : "parcial";
+  renderizarGradePanorama();
+}
+
+async function consultarLivesOnline(sinal) {
+  const rota = (pagina) => `/api/ranking/runs?page=${pagina}&size=${TAMANHO_PAGINA_LIVES}&online=true`;
+  const primeira = await buscarJsonApi(rota(1), sinal);
+  if (!Array.isArray(primeira?.items)) throw new Error("Lista de lives inválida");
+  const total = primeira.total ?? primeira.items.length;
+  const paginas = Math.ceil(total / (primeira.size || TAMANHO_PAGINA_LIVES));
+  const porLogin = new Map();
+  const adicionar = (items) => {
+    for (const live of items) {
+      if (typeof live?.login === "string" && live.login && typeof live.name === "string" && live.online !== false) {
+        porLogin.set(live.login.toLowerCase(), live);
+      }
+    }
+  };
+
+  adicionar(primeira.items);
+  let completa = true;
+  for (let pagina = 2; pagina <= paginas && !sinal.aborted; pagina++) {
+    try {
+      const resultado = await buscarJsonApi(rota(pagina), sinal);
+      if (!Array.isArray(resultado?.items)) {
+        completa = false;
+        continue;
+      }
+      adicionar(resultado.items);
+    } catch {
+      completa = false;
+    }
+  }
+  return { livesOnline: [...porLogin.values()], completa: completa && porLogin.size >= total };
 }
 
 async function carregarPanoramaGlobal() {
   if (!gradeRecordesGlobais) return;
+  consultaPanoramaAtiva?.abort();
+  const controlador = new AbortController();
+  consultaPanoramaAtiva = controlador;
+  const sinal = controlador.signal;
   if (panoramaAtualizacao) panoramaAtualizacao.textContent = "Sincronizando dados globais…";
 
   try {
-    const [changelog, runs] = await Promise.all([
-      buscarJsonApi("/api/changelog").catch(() => null),
-      buscarJsonApi("/api/ranking/runs?page=1&size=50&online=true").catch(() => null),
+    const [changelog, consulta] = await Promise.all([
+      buscarJsonApi("/api/changelog", sinal).catch(() => null),
+      consultarLivesOnline(sinal).catch(() => null),
     ]);
+    if (sinal.aborted) return;
 
-    const livesOnline = Array.isArray(runs?.items)
-      ? runs.items.filter((live) => typeof live?.login === "string" && typeof live.name === "string")
-      : [];
-    ultimosDadosPanorama.estadoLives = !Array.isArray(runs?.items) ? "erro" : livesOnline.length ? "pronto" : "vazio";
-    ultimosDadosPanorama.atualizadoEm = Array.isArray(runs?.items) ? new Date() : null;
+    const livesOnline = consulta?.livesOnline ?? [];
+    ultimosDadosPanorama.estadoLives = !consulta ? "erro" : livesOnline.length ? "pronto" : "vazio";
+    ultimosDadosPanorama.atualizadoEm = consulta ? new Date() : null;
+    ultimosDadosPanorama.melhorZonaLive = null;
+    ultimosDadosPanorama.maiorLive = null;
+    ultimosDadosPanorama.maiorPotencialOnline = null;
+    ultimosDadosPanorama.liveMaisNova = null;
+    ultimosDadosPanorama.estadoCanalNovo = livesOnline.length ? "carregando" : consulta && !consulta.completa ? "parcial" : "completo";
     livesOnline.sort((a, b) => (b.playersNow || 0) - (a.playersNow || 0));
     preencherSelectsLivesOnline(livesOnline);
 
@@ -462,9 +505,10 @@ async function carregarPanoramaGlobal() {
     renderizarGradePanorama();
 
     if (livesOnline.length > 0) {
-      void refinarDetalhesLivesPanorama(livesOnline);
+      await refinarDetalhesLivesPanorama(livesOnline, consulta.completa, sinal);
     }
   } catch {
+    if (sinal.aborted) return;
     ultimosDadosPanorama.estadoLives = "erro";
     renderizarGradePanorama();
   }

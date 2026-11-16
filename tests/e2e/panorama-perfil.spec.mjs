@@ -21,6 +21,70 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     expect(erros).toEqual([]);
   });
 
+  test("descobre o canal mais novo na segunda página e reaproveita datas conhecidas", async ({ page }) => {
+    const primeiraPagina = Array.from({ length: 14 }, (_, i) => ({
+      login: `canal${i}`,
+      name: `Canal ${i}`,
+      bestZone: 3,
+      bestWave: 5,
+      playersNow: 100 - (i * 5),
+      online: true,
+    }));
+    const estreante = { ...primeiraPagina[0], login: "kick:estreante", name: "Estreante", playersNow: 68 };
+    const consultas = new Map();
+    let falharSegundaPagina = false;
+    await prepararPagina(page, "/index.html", {
+      permitirErrosConsole: true,
+      api: {
+        cenarios: {
+          runs: async (route) => {
+            const numero = Number(new URL(route.request().url()).searchParams.get("page"));
+            if (numero === 2 && falharSegundaPagina) {
+              return route.fulfill({ status: 503, json: { error: "Página indisponível" } });
+            }
+            return route.fulfill({
+              json: { page: numero, size: 14, total: 15, items: numero === 1 ? primeiraPagina : [estreante] },
+            });
+          },
+          channel: (route) => {
+            const login = decodeURIComponent(new URL(route.request().url()).pathname.split("/").pop());
+            consultas.set(login, (consultas.get(login) || 0) + 1);
+            return route.fulfill({
+              json: {
+                login,
+                zone: 3,
+                wave: 5,
+                createdAt: login === estreante.login ? "2026-11-15T15:15:00-03:00" : "2026-10-01T10:00:00-03:00",
+              },
+            });
+          },
+        },
+      },
+    });
+    const card = page.locator('[data-panorama-acao="live-mais-nova"]');
+    await expect(card).toContainText("Canal mais novo online");
+    await expect(card).toContainText("Estreante");
+    expect(consultas.size).toBe(15);
+
+    await card.click();
+    await expect(page.locator("#link-live-kick")).toHaveAttribute("href", "https://kick.com/estreante");
+    await page.locator("#btn-fechar-modal-live").click();
+    await page.locator("#aba-radar-live").click();
+    await expect(page.locator('#select-radar-lives option[value="kick:estreante"]')).toBeAttached();
+
+    const atualizar = page.locator("#btn-atualizar-lives-online");
+    await atualizar.click();
+    await expect.poll(() => consultas.get(estreante.login)).toBe(2);
+    await expect(card).toContainText("Estreante");
+    expect(consultas.get("canal6")).toBe(1);
+
+    falharSegundaPagina = true;
+    await atualizar.click();
+    await expect(card).toContainText("Canal mais novo entre os consultados");
+    await expect(card).not.toContainText("Estreante");
+    await expect(page.locator("#panorama-atualizacao")).toContainText("Consulta de canais novos incompleta");
+  });
+
   test("panorama lida com lives vazias, erro em lives, erro em ranking e changelog ausente", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa cenários degradados no desktop");
 
