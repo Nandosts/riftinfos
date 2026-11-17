@@ -135,7 +135,7 @@ async function dispararComparacao(nick2, plataforma2, classeDesejadaP2) {
 
   try {
     const loginApi2 = plataforma2 === "kick" ? `kick:${nick2}` : nick2;
-    const { resposta, dados } = await buscarRespostaPerfil(
+    const { resposta, dados, loginConsultado } = await buscarRespostaPerfil(
       loginApi2,
       classeDesejadaP2 || undefined,
       controlador.signal
@@ -149,7 +149,8 @@ async function dispararComparacao(nick2, plataforma2, classeDesejadaP2) {
     }
 
     if (controlador.signal.aborted) return;
-    const perfilP2 = validarPerfilApi(dados, loginApi2, classeDesejadaP2);
+    const perfilP2 = validarPerfilApi(dados, loginConsultado, classeDesejadaP2);
+    if (inputCompararNick.value === nick2) inputCompararNick.value = loginConsultado.replace(/^kick:/, "");
     renderizarPainelComparacao(perfilCarregadoP1, plataformaCarregadaP1, perfilP2, plataforma2);
     statusComparacao.textContent = `Comparação atualizada entre ${perfilCarregadoP1.displayName || perfilCarregadoP1.login} (${nomesClasses[perfilCarregadoP1.cls] || perfilCarregadoP1.cls}) e ${perfilP2.displayName || perfilP2.login} (${nomesClasses[perfilP2.cls] || perfilP2.cls}).`;
     resultadoComparacao.hidden = false;

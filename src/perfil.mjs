@@ -161,7 +161,7 @@ async function consultarPerfil(jogador, classeDesejada) {
   estadoPerfil.status = "loading";
 
   try {
-    const { resposta, dados } = await buscarRespostaPerfil(
+    const { resposta, dados, loginConsultado } = await buscarRespostaPerfil(
       loginApi,
       classeDesejada,
       controlador.signal
@@ -175,7 +175,9 @@ async function consultarPerfil(jogador, classeDesejada) {
     }
 
     if (requisicaoAtiva !== controlador) return;
-    const perfil = validarPerfilApi(dados, loginApi, classeDesejada);
+    const perfil = validarPerfilApi(dados, loginConsultado, classeDesejada);
+    const nickConfirmado = loginConsultado.replace(/^kick:/, "");
+    const jogadorConfirmado = { ...jogador, nick: nickConfirmado };
 
     estadoPerfil.data = perfil;
     estadoPerfil.status = "success";
@@ -185,13 +187,14 @@ async function consultarPerfil(jogador, classeDesejada) {
     estadoPerfil.error = null;
 
     if (Historico.obterConfigAutoSave && Historico.obterConfigAutoSave()) {
-      Historico.salvarSnapshotConsulta(jogador.plataforma, jogador.nick, perfil.cls, perfil, estadoPerfil.sourceUpdatedAt, CALCULATION_VERSION);
+      Historico.salvarSnapshotConsulta(jogador.plataforma, nickConfirmado, perfil.cls, perfil, estadoPerfil.sourceUpdatedAt, CALCULATION_VERSION);
     }
 
     renderizarPerfil(perfil, jogador.plataforma);
 
-    jogadorAtual = jogador;
-    atualizarParametrosUrl(jogador, perfil.cls);
+    if (inputNick.value === jogador.nick) inputNick.value = nickConfirmado;
+    jogadorAtual = jogadorConfirmado;
+    atualizarParametrosUrl(jogadorConfirmado, perfil.cls);
 
     const poderFormatado = Number.isFinite(perfil.power)
       ? ` · Poder ${formatadorInteiro.format(perfil.power)}`

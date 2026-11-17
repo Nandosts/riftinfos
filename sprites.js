@@ -69,13 +69,80 @@
     ctx.drawImage(src, 0, 0, tam, tam);
   }
 
+  function corPrismatica(matiz, saturacao, brilho) {
+    const setor = Math.floor(matiz * 6) % 6;
+    const fracao = matiz * 6 - Math.floor(matiz * 6);
+    const minimo = brilho * (1 - saturacao);
+    const descendo = brilho * (1 - fracao * saturacao);
+    const subindo = brilho * (1 - (1 - fracao) * saturacao);
+    const [r, g, b] = [
+      [brilho, subindo, minimo], [descendo, brilho, minimo],
+      [minimo, brilho, subindo], [minimo, descendo, brilho],
+      [subindo, minimo, brilho], [brilho, minimo, descendo],
+    ][setor];
+    return Math.round(r * 255) << 16 | Math.round(g * 255) << 8 | Math.round(b * 255);
+  }
+
+  function criarGemaPrismatica(tipo) {
+    const escurecer = y;
+    const corBase = ZL[tipo] ?? 8947848;
+    const formato = tz(tipo);
+    const sprite = new X(16, 16);
+    const dentro = (x, y) => x >= 0 && y >= 0 && x < 16 && y < 16 && formato(x, y);
+    const borda = (x, y) => {
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++)
+          if (!dentro(x + dx, y + dy)) return true;
+      return false;
+    };
+    const deslocamento = (corBase >> 16 & 255) / 255;
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        if (dentro(x, y)) {
+          const faixa = Math.floor((x + y * 0.8) / 3.2 + deslocamento * 6) % 6;
+          const arco = corPrismatica(faixa / 6, 0.62, 1);
+          let cor = mn(arco, corBase, 0.42);
+          const luz = (7.5 - x + (7.5 - y)) / 14;
+          if (borda(x, y)) cor = escurecer(mn(arco, corBase, 0.6), 0.55);
+          else if (luz > 0.45) cor = mn(cor, 16777215, 0.45);
+          else if (luz < -0.35) cor = escurecer(cor, 0.82);
+          sprite.px(x, y, cor);
+        } else {
+          let vizinho = false;
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++)
+              if (dentro(x + dx, y + dy)) vizinho = true;
+          if (vizinho) {
+            const angulo = Math.atan2(y - 7.5, x - 7.5) / (Math.PI * 2) + 0.5;
+            sprite.px(x, y, corPrismatica((angulo * 1.5 + deslocamento) % 1, 0.55, 1));
+          }
+        }
+      }
+    }
+    for (const [x, y] of [[4, 6], [5, 5], [6, 4], [5, 6], [6, 5]])
+      if (dentro(x, y)) sprite.px(x, y, 16777215);
+    sprite.px(8, 8, 16777215);
+    for (const [x, y] of [[-1, 0], [1, 0], [0, -1], [0, 1]])
+      sprite.px(8 + x, 8 + y, 16774911);
+    for (const [x, y] of [[-2, 0], [2, 0], [0, -2], [0, 2]]) {
+      const angulo = Math.atan2(y, x) / (Math.PI * 2) + 0.5;
+      sprite.px(8 + x, 8 + y, mn(16777215, corPrismatica(angulo % 1, 0.7, 1), 0.35));
+    }
+    for (const [x, y, cor] of [[13, 2, 8251903], [2, 13, 16743913], [14, 13, 16773242]]) {
+      sprite.px(x, y, 16777215);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]])
+        if (!dentro(x + dx, y + dy)) sprite.px(x + dx, y + dy, cor);
+    }
+    return sprite;
+  }
+
   function desenharIconeGema(canvas, tipo, tier = 5, escala = 2) {
     if (!canvas || !tipo) return;
     const tierVis = Math.max(1, Math.min(6, Number(tier) || 1));
     const chave = tipo + "|" + tierVis;
     let src = cacheIconeGema.get(chave);
     if (!src) {
-      src = az(tipo, tierVis).toCanvas();
+      src = (tierVis === 6 ? criarGemaPrismatica(tipo) : az(tipo, tierVis)).toCanvas();
       cacheIconeGema.set(chave, src);
     }
     const tam = 16 * escala;

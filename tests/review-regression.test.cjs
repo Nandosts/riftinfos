@@ -6,6 +6,38 @@ const sharing = require('../compartilhamento.js');
 function build() {
   return { cls: 'cleric', level: 700, atributos: { str: 130, vit: 136, def: 131, agi: 140, luk: 131 }, itens: ['weapon','helmet','armor','ring'].map(slot => ({id:slot,slot,name:'Peça',kind:'staff',set:'',rarity:7,itemLevel:336,atk:1120,def:937,hp:4603,crit:159,spd:8,sockets:6,gems:Array.from({length:6},()=>({kind:'sapphire',tier:5,stat:'spd',value:43,pct:false,stat2:'def',value2:48,pct2:true}))})) };
 }
+test('profile lookup retries only the alternate Kick spelling after a 404', async (t) => {
+  let encontrado;
+  const chamadas = [];
+  t.mock.method(globalThis, 'fetch', async (rota) => {
+    const url = new URL(rota, 'https://example.test');
+    const login = decodeURIComponent(url.pathname.split('/').pop());
+    chamadas.push(login);
+    assert.equal(url.searchParams.get('cls'), 'cleric');
+    return login === encontrado
+      ? Response.json({ login })
+      : Response.json({ error: 'Jogador não encontrado.' }, { status: 404 });
+  });
+  globalThis.window = { location: { protocol: 'https:' } };
+  t.after(() => { delete globalThis.window; });
+  const { buscarRespostaPerfil } = await import('../src/api.mjs');
+
+  for (const [digitado, loginEncontrado, status, tentativas] of [
+    ['kick:emy_consulin', 'kick:emy-consulin', 200, ['kick:emy_consulin', 'kick:emy-consulin']],
+    ['kick:foo-bar', 'kick:foo_bar', 200, ['kick:foo-bar', 'kick:foo_bar']],
+    ['kick:emy-consulin', 'kick:emy-consulin', 200, ['kick:emy-consulin']],
+    ['emy_consulin', null, 404, ['emy_consulin']],
+    ['kick:sem_perfil', null, 404, ['kick:sem_perfil', 'kick:sem-perfil']],
+  ]) {
+    chamadas.length = 0;
+    encontrado = loginEncontrado;
+    const resultado = await buscarRespostaPerfil(digitado, 'cleric');
+    assert.deepEqual(chamadas, tentativas);
+    assert.equal(resultado.resposta.status, status);
+    assert.equal(resultado.loginConsultado, tentativas.at(-1));
+  }
+});
+
 test('shared build preserves class, attributes, equipment stats and all six Supreme gems', async () => {
   const original = build();
   const decoded = await sharing.decodificarBuildDeHash(await sharing.serializarBuildParaHash(original));

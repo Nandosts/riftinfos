@@ -261,7 +261,7 @@
     },
     raid_vexxaris: {
       termo: "Raid: Covil de Vexxaris (Como abrir, entrar e funcionar)",
-      curto: "Raid cooperativa de 4 ondas contra a Rainha Ixtharra (1 zona abaixo do recorde da live). Precisa de 1 Casulo de Vexxaris para abrir e de $raid CÓDIGO no chat para entrar.",
+      curto: "Raid cooperativa de 4 ondas contra a Rainha Ixtharra. Segundo a wiki do jogo, fica 2 zonas abaixo do recorde da live. Precisa de 1 Casulo de Vexxaris para abrir e de $raid CÓDIGO no chat para entrar.",
       detalhes: "1) Abrir: só 1 pessoa usa o Casulo na mochila ('Meu personagem' -> 'Usar: romper o Casulo') em uma live aberta. 2) Entrar: aparece uma fogueira e um código na tela. Todo mundo (até quem já estava na live) precisa digitar $raid CÓDIGO no chat antes do tempo acabar; se faltar gente, a Raid cancela e o Casulo volta para quem usou. 3) Quem não digita o código fica oculto na tela só durante as 4 ondas, sem perder a vaga: quando acaba, a live volta na mesma Zona e Onda e todos reaparecem. 4) Lá dentro não tem revive por tempo (2/3 min): quem morre só volta com auto-revive (Brasa Eterna, Fênix Rubra, Coração do Vazio) ou revive de Clérigo (Cetro da Vida, Árvore-Mundo).",
       categoria: "chefes"
     },
@@ -286,7 +286,7 @@
     alquimia: {
       termo: "Alquimia (5 Fragmentos = 1 Item Garantido)",
       curto: "Transforma equipamentos sobrando em fragmentos (1 por item) e junta 5 fragmentos iguais para criar 1 item novo com 100% de certeza.",
-      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos ou com gemas) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos do mesmo tipo e raridade, você cria 1 peça nova garantida (sem chance de falhar). 3) Níveis: Nv. 1 cria itens nível 0–24; Nv. 2 cria 25–49; Nv. 3 cria 50–79; Nv. 4 cria 80–110 (até raridade Lendária).",
+      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos ou com gemas) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos do mesmo tipo e raridade, você cria 1 peça nova garantida (sem chance de falhar), até Lendário. 3) Níveis: Nv. 1 cria itens nível 0–24; Nv. 2 cria 25–49; Nv. 3 cria 50–79; Nv. 4 cria 80–110. A wiki atual também lista o Nv. 5, com itens de nível 111–150. Confira a disponibilidade na aba Alquimia do jogo.",
       categoria: "forjas"
     },
     aprimorar: {
@@ -294,6 +294,18 @@
       curto: "Usa até 30 itens sobrando do mesmo tipo para subir o nível e os atributos de um equipamento principal.",
       detalhes: "Escolha o item que quer evoluir e selecione até 30 peças do mesmo tipo (arma, elmo, armadura ou anel) para usar como experiência. O custo em ouro depende da raridade e dos itens usados, e o jogo mostra antes quanto o nível e o FC vão subir.",
       categoria: "forjas"
+    },
+    vender_atributos: {
+      termo: "Vender atributos (Redistribuir pontos)",
+      curto: "Permite desfazer níveis de atributos e recuperar parte do ouro para gastar em outros pontos.",
+      detalhes: "Na tela do personagem, alterne de Comprar para Vender. Os botões −1 e −10 removem níveis comprados e devolvem o ouro gasto, descontando uma taxa. Confira o valor mostrado pelo jogo antes de confirmar. O RiftInfos não calcula a taxa de devolução.",
+      categoria: "equipamentos"
+    },
+    contador_afk: {
+      termo: "Contador de AFK",
+      curto: "O relógio na tela do personagem mostra quanto falta para a conta ser considerada AFK.",
+      detalhes: "Clique no relógio para abrir a contagem. Ela usa a última atividade e o prazo informados pelo jogo. Qualquer comando no chat reinicia a contagem. Se o jogo ainda não registrou atividade, o relógio informa isso.",
+      categoria: "combate"
     },
     transmog_auras: {
       termo: "Transmog e Auras Cosméticas",

@@ -32,8 +32,8 @@
   <link rel="stylesheet" href="estilos/ficha.css?v=20261115k">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
-  <script src="sprites.js?v=20261115j" defer></script>
-  <script src="explicacoes.js?v=20261115b" defer></script>
+  <script src="sprites.js?v=20261117a" defer></script>
+  <script src="explicacoes.js?v=20261117a" defer></script>
   <script src="analise.js?v=20261114i" defer></script>
   <script src="historico.js?v=20261114i" defer></script>
   <script src="compartilhamento.js?v=4" defer></script>
@@ -401,7 +401,9 @@
               <li><strong>Como abrir a Raid:</strong> só <strong>1 pessoa</strong> precisa ter o Casulo. Ela entra no site do jogo (em uma live aberta), vai em <em>Meu personagem</em>, clica no Casulo e aperta <strong>"Usar: romper o Casulo"</strong>. Quem usou já entra na Raid automaticamente.</li>
               <li><strong>Como todo mundo entra (<code>$raid CÓDIGO</code>):</strong> quando o Casulo é usado, aparece uma fogueira e um <strong>código na tela da live</strong>. Todo mundo que quiser lutar — até quem já estava na live com <code>$jogar</code> — precisa digitar <code>$raid CÓDIGO</code> no chat antes do tempo acabar. Se não juntar o mínimo de jogadores, a Raid é cancelada e o Casulo volta para quem usou.</li>
               <li><strong>Quem não entra continua lutando? Por que parece que "desconectou todo mundo"?</strong> Ninguém é desconectado! Enquanto a Raid rola, <strong>a fase normal da live fica pausada</strong> e a tela mostra <strong>só quem digitou <code>$raid CÓDIGO</code></strong>. Quem estava ausente (AFK) fica escondido só durante as 4 ondas da Raid; assim que ela acaba, a live volta exatamente para a mesma Zona e Onda de antes e todo mundo reaparece.</li>
-              <li><strong>As 4 ondas e a regra de morte:</strong> a força da Raid equivale a <strong>1 zona abaixo do recorde da live</strong>. São 4 etapas até a <em>Rainha Ixtharra</em> (que tem 3 fases). Lá dentro <strong>não existe renascer sozinho depois de 2 ou 3 minutos</strong>: quem morre só volta se tiver item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>As 4 ondas e a regra de morte:</strong> a força da Raid equivale a <strong>2 zonas abaixo do recorde da live, segundo a wiki do jogo</strong>. São 4 etapas até a <em>Rainha Ixtharra</em> (que tem 3 fases). Lá dentro <strong>não existe renascer sozinho depois de 2 ou 3 minutos</strong>: quem morre só volta se tiver item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>Dificuldade e participantes:</strong> o nível da Raid aumenta o ataque, a vida e a defesa dos inimigos. Mais participantes aumentam a vida e podem aumentar a quantidade de aranhas, até o limite da onda. O ataque base de cada inimigo do mesmo tipo e nível continua igual.</li>
+              <li><strong>Rainha e resultado:</strong> durante a fuga pelo teto, a Rainha fica fora da seleção de alvos e não recebe dano. No fim, o resumo da Raid destaca dano causado, dano recebido, cura e DPS.</li>
               <li><strong>Prêmios:</strong> vencer dá ouro, EXP e sorteio de itens com chance maior de <strong>Imortais</strong>, além da chance rara de <strong>Arcanos</strong> e dos 2 anéis exclusivos da Raid: <strong>Presa de Ixtharra</strong> (ataque e crítico) e <strong>Teia Escarlate</strong> (vida, defesa e velocidade).</li>
             </ul>
           </div>
@@ -568,7 +570,7 @@
         </div>
       </details>
       <details id="detalhes-atualizacoes-modelo" class="detalhes-glossario-global" style="margin-top:8px;">
-        <summary class="sumario-glossario-global">📘 Guia Simples das Mecânicas Novas (Raid, Anéis, Alquimia) &amp; Patch 14/11/2026</summary>
+        <summary class="sumario-glossario-global">📘 Guia das mecânicas do jogo (Raid, Anéis, Alquimia e Atributos)</summary>
         <div class="painel-glossario-interno" style="display:grid; gap:14px; font-size:0.86rem; line-height:1.5;">
           <div>
             <strong style="color:var(--gold); font-size:0.94rem;">🕷️ 1. Raid Cooperativa: Covil de Vexxaris — Como funciona</strong>
@@ -576,7 +578,7 @@
               <li><strong>Como conseguir o Casulo de Vexxaris:</strong> é um item Lendário bem raro que cai de <strong>chefes de zona</strong> nas lives (e também na própria Raid). Ter <strong>Sorte</strong> ajuda no drop até os 100 pontos. Não dá para comprar/vender no Mercado nem fazer na Forja ou Alquimia.</li>
               <li><strong>Como abrir e como entrar:</strong> só <strong>1 pessoa</strong> usa o Casulo em <em>Meu personagem → Usar: romper o Casulo</em> numa live aberta. Na hora aparece uma fogueira e um <strong>código na tela</strong>. Todo mundo que quiser participar (até quem já estava na live com <code>$jogar</code>) precisa digitar <code>$raid CÓDIGO</code> no chat antes do tempo acabar. Se faltar gente, a Raid cancela e o Casulo volta para quem usou.</li>
               <li><strong>Quem não digita o código cai da live?</strong> Não! Durante a Raid, a fase normal da live fica <strong>pausada</strong> e a tela mostra <strong>só quem entrou com <code>$raid CÓDIGO</code></strong>. Quem estava ausente (AFK) fica oculto só enquanto a Raid dura e volta automaticamente na mesma Zona e Onda assim que a Raid termina.</li>
-              <li><strong>Luta em 4 ondas e morte:</strong> a dificuldade é <strong>1 zona abaixo do recorde da live</strong>. Lá dentro <strong>não existe renascer pelo tempo (2 ou 3 min)</strong>: quem morre só volta com item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>Luta em 4 ondas e morte:</strong> a dificuldade é <strong>2 zonas abaixo do recorde da live, segundo a wiki do jogo</strong>. Lá dentro <strong>não existe renascer pelo tempo (2 ou 3 min)</strong>: quem morre só volta com item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
             </ul>
           </div>
 
@@ -593,11 +595,13 @@
           <div style="border-top:1px solid var(--line); padding-top:10px;">
             <strong style="color:var(--cyan); font-size:0.94rem;">⚗️ 3. Alquimia, Aprimorar, Auras e Mudanças nos Cálculos</strong>
             <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
-              <li><strong>Alquimia (5 peças = 1 peça garantida):</strong> reciclando um item que você não usa, você ganha <strong>1 fragmento</strong> daquele tipo e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong>, você cria 1 item novo da mesma raridade <strong>com 100% de certeza</strong> (até Lendário). Conforme você upa a Alquimia, cria itens de nível maior: <strong>Nv. 1 (0–24)</strong>, <strong>Nv. 2 (25–49)</strong>, <strong>Nv. 3 (50–79)</strong> e <strong>Nv. 4 (80–110)</strong>.</li>
+              <li><strong>Alquimia (5 peças = 1 peça garantida):</strong> reciclando um item que você não usa, você ganha <strong>1 fragmento</strong> daquele tipo e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong>, você cria 1 item novo da mesma raridade <strong>com 100% de certeza</strong> (até Lendário). Conforme você upa a Alquimia, cria itens de nível maior: <strong>Nv. 1 (0–24)</strong>, <strong>Nv. 2 (25–49)</strong>, <strong>Nv. 3 (50–79)</strong> e <strong>Nv. 4 (80–110)</strong>. A wiki atual também lista <strong>Nv. 5 (111–150)</strong>; confira a disponibilidade na aba Alquimia do jogo.</li>
+              <li><strong>Vender atributos:</strong> a tela do personagem agora tem os modos Comprar e Vender. Use −1 ou −10 para desfazer níveis e recuperar o ouro gasto, descontando uma taxa. Confira o valor de devolução no jogo antes de confirmar.</li>
+              <li><strong>Contador de AFK:</strong> clique no relógio na tela do personagem para ver quanto falta para ficar AFK. Qualquer comando no chat reinicia a contagem.</li>
               <li><strong>Aprimorar Equipamento:</strong> você escolhe 1 item bom e gasta até 30 itens sobrando do mesmo tipo (mais ouro) para subir o nível e o FC daquele item.</li>
               <li><strong>Bônus por falha na Forja ("Gelo"):</strong> cada vez que você falha uma forja na mesma peça e raridade, ganha <strong>+2% de chance</strong> na próxima tentativa (até +10% com 5 falhas seguidas). Quando acerta, o bônus zera.</li>
               <li><strong>Transmog, Auras e Mercado:</strong> o Transmog copia o visual de um item para outro (o item usado como visual é consumido); os brilhos/auras dos itens Arcanos agora são itens cosméticos separados; e itens <strong>Imortais</strong> agora podem ser vendidos no Mercado.</li>
-              <li><strong>Por que o FC e o dano mudaram em 14/11/2026?</strong> O jogo recalibrou o número de FC das classes (especialmente Guerreiro, Arqueiro e Clérigo) — o FC mostrado diminuiu, mas sua força real contra monstros não caiu. Além disso, os efeitos extras de dano das armas Imortais e Arcanas passaram a dar <strong>Crítico</strong> e ganhar bônus de <strong>Velocidade</strong>!</li>
+              <li><strong>O que mudou no FC em 14/11/2026?</strong> Com os mesmos atributos, o FC caiu cerca de <strong>33,3% para Guerreiro e Clérigo</strong> e <strong>25,3% para Arqueiro</strong>. A queda veio de uma mudança no cálculo do FC. No combate, o dano extra de algumas armas Imortais e Arcanas passou a poder causar crítico e receber o bônus de velocidade.</li>
             </ul>
           </div>
         </div>

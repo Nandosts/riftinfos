@@ -68,8 +68,17 @@ async function buscarJsonApi(caminhoApi, sinalAborto, timeoutMs = 9500) {
 
 async function buscarRespostaPerfil(loginApi, classeDesejada, sinalAborto) {
   const params = classeDesejada ? `?cls=${encodeURIComponent(classeDesejada)}` : "";
-  const loginCodificado = encodeURIComponent(loginApi);
-  return buscarRespostaApi(`/api/profile/${loginCodificado}${params}`, sinalAborto);
+  const consultar = (login) => buscarRespostaApi(`/api/profile/${encodeURIComponent(login)}${params}`, sinalAborto);
+  const original = await consultar(loginApi);
+  if (original.resposta.status === 404 && loginApi.startsWith("kick:")) {
+    const alternativo = loginApi.includes("_")
+      ? loginApi.replaceAll("_", "-")
+      : loginApi.replaceAll("-", "_");
+    if (alternativo !== loginApi) {
+      return { ...await consultar(alternativo), loginConsultado: alternativo };
+    }
+  }
+  return { ...original, loginConsultado: loginApi };
 }
 
 function validarPerfilApi(perfil, login, classe) {
