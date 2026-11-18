@@ -4,6 +4,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  catalogoEscalasPecas,
   catalogoGemas,
 } from "../dados.mjs";
 import { perfilCarregadoP1, statusConsulta } from "../perfil.mjs";
@@ -22,6 +23,7 @@ import {
   obterTierEngaste,
   recalcularGemasBuildComModo,
   recalcularGemasItem,
+  restaurarOuCalcularAtributosPeca,
   simulacao,
   slotsAbertosSimulador,
 } from "./estado.mjs";
@@ -190,7 +192,10 @@ function vincularEventosSimulador() {
       arma.kind = kind;
       arma.name = catalogoArmas[kind]?.nome || "Arma";
       if (simulacao.autoCalcularStatsItemSimulador) {
-        aplicarAtributosPadraoNoItem(arma, false);
+        if (catalogoEscalasPecas[kind]?.raridadeBase) {
+          arma.rarity = catalogoEscalasPecas[kind].raridadeBase;
+        }
+        restaurarOuCalcularAtributosPeca(arma, false);
       }
       renderizarSimulador();
     });
@@ -218,7 +223,7 @@ function vincularEventosSimulador() {
       item.rarity = Number(rarStr) || 0;
       adequarTierGemas(item);
       if (simulacao.autoCalcularStatsItemSimulador) {
-        aplicarAtributosPadraoNoItem(item, false);
+        restaurarOuCalcularAtributosPeca(item, false);
       }
       renderizarSimulador();
     });
@@ -232,7 +237,7 @@ function vincularEventosSimulador() {
       if (!item) return;
       item.itemLevel = Math.max(1, Math.min(999, Number(nvStr) || 1));
       if (simulacao.autoCalcularStatsItemSimulador) {
-        aplicarAtributosPadraoNoItem(item, true);
+        restaurarOuCalcularAtributosPeca(item, true);
       } else {
         recalcularGemasItem(item);
       }
@@ -366,22 +371,24 @@ function vincularEventosSimulador() {
           aplicarTrocaAnelSimulador(item, item.look);
         }
         if (simulacao.autoCalcularStatsItemSimulador && (campo === "rarity" || campo === "itemLevel")) {
-          aplicarAtributosPadraoNoItem(item, campo === "itemLevel");
+          restaurarOuCalcularAtributosPeca(item, campo === "itemLevel");
         }
       } else {
         item[campo] = e.target.value;
         if (campo === "kind") {
           item.name = catalogoArmas[item.kind]?.nome || "Arma";
           if (catalogoConjuntos[item.set]?.armaKind !== item.kind) item.set = "";
+          if (simulacao.autoCalcularStatsItemSimulador) {
+            if (catalogoEscalasPecas[item.kind]?.raridadeBase && !item.set) {
+              item.rarity = catalogoEscalasPecas[item.kind].raridadeBase;
+            }
+            restaurarOuCalcularAtributosPeca(item, false);
+          }
         } else if (campo === "set") {
           if (item.set && catalogoConjuntos[item.set]) {
-            item.name = obterNomeOficialPecaConjunto(item.set, item.slot);
-            const info = catalogoConjuntos[item.set];
-            const campoKind = { weapon: "armaKind", helmet: "elmoKind", armor: "armaduraKind" }[item.slot];
-            if (campoKind) item.kind = info[campoKind] || "";
-          }
-          if (simulacao.autoCalcularStatsItemSimulador) {
-            aplicarAtributosPadraoNoItem(item, false);
+            equiparPecaConjuntoSimulador(item, item.set);
+          } else if (simulacao.autoCalcularStatsItemSimulador) {
+            restaurarOuCalcularAtributosPeca(item, false);
           }
         }
       }

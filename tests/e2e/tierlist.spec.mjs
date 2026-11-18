@@ -151,6 +151,15 @@ test.describe("Tier List (funcional completo)", () => {
     // Restaurar cenário recupera anel=0 e estado inicial
     await page.click("#tierlist-restaurar-fc");
     await expect(page.locator("#tierlist-anel-referencia")).toHaveValue("0");
+
+    // Verifica que itens distintos exibem stats reais distintos na ficha Por FC
+    await page.locator('[data-tl-card="set_trapeze"]').click();
+    await expect(page.locator('#tierlist-detalhe [data-tl-slot="weapon"]')).toContainText("3026");
+    await expect(page.locator('#tierlist-detalhe [data-tl-slot="weapon"]')).toContainText("+18%");
+    await page.locator('[data-tl-card="set_auroraborealis"]').click();
+    await expect(page.locator('#tierlist-detalhe [data-tl-slot="weapon"]')).toContainText("1007");
+    await expect(page.locator('#tierlist-detalhe [data-tl-slot="weapon"]')).toContainText("+8%");
+
     expect(erros).toEqual([]);
   });
 });

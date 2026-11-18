@@ -3,6 +3,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  catalogoEscalasPecas,
   catalogoGemas,
   nomesSlots,
   rotulosStats,
@@ -15,6 +16,12 @@ function obterOrigemBuildSimulador() {
   return origemPorBuild.get(simulacao.estadoSimulador);
 }
 
+const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5, 7.5];
+const escalaGemasXz = [1, 2, 3.5, 6, 9, 14];
+const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
+
+const multiplicadoresRaridadeItem = [0.35, 0.45, 0.55, 0.68, 0.78, 0.84, 0.92, 1.0];
+
 const simulacao = {
   simuladorEditadoManual: false,
   modoVisualizacaoSimulador: "ficha",
@@ -23,17 +30,11 @@ const simulacao = {
   termoBuscaSlotSimulador: "",
   opcoesAvancadasAbertasSimulador: false,
   modoRolagemGemaSimulador: "max",
-  autoCalcularStatsItemSimulador: false,
+  autoCalcularStatsItemSimulador: true,
   filtroConjuntoSlotSimulador: "classe",
   estadoSimulador: criarModeloSimuladorPadrao(),
   historicoDesfazerSimulador: [],
 };
-
-const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5, 7.5];
-const escalaGemasXz = [1, 2, 3.5, 6, 9, 14];
-const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
-
-const multiplicadoresRaridadeItem = [0.35, 0.45, 0.55, 0.68, 0.78, 0.84, 0.92, 1.0];
 
 function obterRollFixoModoGema() {
   if (simulacao.modoRolagemGemaSimulador === "max") return 1.15;
@@ -138,36 +139,44 @@ function recalcularGemasBuildComModo(rollForcado = undefined) {
   });
 }
 
-function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250, look = 0) {
+function resolverKindEfetivoItem(item) {
+  if (!item || item.slot === "ring") return "";
+  if (item.kind) return item.kind;
+  const infoSet = item.set ? catalogoConjuntos[item.set] : null;
+  if (!infoSet) return "";
+  if (item.slot === "weapon") return infoSet.armaKind || "";
+  if (item.slot === "helmet") return infoSet.elmoKind || "";
+  if (item.slot === "armor") return infoSet.armaduraKind || "";
+  return "";
+}
+
+function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250, look = 0, kind = "") {
   const idxRaridade = Math.min(7, Math.max(0, Number(raridade) || 0));
   const multRar = multiplicadoresRaridadeItem[idxRaridade] ?? 1.0;
   const nv = Math.max(1, Number(itemLevel) || 1);
 
-  if (slot === "weapon") {
+  if (slot !== "ring") {
+    const kindPadraoClasse = slot === "weapon"
+      ? ({ warrior: "sword", archer: "bow", cleric: "staff" }[classe] || "sword")
+      : "";
+    const escPeca = (kind && catalogoEscalasPecas[kind]) || (kindPadraoClasse && catalogoEscalasPecas[kindPadraoClasse]);
+    if (escPeca) {
+      const rarBase = escPeca.raridadeBase ?? 7;
+      const fatorRar = multRar / (multiplicadoresRaridadeItem[rarBase] ?? 1.0);
+      return {
+        atk: Math.round(nv * escPeca.atk * fatorRar),
+        def: Math.round(nv * escPeca.def * fatorRar),
+        hp: Math.round(nv * escPeca.hp * fatorRar),
+        crit: Math.round(nv * escPeca.crit * fatorRar),
+        spd: escPeca.spd > 0 ? Math.max(4, Math.round(escPeca.spd * fatorRar)) : 0,
+      };
+    }
     return {
-      atk: Math.round(nv * 10.9 * multRar),
-      def: Math.round(nv * 2.78 * multRar),
-      hp: Math.round(nv * 12.1 * multRar),
-      crit: Math.round(nv * 0.455 * multRar),
-      spd: Math.max(4, Math.round(11 * multRar)),
-    };
-  }
-  if (slot === "helmet") {
-    return {
-      atk: Math.round(nv * 3.63 * multRar),
-      def: Math.round(nv * 3.64 * multRar),
-      hp: Math.round(nv * 15.8 * multRar),
-      crit: Math.round(nv * 0.455 * multRar),
-      spd: Math.max(4, Math.round(10 * multRar)),
-    };
-  }
-  if (slot === "armor") {
-    return {
-      atk: Math.round(nv * 3.63 * multRar),
-      def: Math.round(nv * 6.38 * multRar),
-      hp: Math.round(nv * 22.8 * multRar),
-      crit: Math.round(nv * 0.455 * multRar),
-      spd: Math.max(4, Math.round(9 * multRar)),
+      atk: Math.round(nv * 3.355 * multRar),
+      def: Math.round(nv * 2.81 * multRar),
+      hp: Math.round(nv * 13.78 * multRar),
+      crit: Math.round(nv * 0.485 * multRar),
+      spd: Math.max(4, Math.round(8 * multRar)),
     };
   }
 
@@ -175,7 +184,7 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
   if (infoAnel?.escalaPorNivel) {
     const esc = infoAnel.escalaPorNivel;
     const rarBaseAnel = infoAnel.raridadeMin || 7;
-    const fatorRar = (multiplicadoresRaridadeItem[idxRaridade] ?? 1.0) / (multiplicadoresRaridadeItem[rarBaseAnel] ?? 1.0);
+    const fatorRar = multRar / (multiplicadoresRaridadeItem[rarBaseAnel] ?? 1.0);
     return {
       atk: Math.round(nv * esc.atk * fatorRar),
       def: Math.round(nv * esc.def * fatorRar),
@@ -197,7 +206,15 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
 function aplicarAtributosPadraoNoItem(item, recalcularGemas = true) {
   if (!item) return;
   adequarTierGemas(item);
-  const stats = calcularAtributosPadraoPeca(item.slot, simulacao.estadoSimulador.cls, item.rarity, item.itemLevel, item.look);
+  const kindEfetivo = resolverKindEfetivoItem(item);
+  const stats = calcularAtributosPadraoPeca(
+    item.slot,
+    simulacao?.estadoSimulador?.cls || "warrior",
+    item.rarity,
+    item.itemLevel,
+    item.look,
+    kindEfetivo
+  );
   item.atk = stats.atk;
   item.def = stats.def;
   item.hp = stats.hp;
@@ -258,15 +275,19 @@ function resumoCurtoGemaBotao(tipo, slot, tier, itemLevel = 300, rollModo = obte
 }
 
 function criarModeloSimuladorPadrao() {
+  const w = calcularAtributosPadraoPeca("weapon", "warrior", 6, 200, 0, "singblade");
+  const h = calcularAtributosPadraoPeca("helmet", "warrior", 6, 200, 0, "singhelm");
+  const a = calcularAtributosPadraoPeca("armor", "warrior", 6, 200, 0, "singplate");
+  const r = calcularAtributosPadraoPeca("ring", "warrior", 7, 180, 14, "");
   return {
     cls: "warrior",
     level: 400,
     atributos: { str: 200, vit: 180, def: 150, agi: 140, luk: 120 },
     itens: [
-      { id: "sim-weapon", slot: "weapon", name: "Lâmina da Singularidade", kind: "singblade", set: "singular", rarity: 7, itemLevel: 200, atk: 900, def: 300, hp: 2000, crit: 90, spd: 12, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-helmet", slot: "helmet", name: "Elmo da Singularidade", kind: "singhelm", set: "singular", rarity: 7, itemLevel: 200, atk: 550, def: 500, hp: 3200, crit: 75, spd: 8, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-armor", slot: "armor", name: "Couraça da Singularidade", kind: "singplate", set: "singular", rarity: 7, itemLevel: 200, atk: 600, def: 750, hp: 5000, crit: 70, spd: 8, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-ring", slot: "ring", name: "Anel do Eclipse Arcano", kind: "", look: 14, set: "", rarity: 7, itemLevel: 180, atk: 550, def: 220, hp: 1000, crit: 95, spd: 14, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
+      { id: "sim-weapon", slot: "weapon", name: "Lâmina da Singularidade", kind: "singblade", set: "singular", rarity: 6, itemLevel: 200, ...w, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
+      { id: "sim-helmet", slot: "helmet", name: "Elmo da Singularidade", kind: "singhelm", set: "singular", rarity: 6, itemLevel: 200, ...h, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
+      { id: "sim-armor", slot: "armor", name: "Couraça da Singularidade", kind: "singplate", set: "singular", rarity: 6, itemLevel: 200, ...a, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
+      { id: "sim-ring", slot: "ring", name: "Anel do Eclipse Arcano", kind: "", look: 14, set: "", rarity: 7, itemLevel: 180, ...r, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
     ],
   };
 }
@@ -275,6 +296,7 @@ function importarPerfilParaSimulador(perfil) {
   if (!perfil) return;
   const attrs = inferirAtributosBase(perfil);
   const slots = ["weapon", "helmet", "armor", "ring"];
+  const pecasImportadas = {};
   const itensImportados = slots.map((slot) => {
     const orig = (perfil.equipped || []).find((i) => i.slot === slot);
     if (!orig) {
@@ -297,6 +319,19 @@ function importarPerfilParaSimulador(perfil) {
         gems: Array(6).fill(null),
       };
     }
+    pecasImportadas[slot] = {
+      slot,
+      kind: orig.kind || "",
+      set: orig.set || "",
+      look: Number(orig.look) || 0,
+      rarity: Number(orig.rarity) || 7,
+      itemLevel: Number(orig.itemLevel) || 100,
+      atk: Number(orig.atk) || 0,
+      def: Number(orig.def) || 0,
+      hp: Number(orig.hp) || 0,
+      crit: Number(orig.crit) || 0,
+      spd: Number(orig.spd) || 0,
+    };
     const origGems = Array.isArray(orig.gems) ? orig.gems : [];
     const tierDetectado = origGems.find((g) => g?.tier)?.tier || 5;
     return {
@@ -312,25 +347,33 @@ function importarPerfilParaSimulador(perfil) {
     atributos: { ...attrs },
     itens: itensImportados,
   };
-  const anelOrig = (perfil.equipped || []).find((item) => item.slot === "ring");
   origemPorBuild.set(simulacao.estadoSimulador, {
     nome: perfil.displayName || perfil.login,
     classe: perfil.cls,
     cosmetico: perfil.equipped?.find((item) => item.slot === "cosmetic")?.kind,
-    anelImportado: anelOrig
-      ? {
-          look: Number(anelOrig.look) || 0,
-          rarity: Number(anelOrig.rarity) || 7,
-          itemLevel: Number(anelOrig.itemLevel) || 100,
-          atk: Number(anelOrig.atk) || 0,
-          def: Number(anelOrig.def) || 0,
-          hp: Number(anelOrig.hp) || 0,
-          crit: Number(anelOrig.crit) || 0,
-          spd: Number(anelOrig.spd) || 0,
-        }
-      : null,
+    anelImportado: pecasImportadas.ring || null,
+    pecasImportadas,
   });
   simulacao.simuladorEditadoManual = false;
+}
+
+function restaurarOuCalcularAtributosPeca(item, recalcularGemas = false) {
+  if (!item) return;
+  const imp = obterOrigemBuildSimulador()?.pecasImportadas?.[item.slot];
+  const mesmaIdentidade = item.slot === "ring"
+    ? imp && imp.look === Number(item.look)
+    : imp && imp.kind === resolverKindEfetivoItem(item) && (imp.set || "") === (item.set || "");
+  if (mesmaIdentidade && imp.itemLevel === Number(item.itemLevel) && imp.rarity === Number(item.rarity)) {
+    adequarTierGemas(item);
+    item.atk = imp.atk;
+    item.def = imp.def;
+    item.hp = imp.hp;
+    item.crit = imp.crit;
+    item.spd = imp.spd;
+    if (recalcularGemas) recalcularGemasItem(item);
+    return;
+  }
+  aplicarAtributosPadraoNoItem(item, recalcularGemas);
 }
 
 function aplicarTrocaAnelSimulador(anel, novoLook) {
@@ -340,22 +383,20 @@ function aplicarTrocaAnelSimulador(anel, novoLook) {
   anel.look = look;
   const infoAnel = catalogoAneis[look];
   anel.name = infoAnel?.nome || "Anel Comum";
+  const imp = obterOrigemBuildSimulador()?.pecasImportadas?.ring;
+  if (imp && imp.look === look && imp.itemLevel === Number(anel.itemLevel)) {
+    anel.rarity = imp.rarity;
+    restaurarOuCalcularAtributosPeca(anel, false);
+    return;
+  }
   if (infoAnel?.raridadeMin) {
     anel.rarity = infoAnel.raridadeMin;
   }
-  const origem = obterOrigemBuildSimulador();
-  const imp = origem?.anelImportado;
-  if (imp && imp.look === look && imp.itemLevel === Number(anel.itemLevel)) {
-    anel.rarity = imp.rarity;
+  if (simulacao.autoCalcularStatsItemSimulador) {
+    aplicarAtributosPadraoNoItem(anel, false);
+  } else {
     adequarTierGemas(anel);
-    anel.atk = imp.atk;
-    anel.def = imp.def;
-    anel.hp = imp.hp;
-    anel.crit = imp.crit;
-    anel.spd = imp.spd;
-    return;
   }
-  aplicarAtributosPadraoNoItem(anel, false);
 }
 
 const slotsAbertosSimulador = new Set([0]);
@@ -382,6 +423,12 @@ function equiparPecaConjuntoSimulador(item, setKey) {
   item.kind = kind;
   item.name = obterNomeOficialPecaConjunto(setKey, item.slot);
   if (simulacao.autoCalcularStatsItemSimulador) {
+    const imp = obterOrigemBuildSimulador()?.pecasImportadas?.[item.slot];
+    if (imp && imp.kind === kind && imp.set === setKey && imp.itemLevel === Number(item.itemLevel)) {
+      item.rarity = imp.rarity;
+      restaurarOuCalcularAtributosPeca(item, false);
+      return;
+    }
     if (typeof info.raridadePadrao === "number") item.rarity = info.raridadePadrao;
     aplicarAtributosPadraoNoItem(item, false);
   }
@@ -442,6 +489,7 @@ export {
   obterTierEngaste,
   recalcularGemasBuildComModo,
   recalcularGemasItem,
+  restaurarOuCalcularAtributosPeca,
   resumoCurtoGemaBotao,
   rotuloTierGema,
   sortearRolagemGema,

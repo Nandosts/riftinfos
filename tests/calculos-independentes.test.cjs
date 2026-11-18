@@ -149,3 +149,51 @@ test("formatarZonaOndaDeOndas converte total de ondas em Z{zona}-W{onda} conform
   assert.equal(formatarZonaOndaDeOndas(0), "—");
   assert.equal(formatarZonaOndaDeOndas(null), "—");
 });
+
+test("curvas reais por peça diferenciam Trapézio vs Aurora Boreal e preservam restauração de peça importada no Simulador", async () => {
+  const {
+    aplicarAtributosPadraoNoItem,
+    equiparPecaConjuntoSimulador,
+    importarPerfilParaSimulador,
+    simulacao,
+  } = await importarModulo("src/simulador/estado.mjs");
+
+  const arcoTrapezio = { slot: "weapon", kind: "trapezebow", set: "trapeze", rarity: 7, itemLevel: 279, gems: [] };
+  const arcoAurora = { slot: "weapon", kind: "aurorabow", set: "auroraborealis", rarity: 7, itemLevel: 274, gems: [] };
+  aplicarAtributosPadraoNoItem(arcoTrapezio, false);
+  aplicarAtributosPadraoNoItem(arcoAurora, false);
+
+  assert.ok(arcoTrapezio.atk > arcoAurora.atk * 2.8, "Arco do Trapézio deve ter muito mais ATK bruto que Arco da Aurora Boreal");
+  assert.equal(arcoTrapezio.spd, 18);
+  assert.equal(arcoAurora.spd, 8);
+  assert.ok(arcoAurora.hp > arcoTrapezio.hp, "Arco da Aurora Boreal tem mais HP bruto no Nv. 274 que Trapézio no Nv. 279");
+  assert.ok(arcoAurora.crit > arcoTrapezio.crit, "Arco da Aurora Boreal tem mais CRÍT bruto que Trapézio");
+
+  // Simulador: importa Aurora Boreal com stats exatos da API, troca para Trapézio (recalcula) e volta para Aurora (restaura exato)
+  importarPerfilParaSimulador({
+    login: "teste_archer",
+    displayName: "TesteArcher",
+    cls: "archer",
+    level: 400,
+    stats: { maxHp: 90000, atk: 20000, def: 6000, aspd: 12, crit: 55 },
+    attributes: { str: 120, agi: 180, vit: 120, def: 100, luk: 140 },
+    equipped: [
+      { slot: "weapon", kind: "aurorabow", set: "auroraborealis", name: "Arco da Aurora Boreal", rarity: 7, itemLevel: 274, atk: 918, def: 767, hp: 3764, crit: 131, spd: 8, sockets: 6, gems: [] },
+    ],
+  });
+
+  const armaSim = simulacao.estadoSimulador.itens[0];
+  assert.equal(armaSim.atk, 918);
+  assert.equal(armaSim.spd, 8);
+
+  equiparPecaConjuntoSimulador(armaSim, "trapeze");
+  assert.equal(armaSim.kind, "trapezebow");
+  assert.ok(armaSim.atk > 2700, "Ao trocar para Trapézio na galeria, o Simulador deve calcular os stats reais do novo item");
+  assert.equal(armaSim.spd, 18);
+
+  equiparPecaConjuntoSimulador(armaSim, "auroraborealis");
+  assert.equal(armaSim.atk, 918, "Ao voltar para a peça originalmente importada no mesmo nível, restaura o valor exato da API");
+  assert.equal(armaSim.hp, 3764);
+  assert.equal(armaSim.crit, 131);
+  assert.equal(armaSim.spd, 8);
+});

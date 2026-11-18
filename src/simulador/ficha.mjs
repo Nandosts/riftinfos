@@ -2,6 +2,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  catalogoEscalasPecas,
   catalogoGemas,
   coresRaridade,
   nomesClasses,
@@ -486,12 +487,19 @@ function construirModoFichaVisualHtml(
   const textoPassivaPecaAtiva = ehAnel
     ? (infoAnelAtivo?.efeito || "Sem efeito passivo especial.")
     : (infoArmaAtiva?.efeito?.texto || infoArmaAtiva?.notaSkill || infoKindOficialAtivo?.effect || "");
-  const escAnel = infoAnelAtivo?.escalaPorNivel;
-  const textoCurvaAnelAtivo = escAnel
-    ? `Curva por nível (${infoAnelAtivo.estimado ? "perfil estimado da Raid" : "medida na API"}): ~${String(escAnel.atk).replace(".", ",")} ATK · ${String(escAnel.def).replace(".", ",")} DEF · ${String(escAnel.hp).replace(".", ",")} HP · ${String(escAnel.crit).replace(".", ",")} CRÍT (+${escAnel.spd}% VEL fixa)`
+  const escPecaAtiva = ehAnel
+    ? infoAnelAtivo?.escalaPorNivel
+    : (kindAtivo ? catalogoEscalasPecas[kindAtivo] : null);
+  const rotuloFonteCurva = ehAnel && infoAnelAtivo?.estimado
+    ? "perfil estimado da Raid"
+    : escPecaAtiva?.raridadeBase !== undefined
+      ? `base ${nomesRaridade[escPecaAtiva.raridadeBase] || "medida"}`
+      : "medida na API";
+  const textoCurvaPecaAtiva = escPecaAtiva
+    ? `Curva por nível (${rotuloFonteCurva}): ~${String(escPecaAtiva.atk).replace(".", ",")} ATK · ${String(escPecaAtiva.def).replace(".", ",")} DEF · ${String(escPecaAtiva.hp).replace(".", ",")} HP · ${String(escPecaAtiva.crit).replace(".", ",")} CRÍT (+${escPecaAtiva.spd}% VEL fixa)`
     : "";
 
-  const blocoDetalhesPecaSelecionadaHtml = (infoSetAtivo || textoPassivaPecaAtiva)
+  const blocoDetalhesPecaSelecionadaHtml = (infoSetAtivo || textoPassivaPecaAtiva || textoCurvaPecaAtiva)
     ? `
       <div class="rs-icard-lore">
         ${infoSetAtivo ? `
@@ -509,7 +517,7 @@ function construirModoFichaVisualHtml(
         ` : ""}
         ${textoPassivaPecaAtiva ? `<div class="rs-icard-lore-ef">★ ${escaparHtml(textoPassivaPecaAtiva)}</div>` : ""}
         ${infoAnelAtivo?.obtencao ? `<div class="small muted" style="margin-top:4px;">📍 <strong>Como conseguir:</strong> ${escaparHtml(infoAnelAtivo.obtencao)}</div>` : ""}
-        ${textoCurvaAnelAtivo ? `<div class="small muted" style="margin-top:2px;">📊 ${escaparHtml(textoCurvaAnelAtivo)}</div>` : ""}
+        ${textoCurvaPecaAtiva ? `<div class="small muted" style="margin-top:2px;">📊 ${escaparHtml(textoCurvaPecaAtiva)}</div>` : ""}
       </div>
     `
     : "";
