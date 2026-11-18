@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/review-regression.test.cjs && node tests/calculos-independentes.test.cjs && node --test tests/mercado/*.test.mjs",
+    "test": "node tests/review-regression.test.cjs && node tests/calculos-independentes.test.cjs",
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots"
   },

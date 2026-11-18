@@ -72,16 +72,6 @@ Para dividir uma mudança entre agentes, combine quem altera cada área e quem c
 
 ## Problemas comuns
 
-### Calculadora do mercado
-
-Abra `http://127.0.0.1:4173/mercado.html`. A calculadora lê a última consulta compartilhada em `dados/mercado.json`, publicada pelo mantenedor. A atualização é por commit no GitHub. A extensão de coleta é de uso particular e não faz parte deste repositório nem da distribuição do site.
-
-Os anúncios publicados não incluem nomes dos vendedores, autenticação, marcadores da conta ou receitas pessoais. `src/mercado/publicacao.mjs` aplica a lista de campos permitidos antes da publicação. Preços e atributos são os exibidos no mercado; não há histórico de vendas concluídas. Os nomes de vendedores são substituídos por grupos anônimos dentro de cada consulta. Ainda é possível reconhecer um anúncio pelas características públicas da peça.
-
-O modelo fica em `src/mercado/modelo.mjs`. `npm test` cobre o cálculo e a remoção de campos privados; `npx playwright test tests/e2e/mercado.spec.mjs` verifica a tela no desktop e no celular com dados de teste. Quando não existe consulta publicada, a tela informa a ausência e não inventa preços. Chance e custo pessoal de forja não são publicados como regra global.
-
-### Execução e consultas
-
 - **A página não abre:** confira se o terminal continua executando o servidor e se o endereço usa a porta `4173`.
 - **“Address already in use” ou porta em uso:** pode haver outro servidor aberto nessa porta. Use o que já está rodando ou encerre a execução anterior antes de iniciar outra.
 - **Falha ao consultar o jogo:** confira a conexão, o nick e a plataforma. O aplicativo depende da disponibilidade das APIs do RiftStream.
