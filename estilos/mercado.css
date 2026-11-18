@@ -1,0 +1,105 @@
+.mercado {
+  display: grid;
+  gap: 24px;
+  padding-block: 28px 60px;
+}
+.mercado h1 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+}
+.mercado h2 {
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+.mercado p {
+  line-height: 1.6;
+}
+.mercado-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  align-items: end;
+}
+.mercado-grade label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.mercado input,
+.mercado select {
+  min-height: 44px;
+  padding: 10px;
+  font: inherit;
+}
+.mercado .mercado-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mercado-check input {
+  width: auto;
+  flex-shrink: 0;
+}
+.mercado .btn {
+  min-height: 44px;
+  white-space: normal;
+}
+.mercado details {
+  margin-block: 20px;
+}
+.mercado summary {
+  cursor: pointer;
+  color: var(--cyan);
+}
+.mercado td,
+.mercado th {
+  padding: 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.mercado table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.mercado tr {
+  border-bottom: 1px solid var(--line);
+}
+.mercado caption {
+  text-align: left;
+  margin-block: 12px;
+}
+.mercado-alerta {
+  border-left: 3px solid var(--gold);
+  padding: 12px;
+  background: var(--panel-alt);
+}
+.mercado-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+  margin-block: 20px;
+}
+.mercado-metricas div {
+  background: var(--panel-alt);
+  padding: 14px;
+  min-width: 0;
+}
+.mercado-metricas strong {
+  display: block;
+  font-size: 1.5rem;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+.mercado [role="status"] {
+  overflow-wrap: anywhere;
+}
+.mercado label:has(input[type="file"]) {
+  display: grid;
+  gap: 8px;
+}
+.mercado input[type="file"] {
+  max-width: 100%;
+}
+.mercado .table-wrap {
+  max-width: 100%;
+  overflow: auto;
+}

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d0b19" />
+    <meta
+      name="description"
+      content="Compare anúncios do mercado do RiftStream por item e nível. Calcule mediana, preço médio e custo esperado de gemas Prismáticas."
+    />
+    <title>Mercado · RiftInfos</title>
+    <link rel="icon" href="favicon.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="aparencia.css" />
+    <link rel="stylesheet" href="estilos/mercado.css" />
+    <script src="aparencia.js"></script>
+    <script type="module" src="src/mercado/tela.mjs"></script>
+  </head>
+  <body>
+    <a class="atalho-conteudo" href="#conteudo-principal"
+      >Pular para o conteúdo</a
+    >
+    <header class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="index.html">RiftInfos</a>
+        <nav class="nav-topo" aria-label="Páginas do RiftInfos">
+          <a class="btn-topo-nav" href="index.html">Análise e simulador</a
+          ><a class="btn-topo-nav" href="tierlist.html">Tier List</a
+          ><a class="btn-topo-nav ativa" href="mercado.html" aria-current="page"
+            >Mercado</a
+          >
+        </nav>
+        <div class="preferencia-fonte">
+          <label for="fonte-site">Fonte</label
+          ><select id="fonte-site">
+            <option value="pixelada">Pixelada</option>
+            <option value="limpa">Limpa</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <main class="wrap mercado" id="conteudo-principal">
+      <div>
+        <p class="eyebrow">ANÚNCIOS EM CRISTAIS</p>
+        <h1>Quanto estão pedindo?</h1>
+        <p>
+          Compare o mesmo item em níveis próximos. Os números mostram ofertas
+          ativas, não preços de vendas concluídas.
+        </p>
+      </div>
+      <section class="panel" aria-labelledby="titulo-coleta">
+        <h2 id="titulo-coleta">Consulta compartilhada do mercado</h2>
+        <p>
+          Os anúncios são consultados pelo nando_sts e publicados sem
+          autenticação ou dados da conta. Os vendedores recebem nomes anônimos
+          nesta cópia.
+        </p>
+        <button id="atualizar-mercado" class="btn" type="button">
+          Atualizar consulta
+        </button>
+        <p id="estado-coleta" role="status">
+          Carregando a última consulta disponível…
+        </p>
+        <details>
+          <summary>Usar um arquivo local</summary>
+          <label
+            >Arquivo de anúncios
+            <input
+              id="arquivo-mercado"
+              type="file"
+              accept=".json,application/json"
+          /></label>
+        </details>
+      </section>
+      <section class="panel" aria-labelledby="titulo-precos">
+        <h2 id="titulo-precos">Comparar anúncios</h2>
+        <form id="filtros-mercado" class="mercado-grade">
+          <label
+            >Item
+            <select id="mercado-item" required>
+              <option value="">Importe uma consulta</option>
+            </select></label
+          >
+          <label
+            >Nível de referência
+            <input
+              id="mercado-nivel"
+              type="number"
+              min="0"
+              max="99999"
+              value="402"
+              required
+          /></label>
+          <label
+            >Diferença máxima de nível
+            <input
+              id="mercado-margem"
+              type="number"
+              min="0"
+              max="99999"
+              value="50"
+              required
+          /></label>
+          <label
+            >Raridade
+            <select id="mercado-raridade">
+              <option value="">Todas</option>
+              <option value="0">Comum</option>
+              <option value="1">Incomum</option>
+              <option value="2">Raro</option>
+              <option value="3">Épico</option>
+              <option value="4">Lendário</option>
+              <option value="6">Imortal</option>
+            </select></label
+          >
+          <label
+            >Gemas engastadas
+            <select id="mercado-gemas">
+              <option value="">Qualquer quantidade</option>
+              <option value="0">Sem gemas</option>
+              <option value="1">1 gema</option>
+              <option value="2">2 gemas</option>
+              <option value="3">3 gemas</option>
+              <option value="4">4 gemas</option>
+              <option value="5">5 gemas</option>
+              <option value="6">6 gemas</option>
+            </select></label
+          >
+          <label
+            >Gema específica na peça
+            <select id="mercado-engaste">
+              <option value="">Qualquer tipo / tier</option>
+            </select></label
+          >
+          <label
+            >Excluir vendedor da amostra
+            <input
+              id="mercado-vendedor"
+              maxlength="80"
+              placeholder="Ex.: Vendedor 3"
+          /></label>
+          <label
+            >Preço que quer anunciar
+            <input
+              id="mercado-preco"
+              type="number"
+              min="1"
+              max="1000000000"
+              step="1"
+              placeholder="Opcional"
+          /></label>
+          <label class="mercado-check"
+            ><input id="mercado-atipicos" type="checkbox" /> Incluir preços fora
+            da curva na conta</label
+          >
+          <button class="btn" type="submit">Calcular</button>
+        </form>
+        <p class="small muted">
+          Para ignorar uma oferta, informe o vendedor anônimo mostrado na
+          tabela. Arquivos locais ainda podem identificar seus próprios
+          anúncios. A faixa de nível não corrige diferenças de atributos,
+          rolagens ou tipo de gema.
+        </p>
+        <div id="mercado-resumo" aria-live="polite"></div>
+        <details>
+          <summary>Como tratamos preços fora da curva</summary>
+          <p>
+            Com pelo menos 8 anúncios comparáveis, sinalizamos preços abaixo de
+            Q1 − 1,5 × IQR ou acima de Q3 + 1,5 × IQR. IQR é a diferença entre
+            os percentis 75 e 25. Se todos os preços centrais forem iguais,
+            valores diferentes são sinalizados. Eles continuam na tabela e você
+            pode incluí-los. Isso não prova que o anúncio seja troll.
+          </p>
+          <p>
+            A mediana dá o mesmo peso a cada anúncio, usando o preço por
+            unidade. Uma pilha grande não domina o resultado. A faixa central
+            contém os percentis 25 a 75; não é uma garantia de preço de venda.
+            Ofertas repetidas de um vendedor ainda podem influenciar a amostra.
+          </p>
+        </details>
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Anúncios comparáveis, incluindo os sinalizados
+            </caption>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Nível / tier</th>
+                <th>Gemas</th>
+                <th>Vendedor</th>
+                <th>Cristais / unidade</th>
+                <th>Tratamento</th>
+                <th>Atributos e engastes</th>
+              </tr>
+            </thead>
+            <tbody id="mercado-linhas"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="titulo-craft">
+        <h2 id="titulo-craft">Quanto custa produzir uma Prismática?</h2>
+        <p>
+          São 4 Supremas por tentativa. Falhas consomem as gemas, o ouro e o
+          pergaminho utilizado. O cálculo considera tentativas independentes com
+          a mesma chance final.
+        </p>
+        <form id="craft-mercado" class="mercado-grade">
+          <label
+            >Tipo de gema
+            <select id="craft-tipo">
+              <option value="topaz">Topázio</option>
+              <option value="ruby">Rubi</option>
+              <option value="sapphire">Safira</option>
+              <option value="emerald">Esmeralda</option>
+              <option value="amethyst">Ametista</option>
+            </select></label
+          >
+          <label
+            >Suprema por unidade (cristais)
+            <input
+              id="craft-suprema"
+              type="number"
+              min="0"
+              step="0.01"
+              value="20"
+              required
+          /></label>
+          <label
+            >Piso anunciado da Suprema
+            <input
+              id="craft-piso"
+              type="number"
+              min="0"
+              step="0.01"
+              value="20"
+              required
+          /></label>
+          <label
+            >Chance final de sucesso (%)
+            <input
+              id="craft-chance"
+              type="number"
+              min="0.01"
+              max="100"
+              step="0.01"
+              required
+              placeholder="Chance mostrada no jogo"
+          /></label>
+          <label
+            >Pergaminho por tentativa (cristais)
+            <input
+              id="craft-pergaminho"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0"
+              required
+          /></label>
+          <label
+            >Ouro por tentativa
+            <input
+              id="craft-ouro"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Informe ou importe do jogo"
+          /></label>
+          <button class="btn" type="submit">Calcular custo esperado</button>
+        </form>
+        <p id="craft-origem" class="small muted">
+          Piso inicial de 20 cristais informado pelo nando_sts. Ao importar,
+          consulte as faixas vigentes e os preços unitários das Supremas abaixo.
+          A chance deve incluir o bônus do pergaminho, se houver. Ouro e
+          cristais não são convertidos entre si.
+        </p>
+        <div id="craft-resultado" aria-live="polite"></div>
+        <p class="note">
+          O custo de produção não é um preço mínimo de revenda. Uma gema já
+          engastada pode valer menos para quem não a usaria naquela peça. Não
+          somamos o custo inteiro da gema ao valor do equipamento
+          automaticamente.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
