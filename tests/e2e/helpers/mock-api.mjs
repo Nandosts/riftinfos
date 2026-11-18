@@ -537,9 +537,11 @@ export async function instalarMocksApi(page, opcoes = {}) {
           body: JSON.stringify({
             page: 1,
             totalPages: 1,
+            total: 3,
             items: [
-              { login: "halscriolo", displayName: "Halscriolo", cls: "warrior", level: 320, fc: 195000000 },
-              { login: "nando", displayName: "Nando", cls: "archer", level: 310, fc: 182000000 },
+              { login: "halscriolo", displayName: "Halscriolo", cls: "warrior", level: 320, fc: 195000000, power: 195000000, seconds: 120000, waves: 4200, kills: 5100, now: true },
+              { login: "nando", displayName: "Nando", cls: "archer", level: 310, fc: 182000000, power: 182000000, seconds: 95000, waves: 3100, kills: 4000, now: false },
+              { login: "kick:nando", displayName: "Nando Kick", cls: "cleric", level: 250, fc: 85000000, power: 85000000, seconds: 43200, waves: 780, kills: 900, now: true },
             ],
           }),
         })

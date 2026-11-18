@@ -1,0 +1,672 @@
+/* Estilos da Página de Ranking de Lives & Comunidade */
+
+.ranking-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ranking-cabecalho h1 {
+  font-size: clamp(24px, 5vw, 36px);
+  color: var(--text);
+  margin: 4px 0 0;
+}
+
+/* Painel de Seleção e Busca de Canal */
+.painel-busca-canal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-canal-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.form-canal-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 240px;
+}
+
+.form-canal-campo label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--pix);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-canal-campo select,
+.form-canal-campo input {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-canal-campo select:focus,
+.form-canal-campo input:focus {
+  border-color: var(--cyan);
+}
+
+.form-canal-acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-carregar-ranking {
+  background: var(--gold);
+  color: #1a1200;
+  border: none;
+  font-family: var(--pix);
+  font-size: 0.85rem;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.btn-carregar-ranking:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.btn-copiar-link {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cyan);
+  border: 1px solid rgba(143, 208, 255, 0.35);
+  font-family: var(--pix);
+  font-size: 0.8rem;
+  padding: 9px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copiar-link:hover {
+  background: rgba(143, 208, 255, 0.15);
+  border-color: var(--cyan);
+}
+
+/* Card Resumo do Canal */
+.card-canal-detalhado {
+  background: linear-gradient(135deg, rgba(27, 23, 54, 0.95), rgba(20, 17, 41, 0.98));
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--cyan);
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.card-canal-topo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card-canal-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 2px solid var(--line);
+  object-fit: cover;
+  background: #252042;
+}
+
+.card-canal-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.card-canal-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-canal-linha-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-canal-linha-titulo h2 {
+  font-size: clamp(20px, 4vw, 26px);
+  color: var(--gold);
+  margin: 0;
+}
+
+.badge-online {
+  background: rgba(107, 224, 138, 0.18);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-size: 0.72rem;
+  font-family: var(--pix);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-offline {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-family: var(--pix);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-plat {
+  font-size: 0.7rem;
+  font-family: var(--pix);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-plat.twitch {
+  background: rgba(145, 70, 255, 0.25);
+  border: 1px solid #9146ff;
+  color: #c49eff;
+}
+
+.badge-plat.kick {
+  background: rgba(83, 252, 24, 0.2);
+  border: 1px solid #53fc18;
+  color: #53fc18;
+}
+
+.link-externo {
+  color: var(--cyan);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.link-externo:hover {
+  text-decoration: underline;
+}
+
+.card-canal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stat-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-bloco span {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-bloco strong {
+  font-size: 1.15rem;
+  color: var(--text);
+  font-family: var(--pix);
+}
+
+/* Modos do Board (Tabs) */
+.ranking-botoes-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.btn-board {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-family: var(--pix);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-board:hover {
+  border-color: var(--cyan);
+  background: rgba(143, 208, 255, 0.08);
+}
+
+.btn-board.ativa {
+  background: rgba(255, 213, 74, 0.18);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Painel de Filtros Avançados */
+.painel-filtros-ranking {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.filtros-destaque-fiel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.switch-fiel-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: rgba(255, 213, 74, 0.08);
+  border: 1px solid rgba(255, 213, 74, 0.35);
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.switch-fiel-container:hover {
+  background: rgba(255, 213, 74, 0.15);
+  border-color: var(--gold);
+}
+
+.switch-fiel-container input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.switch-fiel-label {
+  font-weight: 600;
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filtro-item label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filtro-item select,
+.filtro-item input {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.filtro-item select:focus,
+.filtro-item input:focus {
+  border-color: var(--cyan);
+}
+
+.chips-fc-rapido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.chip-fc {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.chip-fc:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.filtros-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ordenacao-controles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-sentido-ordem {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--cyan);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: var(--pix);
+}
+
+.btn-sentido-ordem:hover {
+  border-color: var(--cyan);
+}
+
+.btn-limpar-filtros {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-limpar-filtros:hover {
+  color: #ff6a5a;
+  border-color: #ff6a5a;
+}
+
+/* Indicadores de Status e Progresso */
+.status-bloco {
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.status-bloco[data-error="true"] {
+  border-color: #ff6a5a;
+  color: #ff6a5a;
+  background: rgba(255, 106, 90, 0.1);
+}
+
+.progresso-ranking {
+  margin-bottom: 16px;
+}
+
+.progresso-ranking .barra-progresso {
+  height: 6px;
+  background: var(--panel-alt);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progresso-ranking i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+  transition: width 0.2s ease;
+}
+
+/* Tabela do Ranking */
+.tabela-ranking-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  margin-bottom: 20px;
+}
+
+.tabela-ranking {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabela-ranking th {
+  background: #141129;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 2px solid var(--line);
+}
+
+.tabela-ranking th.num,
+.tabela-ranking td.num {
+  text-align: right;
+}
+
+.tabela-ranking td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.tabela-ranking tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.col-pos {
+  width: 48px;
+  font-family: var(--pix);
+  color: var(--muted);
+}
+
+.jogador-celula {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jogador-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  background: #252042;
+}
+
+.jogador-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.link-nick-ranking {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.link-nick-ranking:hover {
+  color: var(--cyan);
+  text-decoration: underline;
+}
+
+.jogador-subinfo {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.badge-mini-kick {
+  background: rgba(83, 252, 24, 0.2);
+  color: #53fc18;
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  font-family: var(--pix);
+}
+
+/* Badges de Fidelidade */
+.badge-fiel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 213, 74, 0.15);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-turista {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(143, 208, 255, 0.1);
+  border: 1px solid rgba(143, 208, 255, 0.3);
+  color: var(--cyan);
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-fiel-aguardando,
+.badge-fiel-indefinido {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.badge-status-online {
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge-status-offline {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.tabela-vazia {
+  text-align: center;
+  padding: 36px 16px !important;
+  color: var(--muted);
+}
+
+/* Paginação */
+.ranking-rodape-tabela {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.paginacao-controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-pag {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.btn-pag:hover:not(:disabled) {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.btn-pag:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.paginacao-rotulo {
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 0 8px;
+}
+
+.itens-por-pagina-bloco {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.itens-por-pagina-bloco select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+}

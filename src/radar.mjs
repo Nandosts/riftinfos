@@ -18,6 +18,7 @@ import {
 } from "./perfil.mjs";
 
 const btnRadarLimparFiltros = document.querySelector("#btn-radar-limpar-filtros");
+const btnAtalhoRankingCompleto = document.querySelector("#btn-atalho-ranking-completo");
 
 const btnAtualizarLivesOnline = document.querySelector("#btn-atualizar-lives-online");
 const formRadarLive = document.querySelector("#form-radar-live");
@@ -290,7 +291,10 @@ function verificarFiltroRadarJogador(perfil, filtroItem, filtroClasse, buscaText
 
 function renderizarResultadoRadar() {
   if (!containerResultadoRadar || !ultimosDadosRadar) return;
-  const { canalInfo, perfis } = ultimosDadosRadar;
+  const { canalAlvo, canalInfo, perfis } = ultimosDadosRadar;
+  if (btnAtalhoRankingCompleto && canalAlvo) {
+    btnAtalhoRankingCompleto.href = `ranking.html?canal=${encodeURIComponent(canalAlvo)}`;
+  }
 
   const filtroItem = selectRadarItem?.value || "";
   const filtroClasse = selectRadarClasse?.value || "";

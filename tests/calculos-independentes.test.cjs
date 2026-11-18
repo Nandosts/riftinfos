@@ -248,3 +248,111 @@ test("recalibração contra o motor oficial: HitCap 60% HP, sangramentos, decaim
   assert.equal(prevAuraImm.nivelMin, null);
   assert.equal(prevAuraImm.ouroPorTentativa, 8470); // (5 + 300*2) * 7 * 2
 });
+
+test("ranking de lives: fidelidade de comunidade, filtros múltiplos e paginação", async () => {
+  const {
+    normalizarCanal,
+    ehCanalKick,
+    calcularCanalPrincipal,
+    jogadorPertenceALive,
+    filtrarEOrdenarJogadores,
+    paginarJogadores,
+    obterResumoFidelidade,
+  } = await importarModulo("src/ranking.mjs");
+
+  // 1. Normalização de canal e detecção de Kick
+  assert.equal(normalizarCanal("xxmarciano"), "xxmarciano");
+  assert.equal(normalizarCanal("kick:xxmarciano"), "xxmarciano");
+  assert.equal(normalizarCanal("KICK/Streamer"), "streamer");
+  assert.equal(ehCanalKick("kick:canal"), true);
+  assert.equal(ehCanalKick("canal_twitch"), false);
+
+  // 2. Fidelidade e detecção do Canal Principal
+  const perfilFiel = {
+    login: "membro_fiel",
+    channels: [
+      { login: "xxmarciano", displayName: "XXMARCIANO", seconds: 150000 },
+      { login: "belky", displayName: "Belky", seconds: 20000 },
+    ],
+  };
+  const perfilTurista = {
+    login: "turista_belky",
+    channels: [
+      { login: "xxmarciano", displayName: "XXMARCIANO", seconds: 5000 },
+      { login: "belky", displayName: "Belky", seconds: 400000 },
+    ],
+  };
+  const perfilSemCanais = { login: "novo_jogador", channels: [] };
+
+  assert.equal(calcularCanalPrincipal(perfilFiel).login, "xxmarciano");
+  assert.equal(calcularCanalPrincipal(perfilTurista).login, "belky");
+  assert.equal(calcularCanalPrincipal(perfilSemCanais), null);
+
+  assert.equal(jogadorPertenceALive(perfilFiel, "xxmarciano"), true, "membro_fiel pertence a xxmarciano");
+  assert.equal(jogadorPertenceALive(perfilTurista, "xxmarciano"), false, "turista_belky NÃO pertence a xxmarciano");
+  assert.equal(jogadorPertenceALive(perfilTurista, "kick:belky"), true, "normalização ignora prefixo kick:");
+
+  // 3. Filtros do Ranking
+  const jogadores = [
+    { login: "membro_fiel", displayName: "Fiel 1", cls: "warrior", level: 500, power: 80000000, seconds: 150000, waves: 5000, kills: 6000 },
+    { login: "turista_belky", displayName: "Turista", cls: "archer", level: 800, power: 120000000, seconds: 5000, waves: 200, kills: 300 },
+    { login: "kick:membro_kick", displayName: "Kick Guy", cls: "cleric", level: 450, power: 30000000, seconds: 80000, waves: 2500, kills: 1000 },
+    { login: "fraco", displayName: "Iniciante", cls: "warrior", level: 50, power: 500000, seconds: 1000, waves: 10, kills: 5 },
+  ];
+
+  const cachePerfis = new Map([
+    ["membro_fiel", perfilFiel],
+    ["turista_belky", perfilTurista],
+    ["kick:membro_kick", { login: "kick:membro_kick", channels: [{ login: "kick:xxmarciano", seconds: 80000 }] }],
+  ]);
+
+  // Filtro de fidelidade: só quem tem xxmarciano como topChannel
+  const soFieis = filtrarEOrdenarJogadores(jogadores, { fiel: true }, cachePerfis, "xxmarciano");
+  assert.deepEqual(soFieis.map((j) => j.login), ["membro_fiel", "kick:membro_kick", "fraco"]); // fraco sem perfil carregado não é excluído sumariamente se não tem cache
+
+  // Filtro de classe
+  const soArqueiros = filtrarEOrdenarJogadores(jogadores, { classe: "archer" }, cachePerfis);
+  assert.equal(soArqueiros.length, 1);
+  assert.equal(soArqueiros[0].login, "turista_belky");
+
+  // Filtro de plataforma Kick
+  const soKick = filtrarEOrdenarJogadores(jogadores, { plataforma: "kick" }, cachePerfis);
+  assert.equal(soKick.length, 1);
+  assert.equal(soKick[0].login, "kick:membro_kick");
+
+  // Filtro de FC Mínimo (ex: 50M)
+  const acima50M = filtrarEOrdenarJogadores(jogadores, { minFc: 50000000 }, cachePerfis);
+  assert.equal(acima50M.length, 2);
+  assert.equal(acima50M[0].login, "turista_belky"); // 120M
+  assert.equal(acima50M[1].login, "membro_fiel"); // 80M
+
+  // Ordenação crescente por FC
+  const ordemCrescente = filtrarEOrdenarJogadores(jogadores, { ordenarPor: "power", ordenarSentido: "asc" }, cachePerfis);
+  assert.equal(ordemCrescente[0].login, "fraco");
+  assert.equal(ordemCrescente[ordemCrescente.length - 1].login, "turista_belky");
+
+  // Ordenação por tempo jogado
+  const ordemTempo = filtrarEOrdenarJogadores(jogadores, { ordenarPor: "seconds", ordenarSentido: "desc" }, cachePerfis);
+  assert.equal(ordemTempo[0].login, "membro_fiel"); // 150000s
+
+  // 4. Paginação
+  const pag1 = paginarJogadores(jogadores, 1, 2);
+  assert.equal(pag1.pagina, 1);
+  assert.equal(pag1.totalPaginas, 2);
+  assert.equal(pag1.itens.length, 2);
+  assert.equal(pag1.inicio, 1);
+  assert.equal(pag1.fim, 2);
+
+  const pag2 = paginarJogadores(jogadores, 2, 2);
+  assert.equal(pag2.pagina, 2);
+  assert.equal(pag2.itens.length, 2);
+  assert.equal(pag2.inicio, 3);
+  assert.equal(pag2.fim, 4);
+
+  // 5. Resumo de Fidelidade
+  const resumo = obterResumoFidelidade(jogadores, "xxmarciano", cachePerfis);
+  assert.equal(resumo.totalComPerfil, 3);
+  assert.equal(resumo.totalFieis, 2);
+  assert.equal(resumo.totalTuristas, 1);
+});
+
