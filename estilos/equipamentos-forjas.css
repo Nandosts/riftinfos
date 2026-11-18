@@ -7,7 +7,7 @@ thead th { color: var(--muted); font-size: clamp(10px, 2vw, 13px); font-weight: 
 tbody th { font-family: inherit; color: var(--rarity); }
 td:nth-child(2) { color: var(--muted); }
 td:last-child { color: var(--gold); font-weight: 700; }
-tr[data-forge="epic"] { --rarity: #c77dff; }
+tr[data-forge="epic"] { --rarity: #ffb62e; }
 tr[data-forge="imm"] { --rarity: #ff8073; }
 tr[data-forge="arc"] { --rarity: #ff8de6; }
 

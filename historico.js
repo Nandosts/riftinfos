@@ -16,7 +16,7 @@
   const CHAVE_CONFIG_AUTOSAVE = "riftinfos:autosave_history:v1";
   const SCHEMA_VERSION = 1;
   const LIMITE_REGISTROS_POR_PERSONAGEM = 100;
-  const VERSAO_CALCULO_PADRAO = "2026.11.14";
+  const VERSAO_CALCULO_PADRAO = "2026.11.18";
 
   /**
    * Obtém chave canônica de identidade.

@@ -1,6 +1,6 @@
 import { buscarJsonApi } from "./api.mjs";
 import { Explicacoes } from "./bibliotecas.mjs";
-import { calcularMetricasCombate, calcularStatusSimulados } from "./combate.mjs";
+import { aplicarTetoGolpeHeroi, calcularMetricasCombate, calcularStatusSimulados } from "./combate.mjs";
 import { catalogoTemasZona, nomesClasses } from "./dados.mjs";
 import {
   escaparHtml,
@@ -123,19 +123,27 @@ function renderizarSimuladorMonstros() {
   esc.boss.atk *= (tema.multAtk || 1) * (frenesiGruk ? 1.25 : 1);
   esc.boss.aspd *= frenesiGruk ? 1.15 : 1;
   const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
+  const tetoGolpeHeroi = Math.max(1, Math.ceil(heroi.status.maxHp * 0.6));
 
   function calcularDueloInimigo(inimigo, multSkill = 1.25) {
     const fatorDefInimigo = 100 / (100 + inimigo.def * 4);
     const hitNormal = Math.max(1, Math.round(heroi.metricas.golpeNormalBruto * fatorDefInimigo));
     const hitCrit = Math.max(1, Math.round(heroi.metricas.golpeCritBruto * fatorDefInimigo));
-    const dpsRealContraAlvo = Math.max(1, heroi.metricas.dpsCombateMedio * fatorDefInimigo);
+    const dpsFisico = heroi.metricas.dpsFisicoMedio ?? heroi.metricas.dpsCombateMedio;
+    const dpsBleed = heroi.metricas.dpsBleedVerdadeiro || 0;
+    const dpsRealContraAlvo = Math.max(1, dpsFisico * fatorDefInimigo + dpsBleed);
     const ttk = inimigo.hp / dpsRealContraAlvo;
 
-    const danoRecebido = Math.max(1, Math.round(inimigo.atk * fatorDefHeroi));
-    const danoSkillFisica = Math.max(1, Math.round(inimigo.atk * multSkill * fatorDefHeroi));
+    // No código oficial: golpes físicos/skills diretas em heróis têm teto de 60% do HP máximo por acerto (hitCap = 0.6)
+    const danoRecebidoSemTeto = Math.max(1, Math.round(inimigo.atk * fatorDefHeroi));
+    const danoSkillSemTeto = Math.max(1, Math.round(inimigo.atk * multSkill * fatorDefHeroi));
+    const danoRecebido = aplicarTetoGolpeHeroi(danoRecebidoSemTeto, heroi.status.maxHp, false);
+    const danoSkillFisica = aplicarTetoGolpeHeroi(danoSkillSemTeto, heroi.status.maxHp, false);
+    const bateuTetoBasico = danoRecebidoSemTeto >= tetoGolpeHeroi;
+    const bateuTetoSkill = danoSkillSemTeto >= tetoGolpeHeroi;
     const golpesParaMorrer = Math.ceil(heroi.status.maxHp / danoRecebido);
 
-    // No código oficial: hit(..., "bleed") IGNORA 100% da DEF (Math.max(1, Math.round(s)))!
+    // No código oficial: hit(..., "bleed") IGNORA 100% da DEF e também IGNORA o teto de 60% HP!
     // applyBleed normal = 30% ATK/s por 4s (120% ATK total); forte (Assassino) = 50% ATK/s por 5.5s (275% ATK total)
     const bleedDpsNormal = Math.max(1, Math.round(inimigo.atk * 0.3));
     const bleedTotal4s = Math.max(1, Math.round(inimigo.atk * 1.2));
@@ -146,7 +154,11 @@ function renderizarSimuladorMonstros() {
       dpsRealContraAlvo,
       ttk,
       danoRecebido,
+      danoRecebidoSemTeto,
       danoSkillFisica,
+      danoSkillSemTeto,
+      bateuTetoBasico,
+      bateuTetoSkill,
       golpesParaMorrer,
       fatorDefInimigo,
       bleedDpsNormal,
@@ -176,28 +188,34 @@ function renderizarSimuladorMonstros() {
     const bossAspd = esc.boss.aspd * Math.pow(1.08, nivelRage);
     const bossDef = esc.boss.def * Math.pow(0.93, nivelRage);
     const cdSkillRage = tema.cdSkillBoss * Math.pow(0.92, nivelRage);
-    const danoHitBasico = Math.max(1, Math.round(bossAtk * fatorDefHeroi));
-    const danoHitSkill = Math.max(1, Math.round(bossAtk * tema.skillBossMult * fatorDefHeroi));
+    const danoBasicoSemTeto = Math.max(1, Math.round(bossAtk * fatorDefHeroi));
+    const danoSkillSemTeto = Math.max(1, Math.round(bossAtk * tema.skillBossMult * fatorDefHeroi));
+    const danoHitBasico = aplicarTetoGolpeHeroi(danoBasicoSemTeto, heroi.status.maxHp, false);
+    const danoHitSkill = aplicarTetoGolpeHeroi(danoSkillSemTeto, heroi.status.maxHp, false);
+    const noTetoSkill = danoSkillSemTeto >= tetoGolpeHeroi;
+    const hitsBasicosParaCair = Math.ceil(heroi.status.maxHp / danoHitBasico);
+    const skillsParaCair = Math.ceil(heroi.status.maxHp / danoHitSkill);
     const dotPorSegRage = bossAtk * (tema.fatorDotVerdadeiroPorSeg || 0.3);
     const danoBleed4sRage = Math.max(1, Math.round(dotPorSegRage * 4));
     const pctHpBleed = (danoBleed4sRage / Math.max(1, heroi.status.maxHp)) * 100;
 
     let sobreviveTxt;
-    if (danoHitSkill >= heroi.status.maxHp) {
-      sobreviveTxt = "Hit-Kill Físico na Skill";
-    } else if (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp) {
-      const segsParaMorrerNoBleed = (heroi.status.maxHp / dotPorSegRage).toFixed(1);
+    if (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp) {
+      const segsBruto = heroi.status.maxHp / dotPorSegRage;
+      const segsParaMorrerNoBleed = segsBruto < 0.1 ? "<0,1" : segsBruto.toFixed(1);
       sobreviveTxt = `Letal no dano contínuo (${segsParaMorrerNoBleed}s s/ cura)`;
+    } else if (noTetoSkill) {
+      sobreviveTxt = `Teto 60% HP (${skillsParaCair} skills / ${hitsBasicosParaCair} hits p/ cair)`;
     } else if (tema.temBleedBoss) {
-      sobreviveTxt = `DoT tira ${pctHpBleed.toFixed(0)}% HP (Físico: ${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
+      sobreviveTxt = `DoT tira ${pctHpBleed.toFixed(0)}% HP (Físico: ${hitsBasicosParaCair} hits)`;
     } else {
-      sobreviveTxt = `Aguenta ${Math.floor(heroi.status.maxHp / danoHitSkill)} skills (${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
+      sobreviveTxt = `Aguenta ${skillsParaCair} skills (${hitsBasicosParaCair} hits)`;
     }
 
     const corSobrevive =
-      danoHitSkill >= heroi.status.maxHp || (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp)
+      (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp) || danoBasicoSemTeto >= tetoGolpeHeroi
         ? "#ff8a9b"
-        : tema.temBleedBoss && pctHpBleed >= 50
+        : noTetoSkill || (tema.temBleedBoss && pctHpBleed >= 50)
           ? "var(--gold)"
           : "var(--green)";
 
@@ -207,7 +225,7 @@ function renderizarSimuladorMonstros() {
         <td>${formatarNumeroCompacto(bossAtk)}</td>
         <td>${bossAspd.toFixed(2)}/s · Skill ${cdSkillRage.toFixed(1)}s</td>
         <td>${formatadorDecimal1.format(bossDef)}</td>
-        <td>${formatarNumeroCompacto(danoHitBasico)} (Skill: ${formatarNumeroCompacto(danoHitSkill)})</td>
+        <td>${formatarNumeroCompacto(danoHitBasico)} (Skill: ${formatarNumeroCompacto(danoHitSkill)}${noTetoSkill ? " · teto" : ""})</td>
         <td style="color:#ff9aa8;font-weight:700;">${tema.temBleedBoss ? `${formatarNumeroCompacto(danoBleed4sRage)} (${formatarNumeroCompacto(dotPorSegRage)}/s)` : "Sem DoT no Boss"}</td>
         <td style="color:${corSobrevive};">${sobreviveTxt}</td>
       </tr>
@@ -215,19 +233,20 @@ function renderizarSimuladorMonstros() {
   }).join("");
 
   const bleedLetalNoBoss = tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp;
-  const segsParaMorrerNoDoT = dotBossPorSeg > 0 ? (heroi.status.maxHp / dotBossPorSeg).toFixed(1) : "—";
+  const segsDoTBruto = dotBossPorSeg > 0 ? heroi.status.maxHp / dotBossPorSeg : 0;
+  const segsParaMorrerNoDoT = dotBossPorSeg > 0 ? (segsDoTBruto < 0.1 ? "<0,1" : segsDoTBruto.toFixed(1)) : "—";
   const classeVeredito =
-    dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss
+    bleedLetalNoBoss || dBoss.bateuTetoBasico
       ? "perigo"
-      : dBoss.golpesParaMorrer <= 5 || (tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp * 0.5)
+      : dBoss.bateuTetoSkill || dBoss.golpesParaMorrer <= 5 || (tema.temBleedBoss && dotBoss4s >= heroi.status.maxHp * 0.5)
         ? "alerta"
         : "";
 
   let textoVeredito;
-  if (dBoss.golpesParaMorrer <= 1) {
-    textoVeredito = `⚠️ Perigo Físico: O Chefe da Zona ${esc.zona} (${tema.boss}) aplica Hit-Kill físico no 1º golpe (${formatarNumeroCompacto(dBoss.danoRecebido)} dano vs ${formatarNumeroCompacto(heroi.status.maxHp)} HP).`;
-  } else if (bleedLetalNoBoss) {
-    textoVeredito = `💀 Sangramento contínuo (${tema.boss}): Sua defesa reduz os ataques físicos (${dBoss.golpesParaMorrer} golpes necessários para derrota), mas o sangramento da habilidade ignora 100% da defesa (${formatarNumeroCompacto(dotBossPorSeg)}/s de dano verdadeiro). Neste cenário, este sangramento consumiria sua vida em aproximadamente ${segsParaMorrerNoDoT} segundos, sem cura ou escudo.`;
+  if (bleedLetalNoBoss) {
+    textoVeredito = `💀 Sangramento contínuo (${tema.boss}): Golpes físicos respeitam sua defesa e o teto de 60% HP (${dBoss.golpesParaMorrer} golpes necessários para derrota), mas o sangramento da habilidade ignora 100% da defesa e também o teto (${formatarNumeroCompacto(dotBossPorSeg)}/s de dano verdadeiro), consumindo sua vida em ~${segsParaMorrerNoDoT}s sem cura ou escudo.`;
+  } else if (dBoss.bateuTetoBasico || dBoss.bateuTetoSkill) {
+    textoVeredito = `⚠️ Teto Físico de 60% HP (${tema.boss}): O dano físico mitigado alcança o teto de proteção do jogo (${formatarNumeroCompacto(tetoGolpeHeroi)} por acerto = 60% da sua vida máxima, mínimo de 2 hits para cair de vida cheia). Cuidado com golpes seguidos${tema.temBleedBoss ? ` e com o sangramento de ${formatarNumeroCompacto(dotBossPorSeg)}/s (que ignora esse teto)` : ""}!`;
   } else if (tema.temBleedBoss) {
     const pctDoTHp = ((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0);
     textoVeredito = `⚠️ Atenção às Skills (${tema.boss}): O Sangramento da skill ignora 100% da sua DEF e causa ${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${pctDoTHp}% do seu HP). Você sobrevive se tiver cura ou escudo!`;
@@ -287,10 +306,10 @@ function renderizarSimuladorMonstros() {
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
-        <strong class="valor-indicador" style="color:${dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss ? '#ff8a9b' : 'var(--green)'};">
-          ${dBoss.golpesParaMorrer <= 1 ? "Hit-Kill físico" : bleedLetalNoBoss ? `Dano contínuo (~${segsParaMorrerNoDoT}s)` : `${dBoss.golpesParaMorrer} golpes físicos`}
+        <strong class="valor-indicador" style="color:${bleedLetalNoBoss || dBoss.bateuTetoBasico ? '#ff8a9b' : dBoss.bateuTetoSkill ? 'var(--gold)' : 'var(--green)'};">
+          ${bleedLetalNoBoss ? `Dano contínuo (~${segsParaMorrerNoDoT}s)` : dBoss.bateuTetoBasico || dBoss.bateuTetoSkill ? "Teto físico (2 hits)" : `${dBoss.golpesParaMorrer} golpes físicos`}
         </strong>
-        <span class="nota-indicador">${dBoss.golpesParaMorrer <= 1 ? "Ataque físico supera vida máxima" : bleedLetalNoBoss ? "Dano que ignora defesa" : "Sobrevivência estável"}</span>
+        <span class="nota-indicador">${bleedLetalNoBoss ? "Ignora DEF e o teto de 60% HP" : dBoss.bateuTetoBasico || dBoss.bateuTetoSkill ? "Jogo limita hit físico a 60% HP" : "Sobrevivência estável"}</span>
       </div>
     </div>
 
@@ -347,7 +366,7 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>Seu Golpe no Chefe</span><strong style="color:var(--gold);">Normal: ${formatarNumeroCompacto(dBoss.hitNormal)} · Crítico: ${formatarNumeroCompacto(dBoss.hitCrit)} <small class="muted" style="font-weight:400;">(${heroi.status.crit.toFixed(0)}% chance)</small></strong></div>
         <div class="card-info-linha"><span>DPS Real / TTK Solo</span><strong>${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s · ${dBoss.ttk.toFixed(1)}s</strong></div>
         ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Dano médio da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
-        <div class="card-info-linha"><span>Dano Físico do Chefe (c/ DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)} · Skill (${tema.skillBossMult}×): ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
+        <div class="card-info-linha"><span>Dano Físico do Chefe (c/ DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)}${dBoss.bateuTetoBasico ? " (teto 60%)" : ""} · Skill (${tema.skillBossMult}×): ${formatarNumeroCompacto(dBoss.danoSkillFisica)}${dBoss.bateuTetoSkill ? " (teto 60%)" : ""}</strong></div>
         <div class="card-info-linha"><span>Dano contínuo (ignora DEF)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0)}% do seu HP)` : "Sem dano contínuo do chefe"}</strong></div>
         <div class="card-info-linha"><span>Tempo para Morrer no DoT</span><strong style="color:${bleedLetalNoBoss ? "#ff7a90" : "var(--green)"};">${tema.temBleedBoss ? (bleedLetalNoBoss ? `⚠️ ~${segsParaMorrerNoDoT}s (sem cura ou escudo)` : `✅ Sobrevive com ${formatarNumeroCompacto(heroi.status.maxHp - dotBoss4s)} HP (se não levar dano físico adicional)`) : "Seguro (sem dano contínuo do Chefe)"}</strong></div>
       </article>

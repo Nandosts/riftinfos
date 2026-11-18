@@ -2,13 +2,14 @@ import { Explicacoes } from "./bibliotecas.mjs";
 import { chavesRaridadePity, indicesPecaPity, tiposForja } from "./dados.mjs";
 import { escaparHtml, formatadorInteiro, formatadorPercentual, formatarDuracaoSegundos } from "./formato.mjs";
 
-const corpoTabela = document.querySelector("#linhas-forjas");
+const doc = typeof document !== "undefined" ? document : null;
+const corpoTabela = doc?.querySelector("#linhas-forjas") || null;
 
-const resumoGeloFogoTopo = document.querySelector("#resumo-gelo-fogo-topo");
-const planejadorProximaForja = document.querySelector("#planejador-proxima-forja");
+const resumoGeloFogoTopo = doc?.querySelector("#resumo-gelo-fogo-topo") || null;
+const planejadorProximaForja = doc?.querySelector("#planejador-proxima-forja") || null;
 
-const containerMatrizGeloFogo = document.querySelector("#matriz-gelo-fogo");
-const containerEventosConquistas = document.querySelector("#resumo-eventos-conquistas");
+const containerMatrizGeloFogo = doc?.querySelector("#matriz-gelo-fogo") || null;
+const containerEventosConquistas = doc?.querySelector("#resumo-eventos-conquistas") || null;
 
 const estadoPlanejador = {
   raridade: "arc",
@@ -17,19 +18,80 @@ const estadoPlanejador = {
   evento: 0,
   tentativas: 1,
   geloManual: null,
+  nivelMedioManual: null,
 };
+
+const fatoresOuroForja = [1, 1.35, 1.8, 2.5, 4, 3, 7, 11];
+const chavesSlotPlanejador = {
+  weapon: "wpn",
+  helmet: "helm",
+  armor: "chest",
+  ring: "ring",
+  cosmetic: "aura",
+};
+
+function calcularPrevisaoForja(idRarity, nivelMedioItens, ehAura = false, nivelPersonagem = 1) {
+  const pisoNivel = idRarity === 7 ? 130 : idRarity === 6 ? 100 : 0;
+  const fatorOuro = fatoresOuroForja[idRarity] ?? 4;
+  if (ehAura) {
+    const nivelReferencia = Math.max(1, Math.min(9999, Math.round(Number(nivelPersonagem) || 1)));
+    const ouroPorTentativa = Math.round((5 + nivelReferencia * 2) * fatorOuro * 2);
+    return {
+      ehAura: true,
+      pisoNivel: 0,
+      nivelMin: null,
+      nivelMax: null,
+      nivelReferencia,
+      ouroPorTentativa,
+    };
+  }
+  const media = Math.max(1, Math.min(999, Number(nivelMedioItens) || 1));
+  const nivelMin = Math.max(1, pisoNivel, Math.floor(media * 1.15));
+  const nivelMax = Math.max(nivelMin, pisoNivel, Math.floor(media * 1.3));
+  const nivelReferencia = Math.floor((nivelMin + nivelMax) / 2);
+  const ouroPorTentativa = Math.round((5 + nivelReferencia * 2) * fatorOuro * 2);
+  return {
+    ehAura: false,
+    pisoNivel,
+    nivelMin,
+    nivelMax,
+    nivelReferencia,
+    ouroPorTentativa,
+  };
+}
+
+function obterNivelMedioEquipado(perfil) {
+  const itensComNivel = (perfil?.equipped || []).filter(
+    (item) => item && item.slot !== "cosmetic" && Number(item.itemLevel) > 0
+  );
+  if (!itensComNivel.length) return 200;
+  const soma = itensComNivel.reduce((acc, item) => acc + Number(item.itemLevel), 0);
+  return Math.max(1, Math.round(soma / itensComNivel.length));
+}
+
+function mapearSlotsPity() {
+  return indicesPecaPity.map(({ idx, slot, rotulo, maxRaridade }) => ({
+    idx,
+    slot,
+    rotulo,
+    maxRaridade: maxRaridade || 7,
+    chave: chavesSlotPlanejador[slot] || slot,
+  }));
+}
 
 function renderizarResumoGeloFogoTopo(perfil) {
   if (!resumoGeloFogoTopo || !perfil) return;
   const counters = perfil.counters || {};
-
-  const slotsPity = indicesPecaPity.map(({ idx, slot, rotulo }) => ({
-    idx, rotulo, chave: { weapon: "wpn", helmet: "helm", armor: "chest", ring: "ring" }[slot]
-  }));
+  const slotsPity = mapearSlotsPity();
 
   let maxGelo = { slot: "Arma", raridade: "Arcano", valor: 0, slotChave: "wpn", raridadeChave: "arc" };
   for (const s of slotsPity) {
-    for (const r of [{ chave: "arc", id: 7, rotulo: "Arcano" }, { chave: "imm", id: 6, rotulo: "Imortal" }, { chave: "epic", id: 4, rotulo: "Épico" }]) {
+    for (const r of [
+      { chave: "arc", id: 7, rotulo: "Arcano" },
+      { chave: "imm", id: 6, rotulo: "Imortal" },
+      { chave: "epic", id: 4, rotulo: "Lendário" },
+    ]) {
+      if (r.id > s.maxRaridade) continue;
       const g = Number(counters[`fz_f_${r.id}_${s.idx}`] || 0);
       if (g > maxGelo.valor) {
         maxGelo = { slot: s.rotulo, raridade: r.rotulo, valor: g, slotChave: s.chave, raridadeChave: r.chave };
@@ -69,22 +131,23 @@ function renderizarPlanejadorForjas(perfil) {
   if (!planejadorProximaForja) return;
 
   const counters = perfil?.counters || {};
-  const slotsPity = indicesPecaPity.map(({ idx, slot, rotulo }) => ({
-    idx, rotulo, chave: { weapon: "wpn", helmet: "helm", armor: "chest", ring: "ring" }[slot]
-  }));
+  const slotsPity = mapearSlotsPity();
 
   const raridades = [
     { chave: "arc", rotulo: "Arcano", base: 25, idRarity: 7 },
     { chave: "imm", rotulo: "Imortal", base: 35, idRarity: 6 },
-    { chave: "epic", rotulo: "Épico", base: 50, idRarity: 4 },
+    { chave: "epic", rotulo: "Lendário", base: 50, idRarity: 4 },
   ];
 
   const cfgRaridade = raridades.find((r) => r.chave === estadoPlanejador.raridade) || raridades[0];
-  const cfgSlot = slotsPity.find((s) => s.chave === estadoPlanejador.slot) || slotsPity[0];
+  const slotsDisponiveis = slotsPity.filter((s) => cfgRaridade.idRarity <= s.maxRaridade);
+  const cfgSlot = slotsDisponiveis.find((s) => s.chave === estadoPlanejador.slot) || slotsDisponiveis[0];
+  estadoPlanejador.slot = cfgSlot.chave;
+  const ehAura = cfgSlot.slot === "cosmetic";
 
   const geloPerfil = Number(counters[`fz_f_${cfgRaridade.idRarity}_${cfgSlot.idx}`] || 0);
   const geloAtual = estadoPlanejador.geloManual !== null ? estadoPlanejador.geloManual : geloPerfil;
-  const geloNivel = Math.min(5, geloAtual);
+  const geloNivel = Math.min(5, Math.max(0, geloAtual));
   const bonusGeloPP = geloNivel * 2;
 
   const pergaminhoPP = Number(estadoPlanejador.pergaminho) || 0;
@@ -94,14 +157,35 @@ function renderizarPlanejadorForjas(perfil) {
   const N = Math.max(1, Math.min(10, Number(estadoPlanejador.tentativas) || 1));
   let probTodasFalharem = 1.0;
   for (let i = 0; i < N; i++) {
-    const nivelFalha = Math.min(5, geloAtual + i);
+    const nivelFalha = Math.min(5, Math.max(0, geloAtual) + i);
     const bonusGeloNaTentativa = nivelFalha * 2;
     const pi = Math.min(100, Math.max(0, cfgRaridade.base + bonusGeloNaTentativa + pergaminhoPP + eventoPP)) / 100;
     probTodasFalharem *= (1 - pi);
   }
   const chanceEmNTentativas = (1 - probTodasFalharem) * 100;
 
+  const nivelBaseDefault = ehAura
+    ? Math.max(1, Number(perfil?.level) || 200)
+    : obterNivelMedioEquipado(perfil);
+  const nivelReferenciaInput =
+    estadoPlanejador.nivelMedioManual !== null
+      ? Math.max(1, Math.min(ehAura ? 9999 : 999, Number(estadoPlanejador.nivelMedioManual) || 1))
+      : nivelBaseDefault;
+  const previsao = calcularPrevisaoForja(
+    cfgRaridade.idRarity,
+    nivelReferenciaInput,
+    ehAura,
+    nivelReferenciaInput
+  );
+
   const materiaisTotal = 4 * N;
+  const ouroTotal = previsao.ouroPorTentativa * N;
+  const textoResultadoNivel = ehAura
+    ? `Aura ${cfgRaridade.rotulo} (cosmético sem nível)`
+    : `Nv. ${previsao.nivelMin} a ${previsao.nivelMax}`;
+  const notaResultadoNivel = ehAura
+    ? "Auras chegam até Imortal (não forjam Arcano)"
+    : `+15% a +30% da média (${nivelReferenciaInput})${previsao.pisoNivel > 0 ? ` · piso Nv. ${previsao.pisoNivel}` : ""}`;
 
   const composicaoTexto = `Base ${cfgRaridade.base}% + Gelo ${bonusGeloPP >= 0 ? "+" : ""}${bonusGeloPP} p.p. + Pergaminho +${pergaminhoPP} p.p. + Evento +${eventoPP} p.p. = ${chanceProxima.toFixed(1)}%`;
 
@@ -110,28 +194,28 @@ function renderizarPlanejadorForjas(perfil) {
 
   planejadorProximaForja.innerHTML = `
     <h3 class="titulo-bloco-secao">Planejador da Próxima Forja</h3>
-    <p class="note-compacto">Simule a próxima tentativa e a progressão de Gelo. As chances base são referências; eventos ativos podem alterar as regras do servidor.</p>
+    <p class="note-compacto">Simule a próxima tentativa (4 peças da raridade anterior), o nível resultante (+15% a +30%) e o custo em ouro. Fusões até Épico têm 100% de certeza no jogo.</p>
 
     <div class="grid-planejador-inputs">
       <div class="campo">
         <label for="select-planejador-raridade">Raridade Alvo</label>
-        <select id="select-planejador-raridade">
+        <select id="select-planejador-raridade" name="raridade_forja">
           ${raridades.map((r) => `<option value="${r.chave}" ${r.chave === estadoPlanejador.raridade ? "selected" : ""}>${r.rotulo} (Base ${r.base}%)</option>`).join("")}
         </select>
       </div>
       <div class="campo">
         <label for="select-planejador-slot">Tipo de Peça</label>
-        <select id="select-planejador-slot">
-          ${slotsPity.map((s) => `<option value="${s.chave}" ${s.chave === estadoPlanejador.slot ? "selected" : ""}>${s.rotulo}</option>`).join("")}
+        <select id="select-planejador-slot" name="slot_forja">
+          ${slotsDisponiveis.map((s) => `<option value="${s.chave}" ${s.chave === cfgSlot.chave ? "selected" : ""}>${s.rotulo}</option>`).join("")}
         </select>
       </div>
       <div class="campo">
         <label for="input-planejador-gelo">Gelo Atual (Pity: ${geloPerfil}x no perfil)</label>
-        <input id="input-planejador-gelo" type="number" min="0" max="20" value="${geloAtual}" title="Sequência de falhas atual nesta peça">
+        <input id="input-planejador-gelo" name="gelo_forja" type="number" min="0" max="20" value="${geloAtual}">
       </div>
       <div class="campo">
         <label for="select-planejador-pergaminho">Pergaminho de Sorte</label>
-        <select id="select-planejador-pergaminho">
+        <select id="select-planejador-pergaminho" name="pergaminho_forja">
           <option value="0" ${pergaminhoPP === 0 ? "selected" : ""}>Nenhum (+0 p.p.)</option>
           <option value="10" ${pergaminhoPP === 10 ? "selected" : ""}>Pergaminho de Sorte (+10 p.p.)</option>
           <option value="20" ${pergaminhoPP === 20 ? "selected" : ""}>Sorte Maior (+20 p.p.)</option>
@@ -140,11 +224,15 @@ function renderizarPlanejadorForjas(perfil) {
       </div>
       <div class="campo">
         <label for="input-planejador-evento">Bônus de Evento (p.p.)</label>
-        <input id="input-planejador-evento" type="number" min="0" max="50" value="${eventoPP}" placeholder="0">
+        <input id="input-planejador-evento" name="evento_forja" type="number" min="0" max="50" value="${eventoPP}" placeholder="0">
       </div>
       <div class="campo">
         <label for="input-planejador-tentativas">Tentativas no Orçamento</label>
-        <input id="input-planejador-tentativas" type="number" min="1" max="10" value="${N}">
+        <input id="input-planejador-tentativas" name="tentativas_forja" type="number" min="1" max="10" value="${N}">
+      </div>
+      <div class="campo">
+        <label for="input-planejador-nivel-itens">${ehAura ? "Nível do Personagem (ouro)" : "Nível médio dos 4 itens"}</label>
+        <input id="input-planejador-nivel-itens" name="nivel_itens_forja" type="number" min="1" max="${ehAura ? 9999 : 999}" value="${nivelReferenciaInput}">
       </div>
     </div>
 
@@ -163,11 +251,17 @@ function renderizarPlanejadorForjas(perfil) {
           <strong style="color:var(--cyan); font-size:1.3rem;">${chanceEmNTentativas.toFixed(1)}%</strong>
         </div>
         <div class="item-comparacao-fc">
+          <span class="muted small">Nível Resultante no Sucesso ${badgeCalc}</span>
+          <strong style="color:var(--green);">${escaparHtml(textoResultadoNivel)}</strong>
+          <span class="muted small">${escaparHtml(notaResultadoNivel)}</span>
+        </div>
+        <div class="item-comparacao-fc">
           <span class="muted small">Orçamento Estimado (${N} tentativa${N > 1 ? "s" : ""}) ${badgeEst}</span>
-          <strong>${materiaisTotal} equipamentos compatíveis · ouro depende dos níveis</strong>
+          <strong>${materiaisTotal} ${ehAura ? "auras" : "equipamentos"} compatíveis · ~${formatadorInteiro.format(ouroTotal)} ouro</strong>
+          <span class="muted small">~${formatadorInteiro.format(previsao.ouroPorTentativa)} ouro por tentativa</span>
         </div>
       </div>
-      <p class="note" style="margin:0;">* São materiais para executar ${N} tentativa(s), sem reutilizar resultados. O custo em ouro é calculado pelo jogo conforme o nível e a raridade; consulte a confirmação da forja. Não garante sucesso.</p>
+      <p class="note" style="margin:0;">* São materiais para executar ${N} tentativa(s), sem reutilizar resultados. Custo oficial: (5 + nível de referência × 2) × fator da raridade × 2. Não garante sucesso.</p>
     </div>
   `;
 
@@ -177,19 +271,27 @@ function renderizarPlanejadorForjas(perfil) {
   const selPerg = document.querySelector("#select-planejador-pergaminho");
   const inEvento = document.querySelector("#input-planejador-evento");
   const inTent = document.querySelector("#input-planejador-tentativas");
+  const inNivelItens = document.querySelector("#input-planejador-nivel-itens");
 
-  const atualizarPlanejador = () => {
+  const atualizarPlanejador = (ev) => {
     if (selRaridade) estadoPlanejador.raridade = selRaridade.value;
-    if (selSlot) estadoPlanejador.slot = selSlot.value;
-    if (inGelo) estadoPlanejador.geloManual = inGelo.value !== "" ? Number(inGelo.value) : null;
+    if (selSlot && ev?.target !== selRaridade) estadoPlanejador.slot = selSlot.value;
+    if (ev?.target === selRaridade || ev?.target === selSlot) {
+      estadoPlanejador.geloManual = null;
+    } else if (inGelo) {
+      estadoPlanejador.geloManual = inGelo.value !== "" ? Number(inGelo.value) : null;
+    }
     if (selPerg) estadoPlanejador.pergaminho = Number(selPerg.value) || 0;
     if (inEvento) estadoPlanejador.evento = Number(inEvento.value) || 0;
     if (inTent) estadoPlanejador.tentativas = Math.max(1, Math.min(10, Number(inTent.value) || 1));
+    if (inNivelItens && ev?.target === inNivelItens) {
+      estadoPlanejador.nivelMedioManual = inNivelItens.value !== "" ? Number(inNivelItens.value) : null;
+    }
     renderizarPlanejadorForjas(perfil);
   };
 
   [selRaridade, selSlot, selPerg].forEach((el) => el?.addEventListener("change", atualizarPlanejador));
-  [inGelo, inEvento, inTent].forEach((el) => el?.addEventListener("input", atualizarPlanejador));
+  [inGelo, inEvento, inTent, inNivelItens].forEach((el) => el?.addEventListener("input", atualizarPlanejador));
 }
 
 /* ==========================================================================
@@ -202,7 +304,10 @@ function renderizarMatrizGeloEFogo(perfil) {
   const oportunidadesGelo = [];
 
   const linhasHtml = chavesRaridadePity.map(({ raridade, rotulo, chanceBase }) => {
-    const celulas = indicesPecaPity.map(({ idx, rotulo: rotuloPeca }) => {
+    const celulas = indicesPecaPity.map(({ idx, rotulo: rotuloPeca, maxRaridade }) => {
+      if (maxRaridade && raridade > maxRaridade) {
+        return `<td><div class="celula-gelo"><span class="muted small">Não forjável</span></div></td>`;
+      }
       const geloBruto = Number(counters[`fz_f_${raridade}_${idx}`] || 0);
       const fogoBruto = Number(counters[`fz_w_${raridade}_${idx}`] || 0);
       const geloNivel = Math.min(5, geloBruto);
@@ -380,10 +485,12 @@ export function renderizarForjas(perfil) {
     return linha;
   });
   corpoTabela.replaceChildren(...linhas);
+  estadoPlanejador.geloManual = null;
+  estadoPlanejador.nivelMedioManual = null;
   renderizarResumoGeloFogoTopo(perfil);
   renderizarMatrizGeloEFogo(perfil);
   renderizarPlanejadorForjas(perfil);
   renderizarEventosEConquistas(perfil);
 }
 
-export { renderizarPlanejadorForjas };
+export { calcularPrevisaoForja, renderizarPlanejadorForjas };

@@ -18,8 +18,8 @@
   <title>RiftInfos · Análise e simulador de RiftStream</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
-  <link rel="stylesheet" href="style.css?v=20261114f">
-  <link rel="stylesheet" href="estilos/equipamentos-forjas.css">
+  <link rel="stylesheet" href="style.css?v=20261118a">
+  <link rel="stylesheet" href="estilos/equipamentos-forjas.css?v=20261118a">
   <link rel="stylesheet" href="estilos/comparacao.css">
   <link rel="stylesheet" href="estilos/controles.css">
   <link rel="stylesheet" href="estilos/panorama.css">
@@ -27,17 +27,17 @@
   <link rel="stylesheet" href="estilos/simulador.css">
   <link rel="stylesheet" href="estilos/chefes-radar.css">
   <link rel="stylesheet" href="estilos/gemas.css">
-  <link rel="stylesheet" href="estilos/analise.css">
+  <link rel="stylesheet" href="estilos/analise.css?v=20261118a">
   <link rel="stylesheet" href="estilos/modal-live.css">
   <link rel="stylesheet" href="estilos/ficha.css?v=20261115k">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261117a" defer></script>
-  <script src="explicacoes.js?v=20261117a" defer></script>
-  <script src="analise.js?v=20261114i" defer></script>
-  <script src="historico.js?v=20261114i" defer></script>
+  <script src="explicacoes.js?v=20261118a" defer></script>
+  <script src="analise.js?v=20261118a" defer></script>
+  <script src="historico.js?v=20261118a" defer></script>
   <script src="compartilhamento.js?v=4" defer></script>
-  <script type="module" src="app.mjs?v=20261115l"></script>
+  <script type="module" src="app.mjs?v=20261118a"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -65,6 +65,22 @@
       <h1>RiftInfos</h1>
       <p class="intro-descricao">Entenda seu personagem, planeje melhorias e acompanhe as lives.</p>
     </div>
+
+    <aside class="aviso-recalibracao" aria-label="Nota sobre recalibração dos cálculos">
+      <p class="aviso-recalibracao-resumo">
+        <strong>📐 Nota de Recalibração (Nov/2026):</strong> revisamos os cálculos do site frente aos dados reais do jogo — por isso alguns números de FC simulado, atributos de peças, forjas e duelo contra chefes mudaram consideravelmente.
+      </p>
+      <details class="detalhes-recalibracao">
+        <summary>Ver o que foi corrigido nos cálculos</summary>
+        <ul class="detalhes-recalibracao-lista">
+          <li><strong>Atributos individuais por peça (Simulador e Tier List):</strong> cada arma, elmo e armadura agora usa sua curva real medida em 6.764 itens públicos (ex.: sets do Circo têm mais ATK/HP/VEL brutos nas peças que sets de Zona 13+), em vez de uma curva única por raridade.</li>
+          <li><strong>Teto físico de 60% HP em Chefes (HitCap):</strong> golpes físicos e skills diretas contra heróis respeitam o limite oficial de 60% do HP máximo por acerto (mínimo de 2 hits para cair de vida cheia), enquanto sangramentos e dano contínuo ignoram tanto a DEF quanto esse teto.</li>
+          <li><strong>Forjas, Auras, Nível e Ouro:</strong> a forja de 50% foi corrigida para <strong>Lendário (4 Épicos)</strong>, o Gelo de <strong>Auras</strong> entrou na matriz (até Imortal) e o planejador agora calcula a faixa de nível resultante (+15% a +30%, pisos Nv. 100/130) e o custo em ouro.</li>
+          <li><strong>Sangramentos e decaimento multi-alvo:</strong> ajustados os valores exatos do <em>Anel da Sede Escarlate</em> (25% ATK/s por 2,5s), do <em>Chicote do Domador</em> (+50% ATK/s por 5,5s a cada 11s) e dos alvos secundários dos arcos <em>Estelar</em> e <em>Prismático</em>.</li>
+          <li><strong>Raridade de sets e escudos em % HP:</strong> os 6 conjuntos Épicos agora abrem na raridade padrão Épica no Simulador, e as descrições diferenciam escudos calculados sobre o HP de cada aliado dos calculados sobre o HP do portador (<em>Prisma Estelar</em>).</li>
+        </ul>
+      </details>
+    </aside>
 
     <section id="painel-recordes-globais" class="panel painel-panorama" aria-label="Panorama global do servidor">
       <div class="panorama-cabecalho">
@@ -227,7 +243,7 @@
                 <tbody id="linhas-forjas"></tbody>
               </table>
             </div>
-            <p class="note">Totais acumulados do personagem selecionado. A chance base na Wiki é 50% (Épico), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte. Os bônus usados em cada tentativa individual não estão disponíveis neste histórico.</p>
+            <p class="note">Totais acumulados do personagem selecionado. A chance base oficial é 50% (Lendário), 35% (Imortal) e 25% (Arcano), podendo subir +10, +20 ou +25 p.p. com Pergaminhos de Sorte. Os bônus usados em cada tentativa individual não estão disponíveis neste histórico.</p>
           </div>
 
           <div id="resumo-gelo-fogo-topo" class="bloco-subsecao"></div>

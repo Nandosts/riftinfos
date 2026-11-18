@@ -18,7 +18,7 @@
   <title>Tier List do Nando · RiftInfos</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
-  <link rel="stylesheet" href="style.css?v=20261115a">
+  <link rel="stylesheet" href="style.css?v=20261118a">
   <link rel="stylesheet" href="estilos/controles.css">
   <link rel="stylesheet" href="estilos/gemas.css">
   <link rel="stylesheet" href="estilos/ficha.css?v=20261115k">
@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261117a" defer></script>
-  <script type="module" src="src/tierlist.mjs?v=20261115l"></script>
+  <script type="module" src="src/tierlist.mjs?v=20261118a"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -60,6 +60,20 @@
         </p>
       </div>
     </div>
+
+    <aside class="aviso-recalibracao" aria-label="Nota sobre recalibração dos cálculos">
+      <p class="aviso-recalibracao-resumo">
+        <strong>📐 Nota de Recalibração (Nov/2026):</strong> os valores de FC e as comparações desta Tier List foram recalibrados com os atributos reais de cada peça no jogo — por isso diversos números e posições mudaram consideravelmente.
+      </p>
+      <details class="detalhes-recalibracao">
+        <summary>Ver o que mudou na Tier List e nas simulações</summary>
+        <ul class="detalhes-recalibracao-lista">
+          <li><strong>Curvas reais por peça (6.764 itens medidos):</strong> antes, todos os conjuntos da mesma raridade usavam a mesma base de ATK, DEF, HP e VEL nas peças; agora cada arma, elmo e armadura reflete seu orçamento real no jogo (ex.: <em>Arco do Trapézio</em> tem ~3× o ATK bruto e +10% VEL a mais que o <em>Arco da Aurora Boreal</em>).</li>
+          <li><strong>Reavaliação Por FC e Por Utilidade:</strong> os rankings de FC de Guerreiro, Arqueiro e Clérigo mudaram bastante (destaque para <em>Homem-Forte</em>, <em>Domador</em>, <em>Trapezista</em>, <em>Madame Cartomante</em> e <em>Ilusionista</em>), mantendo o peso das passivas de Raid no modo Por Utilidade.</li>
+          <li><strong>Escudos em % HP e Sede Escarlate:</strong> detalhamos quais escudos/curas escalam com o HP de cada aliado (<em>Madame Cartomante</em>, <em>Serafim Dourado</em>, <em>Aurora Boreal</em>, <em>Constelação</em>) versus o HP do portador (<em>Prisma Estelar</em>), além do sangramento exato da <em>Sede Escarlate</em> (25% ATK/s por 2,5s).</li>
+        </ul>
+      </details>
+    </aside>
 
     <section class="panel tl-controles" aria-label="Filtros da Tier List">
       <div class="tl-grupo-botoes" role="group" aria-label="Critério da Tier List">

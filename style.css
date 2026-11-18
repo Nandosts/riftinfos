@@ -79,3 +79,47 @@ button:hover { filter: brightness(1.12); }
 .abas { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; border-bottom: 2px solid var(--line); padding-bottom: 12px; }
 .botao-aba { min-height: 42px; padding: 8px 14px; font-size: 13px; background: var(--panel-alt); color: var(--muted); border: 2px solid var(--line); box-shadow: none; }
 .botao-aba[aria-selected="true"] { background: var(--gold); color: #1a1020; border-color: var(--gold); box-shadow: inset -2px -2px #0004, inset 2px 2px #fff5; }
+
+/* Aviso de Recalibração no Topo */
+.aviso-recalibracao {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255, 213, 74, 0.08), rgba(20, 17, 41, 0.92));
+  border: 1px solid rgba(255, 213, 74, 0.45);
+  border-left: 4px solid var(--gold);
+  box-shadow: 0 3px #0a0818;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.aviso-recalibracao-resumo {
+  margin: 0;
+  color: var(--text);
+}
+.aviso-recalibracao-resumo strong {
+  color: var(--gold);
+}
+.detalhes-recalibracao {
+  margin-top: 6px;
+}
+.detalhes-recalibracao > summary {
+  cursor: pointer;
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 4px 0;
+  user-select: none;
+}
+.detalhes-recalibracao > summary:hover {
+  color: var(--gold);
+}
+.detalhes-recalibracao-lista {
+  margin: 8px 0 2px;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.detalhes-recalibracao-lista strong {
+  color: var(--text);
+}

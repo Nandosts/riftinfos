@@ -35,17 +35,17 @@ const dadosClasses = {
 };
 
 const catalogoConjuntos = {
-  berserker: { nome: "Fúria do Berserker", classe: "warrior", armaKind: "bloodaxe", armaNome: "Machado Sanguinário", elmoKind: "berserkhelm", elmoNome: "Elmo do Berserker", armaduraKind: "berserkhide", armaduraNome: "Couro do Berserker", raridadePadrao: 4, b2: { atk: 0.12 }, b3: { hp: 0.15, crit: 6 } },
-  lunar: { nome: "Ordem Lunar", classe: "cleric", armaKind: "moonstaff", armaNome: "Cajado Lunar", elmoKind: "moonveil", elmoNome: "Véu Lunar", armaduraKind: "moonrobe", armaduraNome: "Manto Lunar", raridadePadrao: 4, b2: { hp: 0.12, def: 0.1 }, b3: { atk: 0.15, spd: 0.1 } },
-  wind: { nome: "Arqueiro do Vento", classe: "archer", armaKind: "yumi", armaNome: "Yumi", elmoKind: "kasa", elmoNome: "Kasa", armaduraKind: "kyudogi", armaduraNome: "Kyudogi", raridadePadrao: 4, b2: { atk: 0.1, spd: 0.05 }, b3: { crit: 6, spd: 0.1 } },
+  berserker: { nome: "Fúria do Berserker", classe: "warrior", armaKind: "bloodaxe", armaNome: "Machado Sanguinário", elmoKind: "berserkhelm", elmoNome: "Elmo do Berserker", armaduraKind: "berserkhide", armaduraNome: "Couro do Berserker", raridadePadrao: 3, b2: { atk: 0.12 }, b3: { hp: 0.15, crit: 6 } },
+  lunar: { nome: "Ordem Lunar", classe: "cleric", armaKind: "moonstaff", armaNome: "Cajado Lunar", elmoKind: "moonveil", elmoNome: "Véu Lunar", armaduraKind: "moonrobe", armaduraNome: "Manto Lunar", raridadePadrao: 3, b2: { hp: 0.12, def: 0.1 }, b3: { atk: 0.15, spd: 0.1 } },
+  wind: { nome: "Arqueiro do Vento", classe: "archer", armaKind: "yumi", armaNome: "Yumi", elmoKind: "kasa", elmoNome: "Kasa", armaduraKind: "kyudogi", armaduraNome: "Kyudogi", raridadePadrao: 3, b2: { atk: 0.1, spd: 0.05 }, b3: { crit: 6, spd: 0.1 } },
   volcano: { nome: "Titã Vulcânico", classe: "warrior", armaKind: "magmablade", armaNome: "Lâmina Vulcânica", elmoKind: "magmahelm", elmoNome: "Elmo Vulcânico", armaduraKind: "magmaplate", armaduraNome: "Couraça Vulcânica", raridadePadrao: 4, b2: { atk: 0.15, def: 0.1 }, b3: { hp: 0.2, atk: 0.12, crit: 5 } },
   reaperset: { nome: "Ceifador Espectral", classe: "warrior", armaKind: "reaper", armaNome: "Foice do Ceifador", elmoKind: "reaperhood", elmoNome: "Capuz do Ceifador", armaduraKind: "reapergarb", armaduraNome: "Mortalha do Ceifador", raridadePadrao: 4, b2: { atk: 0.1, crit: 6 }, b3: { atk: 0.2, spd: 0.1 } },
   dawn: { nome: "Serafim da Aurora", classe: "cleric", armaKind: "dawnscepter", armaNome: "Cetro da Aurora", elmoKind: "dawnhalo", elmoNome: "Diadema da Aurora", armaduraKind: "dawnrobe", armaduraNome: "Vestes da Aurora", raridadePadrao: 4, b2: { hp: 0.18, def: 0.1 }, b3: { atk: 0.25, hp: 0.12 } },
   abyss: { nome: "Arconte do Vazio", classe: "cleric", armaKind: "voidstaff", armaNome: "Cajado do Vazio", elmoKind: "voidmask", elmoNome: "Máscara do Vazio", armaduraKind: "voidrobe", armaduraNome: "Vestes do Vazio", raridadePadrao: 4, b2: { atk: 0.15, crit: 5 }, b3: { atk: 0.2, spd: 0.12 } },
   stellar: { nome: "Caçador Estelar", classe: "archer", armaKind: "starbow", armaNome: "Arco Estelar", elmoKind: "startiara", elmoNome: "Tiara Estelar", armaduraKind: "starcloak", armaduraNome: "Manto Estelar", raridadePadrao: 4, b2: { atk: 0.12, spd: 0.08 }, b3: { crit: 8, atk: 0.15 } },
-  cosmicvan: { nome: "Vanguarda Cósmica", classe: "warrior", armaKind: "plasmablade", armaNome: "Sabre de Plasma", elmoKind: "spacehelm", elmoNome: "Capacete de Astronauta", armaduraKind: "spacearmor", armaduraNome: "Armadura Espacial", raridadePadrao: 4, b2: { atk: 0.1, def: 0.08 }, b3: { hp: 0.15, atk: 0.1 } },
-  oracle: { nome: "Oráculo Interestelar", classe: "cleric", armaKind: "orbstaff", armaNome: "Cajado Orbital", elmoKind: "antennae", elmoNome: "Antenas de Etê", armaduraKind: "nebularobe", armaduraNome: "Manto da Nebulosa", raridadePadrao: 4, b2: { hp: 0.12, atk: 0.08 }, b3: { atk: 0.15, spd: 0.1 } },
-  etehunter: { nome: "Caçador de Etês", classe: "archer", armaKind: "plasmabow", armaNome: "Arco de Plasma", elmoKind: "visor", elmoNome: "Visor Ciborgue", armaduraKind: "stealthsuit", armaduraNome: "Traje de Camuflagem", raridadePadrao: 4, b2: { atk: 0.1, crit: 5 }, b3: { crit: 8, spd: 0.1 } },
+  cosmicvan: { nome: "Vanguarda Cósmica", classe: "warrior", armaKind: "plasmablade", armaNome: "Sabre de Plasma", elmoKind: "spacehelm", elmoNome: "Capacete de Astronauta", armaduraKind: "spacearmor", armaduraNome: "Armadura Espacial", raridadePadrao: 3, b2: { atk: 0.1, def: 0.08 }, b3: { hp: 0.15, atk: 0.1 } },
+  oracle: { nome: "Oráculo Interestelar", classe: "cleric", armaKind: "orbstaff", armaNome: "Cajado Orbital", elmoKind: "antennae", elmoNome: "Antenas de Etê", armaduraKind: "nebularobe", armaduraNome: "Manto da Nebulosa", raridadePadrao: 3, b2: { hp: 0.12, atk: 0.08 }, b3: { atk: 0.15, spd: 0.1 } },
+  etehunter: { nome: "Caçador de Etês", classe: "archer", armaKind: "plasmabow", armaNome: "Arco de Plasma", elmoKind: "visor", elmoNome: "Visor Ciborgue", armaduraKind: "stealthsuit", armaduraNome: "Traje de Camuflagem", raridadePadrao: 3, b2: { atk: 0.1, crit: 5 }, b3: { crit: 8, spd: 0.1 } },
   prism: { nome: "Mestre Prismático", classe: "archer", armaKind: "prismbow", armaNome: "Arco Prismático", elmoKind: "prismhelm", elmoNome: "Elmo Prismático", armaduraKind: "prismvest", armaduraNome: "Colete Prismático", raridadePadrao: 4, b2: { atk: 0.12, crit: 6 }, b3: { hp: 0.1, atk: 0.2, spd: 0.1 } },
   ember: { nome: "Brasa Eterna", classe: "warrior", armaKind: "emberblade", armaNome: "Lâmina da Brasa Eterna", elmoKind: "emberhelm", elmoNome: "Elmo da Brasa Eterna", armaduraKind: "emberplate", armaduraNome: "Couraça da Brasa Eterna", raridadePadrao: 6, b2: { hp: 0.2, def: 0.15 }, b3: { atk: 0.3, hp: 0.25 } },
   gore: { nome: "Carnificina", classe: "warrior", armaKind: "gorecleaver", armaNome: "Ceifa-Reis", elmoKind: "gorehelm", elmoNome: "Elmo da Carnificina", armaduraKind: "goreplate", armaduraNome: "Couraça da Carnificina", raridadePadrao: 6, b2: { atk: 0.25, crit: 8 }, b3: { atk: 0.4, spd: 0.15 } },
@@ -124,7 +124,7 @@ const catalogoArmas = {
     cdMult: 1.0,
     skillMult: 1.5,
     skillAlvos: 1,
-    efeito: { tipo: "dano", cada: 11, mult: 1.3, texto: "A cada 11s: chicoteia todos os inimigos (1,3×) e aplica sangramento." },
+    efeito: { tipo: "dano", cada: 11, mult: 1.3, bleedDpsMult: 0.5, bleedDur: 5.5, texto: "A cada 11s: chicoteia todos os inimigos (1,3×) e aplica sangramento forte (50% ATK/s por 5,5s, ignorando defesa)." },
   },
   strongmallet: {
     nome: "Marreta do Homem-Forte",
@@ -159,8 +159,8 @@ const catalogoArmas = {
   piercebow: { nome: "Arco Perfurante", classe: "archer", cdMult: 1.1, skillMult: 2.2, skillAlvos: 3, notaSkill: "Flecha perfurante na linha (2,2× ATK)." },
   yumi: { nome: "Yumi", classe: "archer", cdMult: 1.0, skillMult: 1.1, skillAlvos: 3, notaSkill: "Arco tradicional (Kyudogi)." },
   plasmabow: { nome: "Arco de Plasma", classe: "archer", cdMult: 1.0, skillMult: 1.1, skillAlvos: 3, notaSkill: "Conjunto Caçador de Etês." },
-  starbow: { nome: "Arco Estelar", classe: "archer", cdMult: 1.25, skillMult: 3.52, skillAlvos: 3, notaSkill: "Chuva meteórica: 3,52× centro e 1,76× em área." },
-  prismbow: { nome: "Arco Prismático", classe: "archer", cdMult: 1.1, skillMult: 1.4, skillAlvos: 6, notaSkill: "Até 6 ricochetes luminosos (~1,40× × 0,92^i)." },
+  starbow: { nome: "Arco Estelar", classe: "archer", cdMult: 1.25, skillMult: 3.52, skillAlvos: 3, skillFatorSecundario: 0.5, notaSkill: "Chuva meteórica: 3,52× centro e 1,76× em área." },
+  prismbow: { nome: "Arco Prismático", classe: "archer", cdMult: 1.1, skillMult: 1.397, skillAlvos: 6, skillDecaimento: 0.92, notaSkill: "Até 6 ricochetes luminosos (~1,40× × 0,92^i)." },
   predbow: {
     nome: "Arco do Predador Carmesim",
     classe: "archer",
@@ -343,7 +343,9 @@ const catalogoAneis = {
     foco: "Ofensivo + Sangramento (DoT)",
     obtencao: "Drop raríssimo de chefes (Nv. 100+) ou Forja Imortal (4 anéis Lendários, 35% base).",
     escalaPorNivel: { atk: 1.65, def: 0.50, hp: 2.66, crit: 0.25, spd: 14 },
-    efeito: "Passiva: seus golpes e flechas aplicam sangramento contínuo por 4s (35% do ATK/s que ignora a defesa do inimigo).",
+    bleedDpsMult: 0.25,
+    bleedDur: 2.5,
+    efeito: "Passiva: seus golpes e flechas aplicam sangramento contínuo por 2,5s (25% do ATK/s que ignora a defesa do inimigo).",
   },
   11: {
     nome: "Anel do Sanguessuga",
@@ -629,13 +631,13 @@ const rotulosStats = {
 };
 
 const tiposForja = [
-  { chave: "epic", rotulo: "Épico", chanceBase: 0.5 },
-  { chave: "imm", rotulo: "Imortal", chanceBase: 0.35 },
-  { chave: "arc", rotulo: "Arcano", chanceBase: 0.25 },
+  { chave: "epic", rotulo: "Lendário (4 Épicos)", chanceBase: 0.5 },
+  { chave: "imm", rotulo: "Imortal (4 Lendários)", chanceBase: 0.35 },
+  { chave: "arc", rotulo: "Arcano (4 Imortais)", chanceBase: 0.25 },
 ];
 
 const chavesRaridadePity = [
-  { raridade: 4, rotulo: "Épico", chanceBase: 50 },
+  { raridade: 4, rotulo: "Lendário", chanceBase: 50 },
   { raridade: 6, rotulo: "Imortal", chanceBase: 35 },
   { raridade: 7, rotulo: "Arcano", chanceBase: 25 },
 ];
@@ -645,6 +647,7 @@ const indicesPecaPity = [
   { idx: 2, slot: "helmet", rotulo: "Elmo" },
   { idx: 3, slot: "armor", rotulo: "Armadura" },
   { idx: 0, slot: "ring", rotulo: "Anel" },
+  { idx: 4, slot: "cosmetic", rotulo: "Aura", maxRaridade: 6 },
 ];
 
 const catalogoTemasZona = [

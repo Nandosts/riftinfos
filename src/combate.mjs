@@ -15,6 +15,13 @@ function calcularFc(classe, stats) {
   return Math.round(dados.k * Math.sqrt(Math.max(0, dps * ehp)));
 }
 
+function aplicarTetoGolpeHeroi(danoMitigado, maxHp, ehBleedOuDot = false) {
+  const danoBase = Math.max(1, Math.round(Number(danoMitigado) || 0));
+  if (ehBleedOuDot) return danoBase;
+  const tetoGolpe = Math.max(1, Math.ceil((Number(maxHp) || 1) * 0.6));
+  return Math.min(danoBase, tetoGolpe);
+}
+
 function agregarItens(listaItens) {
   const fixos = { atk: 0, def: 0, hp: 0, crit: 0, spd: 0 };
   const gemasFixas = { atk: 0, def: 0, hp: 0, crit: 0, spd: 0 };
@@ -233,7 +240,16 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   let skillDanoTotal = 0;
   if (classe !== "cleric" || infoArma?.skillTipo === "dano" || infoArma?.skillTipo === "misto") {
     skillDanoPorAlvo = status.atk * speedBonus * skillMult * skillFatorCrit;
-    skillDanoTotal = skillDanoPorAlvo * skillAlvos;
+    if (infoArma?.skillDecaimento && skillAlvos > 1) {
+      skillDanoTotal =
+        skillDanoPorAlvo *
+        ((1 - Math.pow(infoArma.skillDecaimento, skillAlvos)) / (1 - infoArma.skillDecaimento));
+    } else if (infoArma?.skillFatorSecundario != null && skillAlvos > 1) {
+      skillDanoTotal =
+        skillDanoPorAlvo * (1 + (skillAlvos - 1) * infoArma.skillFatorSecundario);
+    } else {
+      skillDanoTotal = skillDanoPorAlvo * skillAlvos;
+    }
   }
 
   const healPower = (status.atk * 2.4 + (nivel || 1) * 1.5 + 6) * speedBonus;
@@ -289,7 +305,27 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   dpsBasico *= fatorEco;
   dpsEfeitoArma *= fatorEco;
   const dpsSkillPorAlvo = cdSkillReal > 0 ? (skillDanoPorAlvo / cdSkillReal) * fatorEco : 0;
-  const dpsCombateMedio = dpsBasico + dpsSkillPorAlvo + dpsEfeitoArma;
+
+  const coberturaAnelBleed =
+    anelAtivo && anel.look === 10
+      ? Math.min(1, cadenciaReal * (anelAtivo.bleedDur || 2.5))
+      : 0;
+  const dpsAnelBleed =
+    coberturaAnelBleed > 0
+      ? status.atk * (anelAtivo.bleedDpsMult || 0.25) * coberturaAnelBleed
+      : 0;
+  const efArma = infoArma?.efeito;
+  let dpsBleedVerdadeiro = dpsAnelBleed;
+  if (efArma?.bleedDpsMult && efArma?.bleedDur && efArma?.cada > 0) {
+    const janelaArma = Math.min(1, efArma.bleedDur / efArma.cada);
+    const dpsBleedArmaPico = status.atk * efArma.bleedDpsMult;
+    dpsBleedVerdadeiro =
+      janelaArma * Math.max(dpsBleedArmaPico, dpsAnelBleed) +
+      (1 - janelaArma) * dpsAnelBleed;
+  }
+
+  const dpsFisicoMedio = dpsBasico + dpsSkillPorAlvo + dpsEfeitoArma;
+  const dpsCombateMedio = dpsFisicoMedio + dpsBleedVerdadeiro;
   const reducaoDefesa = (status.def * 4) / (100 + status.def * 4);
   const ehp = status.maxHp * (1 + status.def * 0.04);
 
@@ -314,6 +350,8 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     golpeMedioBruto,
     dpsBasico,
     dpsSkill,
+    dpsFisicoMedio,
+    dpsBleedVerdadeiro,
     dpsCombateMedio,
     dpsEfeitoArma,
     cdSkillReal,
@@ -333,6 +371,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
 
 export {
   agregarItens,
+  aplicarTetoGolpeHeroi,
   calcularFc,
   calcularMetricasCombate,
   calcularStatusSimulados,

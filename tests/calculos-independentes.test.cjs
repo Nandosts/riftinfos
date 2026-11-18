@@ -197,3 +197,54 @@ test("curvas reais por peça diferenciam Trapézio vs Aurora Boreal e preservam 
   assert.equal(armaSim.crit, 131);
   assert.equal(armaSim.spd, 8);
 });
+
+test("recalibração contra o motor oficial: HitCap 60% HP, sangramentos, decaimento multi-alvo, sets Épicos e previsão de Forja", async () => {
+  const { aplicarTetoGolpeHeroi, calcularMetricasCombate } = await importarModulo("src/combate.mjs");
+  const { calcularPrevisaoForja } = await importarModulo("src/forjas.mjs");
+  const { catalogoConjuntos } = await importarModulo("src/dados.mjs");
+
+  // 1. HitCap oficial de 60% HP em heróis (não se aplica a bleed/DoT)
+  assert.equal(aplicarTetoGolpeHeroi(500000, 10000, false), 6000);
+  assert.equal(aplicarTetoGolpeHeroi(4500, 10000, false), 4500);
+  assert.equal(aplicarTetoGolpeHeroi(500000, 10000, true), 500000);
+
+  // 2. Sangramento verdadeiro (Sede Escarlate 25% ATK/s, Chicote do Domador 275% ATK / 11s = 25% ATK/s, e sobreposição por Math.max)
+  const st = { maxHp: 100000, atk: 10000, def: 1000, aspd: 2.0, crit: 0, critDmg: 0 };
+  const anelSede = { slot: "ring", kind: "ring", look: 10, rarity: 6, itemLevel: 200, gems: [] };
+  const chicote = { slot: "weapon", kind: "tamerwhip", rarity: 7, itemLevel: 200, gems: [] };
+
+  const mSede = calcularMetricasCombate("warrior", 200, st, [anelSede]);
+  const mDomador = calcularMetricasCombate("warrior", 200, st, [chicote]);
+  const mAmbos = calcularMetricasCombate("warrior", 200, st, [chicote, anelSede]);
+  assert.equal(mSede.dpsBleedVerdadeiro, 2500, "Sede Escarlate mantém 25% ATK/s com cadência >= 0.4/s");
+  assert.equal(mDomador.dpsBleedVerdadeiro, 2500, "Chicote do Domador: 50% ATK/s por 5,5s a cada 11s = 25% ATK/s");
+  assert.equal(mAmbos.dpsBleedVerdadeiro, 3750, "Ambos: 5,5s a 50% ATK/s + 5,5s a 25% ATK/s = 37,5% ATK/s sem duplicar stack");
+
+  // 3. Decaimento multi-alvo em starbow (1 + 2*0.5 = 2x) e prismbow (soma geométrica de 0.92^i em 6 alvos)
+  const mStar = calcularMetricasCombate("archer", 200, st, [{ slot: "weapon", kind: "starbow", rarity: 4, itemLevel: 200, gems: [] }]);
+  const mPrism = calcularMetricasCombate("archer", 200, st, [{ slot: "weapon", kind: "prismbow", rarity: 4, itemLevel: 200, gems: [] }]);
+  assert.ok(Math.abs(mStar.skillDanoTotal - mStar.skillDanoPorAlvo * 2) < 1e-9);
+  const somaGeomPrism = (1 - Math.pow(0.92, 6)) / (1 - 0.92);
+  assert.ok(Math.abs(mPrism.skillDanoTotal - mPrism.skillDanoPorAlvo * somaGeomPrism) < 1e-9);
+
+  // 4. Raridade padrão Épica (3) nos 6 conjuntos Épicos
+  for (const chave of ["berserker", "lunar", "wind", "cosmicvan", "oracle", "etehunter"]) {
+    assert.equal(catalogoConjuntos[chave].raridadePadrao, 3, `${chave} deve ter raridadePadrao 3 (Épico)`);
+  }
+
+  // 5. Previsão oficial de Forja (EI + TI): nível resultante (+15%..+30%, pisos 100/130) e ouro
+  // Nota: no JS do cliente oficial, Math.floor(200 * 1.15) === 229 e Math.floor((229 + 260) / 2) === 244
+  const prevArc200 = calcularPrevisaoForja(7, 200, false, 400);
+  assert.equal(prevArc200.nivelMin, 229);
+  assert.equal(prevArc200.nivelMax, 260);
+  assert.equal(prevArc200.ouroPorTentativa, 10846); // (5 + 244*2) * 11 * 2
+
+  const prevImm60 = calcularPrevisaoForja(6, 60, false, 150);
+  assert.equal(prevImm60.nivelMin, 100, "Piso de Imortal é Nv. 100");
+  assert.equal(prevImm60.nivelMax, 100);
+  assert.equal(prevImm60.ouroPorTentativa, 2870); // (5 + 100*2) * 7 * 2
+
+  const prevAuraImm = calcularPrevisaoForja(6, 200, true, 300);
+  assert.equal(prevAuraImm.nivelMin, null);
+  assert.equal(prevAuraImm.ouroPorTentativa, 8470); // (5 + 300*2) * 7 * 2
+});

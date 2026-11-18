@@ -46,7 +46,7 @@
     sobrevivencia: {
       termo: "Vida Máxima & Defesa",
       curto: "Capacidade de suportar dano físico com base na sua vida e redução da armadura. Habilidades como Singularidade ignoram defesa.",
-      detalhes: "A Vida Efetiva Física (EHP) projeta o dano físico total suportado após mitigação de defesa. Importante: sangramento, veneno e chefes com dano puro ignoram defesa e afetam diretamente a Vida Máxima pura.",
+      detalhes: "A Vida Efetiva Física (EHP) projeta o dano físico total suportado após mitigação de defesa. Em combate PvE, golpes diretos contra heróis também respeitam o teto de 60% do HP máximo por acerto (mínimo de 2 hits para cair de vida cheia), enquanto sangramento, veneno e dano puro ignoram tanto a defesa quanto esse teto.",
       categoria: "combate"
     },
     cura: {
@@ -280,7 +280,7 @@
     comparativo_aneis: {
       termo: "Comparativo de Anéis Arcanos e Imortais (Atributos por Nível)",
       curto: "Cada anel tem um ganho diferente de ATK, DEF, HP e CRÍT por nível do item, além de Velocidade fixa.",
-      detalhes: "Ganho por nível do item: • Eclipse Arcano (14): 3,68 ATK, 0,57 CRÍT, 1,22 DEF, 5,93 HP, 16% VEL + ricochete de 60% e 20% de chance de ecoar um acerto elegível. • Ceifador Cósmico (16): 3,42 ATK, 0,43 CRÍT, 1,46 DEF, 6,85 HP, 18% VEL + ataque por almas e ceifa na décima. • Coração do Vazio (15): 2,46 ATK, 0,28 CRÍT, 2,71 DEF, 14,87 HP, 12% VEL + Revive 70% HP. • Prisma Estelar (17): 2,21 ATK, 0,22 CRÍT, 2,21 DEF, 12,87 HP, 14% VEL + Limpa controles, escudo e cura a cada 10s. • Imortais (10 a 13): Sede Escarlate (1,65 ATK/nv, sangramento), Carrasco (1,83 ATK/nv, +60% dano <=30% HP), Sanguessuga (5,75 HP/nv, 8% de roubo de vida em dano direto) e Fênix Rubra (6,95 HP/nv, revive 40% HP).",
+      detalhes: "Ganho por nível do item: • Eclipse Arcano (14): 3,68 ATK, 0,57 CRÍT, 1,22 DEF, 5,93 HP, 16% VEL + ricochete de 60% e 20% de chance de ecoar um acerto elegível. • Ceifador Cósmico (16): 3,42 ATK, 0,43 CRÍT, 1,46 DEF, 6,85 HP, 18% VEL + ataque por almas e ceifa na décima. • Coração do Vazio (15): 2,46 ATK, 0,28 CRÍT, 2,71 DEF, 14,87 HP, 12% VEL + Revive 70% HP. • Prisma Estelar (17): 2,21 ATK, 0,22 CRÍT, 2,21 DEF, 12,87 HP, 14% VEL + Limpa controles, escudo (12% do HP do portador) e cura (8%) a cada 10s. • Imortais (10 a 13): Sede Escarlate (1,65 ATK/nv, sangramento de 25% ATK/s por 2,5s), Carrasco (1,83 ATK/nv, +60% dano <=30% HP), Sanguessuga (5,75 HP/nv, 8% de roubo de vida em dano direto) e Fênix Rubra (6,95 HP/nv, revive 40% HP).",
       categoria: "equipamentos"
     },
     alquimia: {
@@ -318,6 +318,12 @@
       curto: "Estimativa de até onde a sala deve ir, calculada pela média de ondas das últimas 5 runs completas (até o grupo inteiro cair).",
       detalhes: "Cada run registrada conta quando todo o grupo cai na live. O valor em ondas totais é convertido para Zona e Onda pela fórmula oficial (ex.: 125 ondas = Z13-W5). Só aparece depois da primeira run fechada após a atualização.",
       categoria: "combate"
+    },
+    teto_fisico: {
+      termo: "Teto Físico de 60% HP (HitCap do Herói)",
+      curto: "No PvE (ondas e chefes), nenhum golpe físico ou skill direta arranca mais de 60% da sua vida máxima de uma só vez.",
+      detalhes: "Mesmo em zonas muito altas, o motor do jogo aplica Math.ceil(maxHp × 0,60) como limite máximo por acerto não-sangramento em heróis (Guerreiro, Clérigo e Arqueiro). Isso impede hit-kill físico instantâneo de vida cheia (mínimo de 2 golpes sem escudo), mas sangramentos, poças ácidas e auras contínuas ignoram tanto a defesa quanto esse teto.",
+      categoria: "chefes"
     }
   };
 
@@ -353,6 +359,9 @@
     mitigacao_defesa: "mitigacao_defesa",
     potencial: "potencial_live",
     potencial_live: "potencial_live",
+    teto: "teto_fisico",
+    hitcap: "teto_fisico",
+    teto_fisico: "teto_fisico",
     armadura: "armadura",
     sobrevivencia: "sobrevivencia",
     cura: "cura",

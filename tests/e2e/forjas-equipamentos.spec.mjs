@@ -45,6 +45,19 @@ test.describe("Forjas e Equipamentos", () => {
     await page.fill("#input-planejador-tentativas", "0");
     await expect(page.locator("#planejador-proxima-forja")).toContainText("1 tentativa");
 
+    // Testa nota de recalibração, forja de Aura até Imortal (bloqueada em Arcano) e previsão de nível/ouro
+    await expect(page.locator("aside.aviso-recalibracao")).toBeVisible();
+    await expect(page.locator("#matriz-gelo-fogo")).toContainText("Não forjável");
+    await page.selectOption("#select-planejador-raridade", "imm");
+    await page.selectOption("#select-planejador-slot", "aura");
+    await expect(page.locator("#planejador-proxima-forja")).toContainText("Aura Imortal (cosmético sem nível)");
+    await expect(page.locator("#planejador-proxima-forja")).toContainText("4 auras compatíveis");
+    await page.selectOption("#select-planejador-raridade", "arc");
+    await expect(page.locator("#select-planejador-slot")).toHaveValue("wpn");
+    await page.fill("#input-planejador-nivel-itens", "200");
+    await expect(page.locator("#planejador-proxima-forja")).toContainText("Nv. 229 a 260");
+    await expect(page.locator("#planejador-proxima-forja")).toContainText("10.846 ouro");
+
     // Jornada & VIP: ativo (halscriolo), falso + Fogo isolado + Gelo acima do teto (nando) e ausente (sempoder)
     await expect(page.locator("#resumo-eventos-conquistas")).toContainText("Ativo (skip de forja liberado)");
     await page.fill("#input-nick", "nando");

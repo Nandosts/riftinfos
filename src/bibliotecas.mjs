@@ -1,17 +1,18 @@
+const escopoGlobal = typeof window !== "undefined" ? window : globalThis;
 const Explicacoes =
-  window.RiftExplicacoes ||
+  escopoGlobal.RiftExplicacoes ||
   {};
 const Analise =
-  window.RiftAnalise ||
+  escopoGlobal.RiftAnalise ||
   {};
 const Historico =
-  window.RiftHistorico ||
+  escopoGlobal.RiftHistorico ||
   {};
 const Compartilhamento =
-  window.RiftCompartilhamento ||
+  escopoGlobal.RiftCompartilhamento ||
   {};
 
-const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.14";
+const CALCULATION_VERSION = Analise.VERSAO_CALCULO || "2026.11.18";
 
 export {
   Analise,

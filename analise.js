@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const VERSAO_CALCULO = "2026.11.14";
+  const VERSAO_CALCULO = "2026.11.18";
 
   /**
    * Cria um envelope padrão de estado de consulta de dados.
