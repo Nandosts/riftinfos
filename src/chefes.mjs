@@ -20,6 +20,8 @@ const selectMonstroOrigem = document.querySelector("#select-monstro-origem");
 const selectMonstroLiveSync = document.querySelector("#select-monstro-live-sync");
 const containerResultadoMonstros = document.querySelector("#resultado-monstros");
 let ultimaLiveSincronizada = null;
+let varianteChefe = "principal";
+let simularFrenesiGruk = false;
 
 function calcularEscalaOnda(zona, onda, numJogadores) {
   const z = Math.max(1, Math.min(100, Number(zona) || 1));
@@ -111,7 +113,15 @@ function renderizarSimuladorMonstros() {
 
   const esc = calcularEscalaOnda(zona, onda, jogadores);
   const heroi = obterHeroiBaseParaDuelo();
-  const tema = esc.infoTema;
+  const temaBase = esc.infoTema;
+  const tema = temaBase.varianteAlternativa && varianteChefe === "alternativo"
+    ? { ...temaBase, ...temaBase.varianteAlternativa }
+    : temaBase;
+  const frenesiGruk = Boolean(temaBase.varianteAlternativa && varianteChefe === "principal" && simularFrenesiGruk);
+  esc.boss.hp = Math.round(esc.boss.hp * (tema.multHp || 1));
+  esc.boss.def *= tema.multDef || 1;
+  esc.boss.atk *= (tema.multAtk || 1) * (frenesiGruk ? 1.25 : 1);
+  esc.boss.aspd *= frenesiGruk ? 1.15 : 1;
   const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
 
   function calcularDueloInimigo(inimigo, multSkill = 1.25) {
@@ -168,17 +178,18 @@ function renderizarSimuladorMonstros() {
     const cdSkillRage = tema.cdSkillBoss * Math.pow(0.92, nivelRage);
     const danoHitBasico = Math.max(1, Math.round(bossAtk * fatorDefHeroi));
     const danoHitSkill = Math.max(1, Math.round(bossAtk * tema.skillBossMult * fatorDefHeroi));
-    const danoBleed4sRage = Math.max(1, Math.round(bossAtk * 1.2)); // 30% ATK/s por 4s (Dano Verdadeiro sem DEF!)
+    const dotPorSegRage = bossAtk * (tema.fatorDotVerdadeiroPorSeg || 0.3);
+    const danoBleed4sRage = Math.max(1, Math.round(dotPorSegRage * 4));
     const pctHpBleed = (danoBleed4sRage / Math.max(1, heroi.status.maxHp)) * 100;
 
     let sobreviveTxt;
     if (danoHitSkill >= heroi.status.maxHp) {
       sobreviveTxt = "Hit-Kill Físico na Skill";
     } else if (tema.temBleedBoss && danoBleed4sRage >= heroi.status.maxHp) {
-      const segsParaMorrerNoBleed = (heroi.status.maxHp / (bossAtk * 0.3)).toFixed(1);
-      sobreviveTxt = `Letal no Sangramento (${segsParaMorrerNoBleed}s s/ cura)`;
+      const segsParaMorrerNoBleed = (heroi.status.maxHp / dotPorSegRage).toFixed(1);
+      sobreviveTxt = `Letal no dano contínuo (${segsParaMorrerNoBleed}s s/ cura)`;
     } else if (tema.temBleedBoss) {
-      sobreviveTxt = `Bleed tira ${pctHpBleed.toFixed(0)}% HP (Físico: ${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
+      sobreviveTxt = `DoT tira ${pctHpBleed.toFixed(0)}% HP (Físico: ${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
     } else {
       sobreviveTxt = `Aguenta ${Math.floor(heroi.status.maxHp / danoHitSkill)} skills (${Math.floor(heroi.status.maxHp / danoHitBasico)} hits)`;
     }
@@ -197,7 +208,7 @@ function renderizarSimuladorMonstros() {
         <td>${bossAspd.toFixed(2)}/s · Skill ${cdSkillRage.toFixed(1)}s</td>
         <td>${formatadorDecimal1.format(bossDef)}</td>
         <td>${formatarNumeroCompacto(danoHitBasico)} (Skill: ${formatarNumeroCompacto(danoHitSkill)})</td>
-        <td style="color:#ff9aa8;font-weight:700;">${tema.temBleedBoss ? `${formatarNumeroCompacto(danoBleed4sRage)} (${formatarNumeroCompacto(bossAtk * 0.3)}/s)` : "Sem Bleed no Boss"}</td>
+        <td style="color:#ff9aa8;font-weight:700;">${tema.temBleedBoss ? `${formatarNumeroCompacto(danoBleed4sRage)} (${formatarNumeroCompacto(dotPorSegRage)}/s)` : "Sem DoT no Boss"}</td>
         <td style="color:${corSobrevive};">${sobreviveTxt}</td>
       </tr>
     `;
@@ -231,6 +242,17 @@ function renderizarSimuladorMonstros() {
 
   containerResultadoMonstros.innerHTML = `
     ${avisoLive}
+    ${temaBase.varianteAlternativa ? `
+      <div class="barra-atalhos controles-variante-chefe">
+        <label>Chefe da zona
+          <select id="select-variante-chefe">
+            <option value="principal" ${varianteChefe === "principal" ? "selected" : ""}>${escaparHtml(temaBase.boss)} (50%)</option>
+            <option value="alternativo" ${varianteChefe === "alternativo" ? "selected" : ""}>${escaparHtml(temaBase.varianteAlternativa.boss)} (50%)</option>
+          </select>
+        </label>
+        ${varianteChefe === "principal" ? `<label><input id="input-frenesi-gruk" type="checkbox" ${simularFrenesiGruk ? "checked" : ""}> Simular frenesi do Gruk (50% de vida)</label>` : ""}
+        <p class="small muted">O tema se repete a cada 8 zonas, incluindo a 18-10. A comparação mostra os valores da fase escolhida; não simula a luta inteira. No Mímico, o dano contínuo só atinge o herói engolido e o escudo não entra no TTK.</p>
+      </div>` : ""}
     <div class="barra-atalhos">
       <span class="rotulo-atalho">🎯 Zonas Rápidas:</span>
       ${zonasAtalho
@@ -266,7 +288,7 @@ function renderizarSimuladorMonstros() {
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
         <strong class="valor-indicador" style="color:${dBoss.golpesParaMorrer <= 1 || bleedLetalNoBoss ? '#ff8a9b' : 'var(--green)'};">
-          ${dBoss.golpesParaMorrer <= 1 ? "Hit-Kill físico" : bleedLetalNoBoss ? `Sangramento (~${segsParaMorrerNoDoT}s)` : `${dBoss.golpesParaMorrer} golpes físicos`}
+          ${dBoss.golpesParaMorrer <= 1 ? "Hit-Kill físico" : bleedLetalNoBoss ? `Dano contínuo (~${segsParaMorrerNoDoT}s)` : `${dBoss.golpesParaMorrer} golpes físicos`}
         </strong>
         <span class="nota-indicador">${dBoss.golpesParaMorrer <= 1 ? "Ataque físico supera vida máxima" : bleedLetalNoBoss ? "Dano que ignora defesa" : "Sobrevivência estável"}</span>
       </div>
@@ -326,7 +348,7 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>DPS Real / TTK Solo</span><strong>${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s · ${dBoss.ttk.toFixed(1)}s</strong></div>
         ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Dano médio da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
         <div class="card-info-linha"><span>Dano Físico do Chefe (c/ DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)} · Skill (${tema.skillBossMult}×): ${formatarNumeroCompacto(dBoss.danoSkillFisica)}</strong></div>
-        <div class="card-info-linha"><span>Sangramento / DoT (Ignora DEF!)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0)}% do seu HP)` : "Sem Sangramento nesta zona"}</strong></div>
+        <div class="card-info-linha"><span>Dano contínuo (ignora DEF)</span><strong style="color:${dotBoss4s >= heroi.status.maxHp ? "#ff7a90" : "var(--gold)"};">${tema.temBleedBoss ? `${formatarNumeroCompacto(dotBossPorSeg)}/s (${formatarNumeroCompacto(dotBoss4s)} em 4s = ${((dotBoss4s / heroi.status.maxHp) * 100).toFixed(0)}% do seu HP)` : "Sem dano contínuo do chefe"}</strong></div>
         <div class="card-info-linha"><span>Tempo para Morrer no DoT</span><strong style="color:${bleedLetalNoBoss ? "#ff7a90" : "var(--green)"};">${tema.temBleedBoss ? (bleedLetalNoBoss ? `⚠️ ~${segsParaMorrerNoDoT}s (sem cura ou escudo)` : `✅ Sobrevive com ${formatarNumeroCompacto(heroi.status.maxHp - dotBoss4s)} HP (se não levar dano físico adicional)`) : "Seguro (sem dano contínuo do Chefe)"}</strong></div>
       </article>
     </div>
@@ -342,7 +364,7 @@ function renderizarSimuladorMonstros() {
               <th scope="col">Vel. / CD Skill</th>
               <th scope="col">DEF (-7%)</th>
               <th scope="col">Hit Físico / Skill (c/ DEF)</th>
-              <th scope="col">Sangramento 4s (Ignora DEF)</th>
+              <th scope="col">Dano contínuo em 4s (ignora DEF)</th>
               <th scope="col">Impacto Real em Você</th>
             </tr>
           </thead>
@@ -351,6 +373,15 @@ function renderizarSimuladorMonstros() {
       </div>
     </details>
   `;
+
+  containerResultadoMonstros.querySelector("#select-variante-chefe")?.addEventListener("change", (e) => {
+    varianteChefe = e.target.value;
+    renderizarSimuladorMonstros();
+  });
+  containerResultadoMonstros.querySelector("#input-frenesi-gruk")?.addEventListener("change", (e) => {
+    simularFrenesiGruk = e.target.checked;
+    renderizarSimuladorMonstros();
+  });
 
   containerResultadoMonstros.querySelectorAll("[data-atalho-zona]").forEach((btn) => {
     btn.addEventListener("click", () => {

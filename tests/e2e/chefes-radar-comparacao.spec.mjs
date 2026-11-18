@@ -2,6 +2,39 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina } from "./helpers/ambiente.mjs";
 
 test.describe("Chefes, Radar e Comparação", () => {
+  test("Gruk e Mímico na zona 18, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
+    const { erros } = await prepararPagina(page, "/index.html");
+    await page.fill("#input-nick", "halscriolo");
+    await page.click('#formulario-busca button[type="submit"]');
+    await page.click("#aba-monstros");
+    await page.fill("#input-monstro-zona", "18");
+    await page.fill("#input-monstro-onda", "10");
+    const chefe = page.locator(".card-monstro.boss");
+    const ataque = () => chefe.locator(".card-info-linha").filter({ hasText: "ATK / DEF" }).innerText();
+    await expect(chefe).toContainText("SENHOR DA GUERRA GRUK");
+    await expect(page.locator("#resultado-monstros")).toContainText("+25% ATK");
+    const seletor = await page.locator("#select-variante-chefe").boundingBox();
+    expect(seletor.x).toBeGreaterThanOrEqual(0);
+    expect(seletor.x + seletor.width).toBeLessThanOrEqual(page.viewportSize().width);
+    await page.locator(".controles-variante-chefe").screenshot({ path: `/tmp/riftinfos-gruk-${testInfo.project.name}.png` });
+    const ataqueBase = await ataque();
+    await page.check("#input-frenesi-gruk");
+    expect(await ataque()).not.toBe(ataqueBase);
+    await page.uncheck("#input-frenesi-gruk");
+    expect(await ataque()).toBe(ataqueBase);
+    const hpBase = await chefe.locator(".card-info-linha").filter({ hasText: "HP Total" }).innerText();
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(chefe).toContainText("MÍMICO VORAZ");
+    await expect(page.locator("#resultado-monstros")).toContainText("CD Base: 8s");
+    expect(await chefe.locator(".card-info-linha").filter({ hasText: "HP Total" }).innerText()).not.toBe(hpBase);
+    await expect(page.locator("#input-frenesi-gruk")).toHaveCount(0);
+    await page.selectOption("#select-variante-chefe", "principal");
+    expect(await ataque()).toBe(ataqueBase);
+    await page.fill("#input-monstro-zona", "19");
+    await expect(page.locator("#select-variante-chefe")).toHaveCount(0);
+    expect(erros).toEqual([]);
+  });
+
   test("Chefes: origem, limites zona/onda/jogadores, escalas 70/100, Fúria, sangramento e sync pela live", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa simulador de chefes no desktop");
     const { erros } = await prepararPagina(page, "/index.html");
