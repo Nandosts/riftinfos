@@ -68,6 +68,23 @@ test.describe("Página de Alquimia (alquimia.html)", () => {
     await expect(page.locator('[data-valor="nivel-entrada"]')).toContainText("Média Nv. 150");
     await expect(page.locator(".comparativo-nivel-entrada")).toContainText("abaixo da média informada");
     await expect(page.locator("#input-comparacao-nivel-medio")).toHaveValue("150");
+    await expect(page.locator('[data-caminho="forja"]')).toContainText("Nv. 172–195");
+
+    // Trocar média válida (150) por valor inválido (1500 e depois abc) esconde cálculo anterior e mostra mensagem junto ao campo
+    await page.fill("#input-alquimia-nivel-medio", "1500");
+    await expect(page.locator("#input-alquimia-nivel-medio")).toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator("#erro-alquimia-nivel-medio")).toBeVisible();
+    await expect(page.locator("#erro-alquimia-nivel-medio")).toContainText("1 e 999");
+    await expect(page.locator(".comparativo-nivel-entrada")).toHaveAttribute("data-relacao-nivel", "invalido");
+    await expect(page.locator(".comparativo-nivel-entrada")).not.toContainText("Média Nv. 150");
+    await expect(page.locator('[data-caminho="forja"]')).not.toContainText("Nv. 172–195");
+    await expect(page.locator('[data-caminho="forja"]')).toContainText("Corrija o nível médio");
+
+    // Corrigir para valor válido limpa o erro e volta a calcular
+    await page.fill("#input-alquimia-nivel-medio", "150");
+    await expect(page.locator("#erro-alquimia-nivel-medio")).toBeHidden();
+    await expect(page.locator("#input-alquimia-nivel-medio")).not.toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator('[data-valor="nivel-entrada"]')).toContainText("Média Nv. 150");
 
     // Selecionar Nv. 5 (wiki) exibe aviso explícito e faixa 111–150
     await page.click('label[for="radio-nivel-5"]');

@@ -589,6 +589,13 @@
   border-color: #ff7a70;
 }
 
+.erro-campo {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #ff9b90;
+  line-height: 1.4;
+}
+
 @media (pointer: coarse) {
   .campo-alx input {
     min-height: 52px;
@@ -688,6 +695,11 @@
 
 .comparativo-nivel-dentro {
   border-left-color: var(--cyan);
+}
+
+.comparativo-nivel-invalido {
+  border-left-color: #ff7a70;
+  background: linear-gradient(90deg, rgba(255, 122, 112, 0.1), var(--panel-alt) 45%);
 }
 
 .comparativo-nivel-grid {

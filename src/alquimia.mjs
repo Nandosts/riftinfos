@@ -151,6 +151,34 @@ export function interpretarNumeroDecimal(valor) {
   return Number.isFinite(numero) ? numero : null;
 }
 
+export function validarNivelMedioReferencia(valor, { aoSair = false } = {}) {
+  const bruto = valor === null || valor === undefined ? "" : String(valor).trim();
+  if (!bruto) {
+    return { estado: "vazio", valor: null, erro: "" };
+  }
+  // Permite continuar digitando o separador decimal (ex.: "81,") sem acusar erro antes do blur,
+  // mas já limpa o valor numérico para não manter o cálculo anterior na tela.
+  if (!aoSair && /^\d+[.,]$/.test(bruto)) {
+    return { estado: "incompleto", valor: null, erro: "" };
+  }
+  const numero = interpretarNumeroDecimal(bruto);
+  if (numero === null) {
+    return {
+      estado: "invalido",
+      valor: null,
+      erro: "Informe um número válido entre 1 e 999 (aceita decimal, como 81,75).",
+    };
+  }
+  if (numero < 1 || numero > 999) {
+    return {
+      estado: "invalido",
+      valor: null,
+      erro: "Informe um nível médio entre 1 e 999.",
+    };
+  }
+  return { estado: "valido", valor: numero, erro: "" };
+}
+
 export function formatarNivelReferencia(valor) {
   if (!Number.isFinite(valor)) return "";
   return formatadorDecimal.format(valor);
@@ -485,6 +513,7 @@ const estadoPagina = {
   quantidadeItens: 9,
   fragmentosGuardados: 0,
   nivelMedioItens: null,
+  erroNivelMedio: "",
   tabelaCompletaAberta: null,
   chancesWiki: { ...CHANCES_FORJA_PADRAO },
 };
@@ -618,6 +647,27 @@ function atualizarIconesRadiosPorSelecao() {
 
 function montarBlocoNivelEntradaSaida(alquimia) {
   const { faixa, comparativoNivel } = alquimia;
+  if (estadoPagina.erroNivelMedio) {
+    return `
+      <div class="comparativo-nivel-entrada comparativo-nivel-invalido" data-relacao-nivel="invalido">
+        <div class="comparativo-nivel-grid">
+          <div>
+            <span class="small muted">Seus itens de entrada</span>
+            <p class="comparativo-nivel-valor muted">Aguardando nível médio válido</p>
+          </div>
+          <span class="comparativo-seta" aria-hidden="true">➜</span>
+          <div>
+            <span class="small muted">Saída na Alquimia (Nv. ${faixa.nivel})</span>
+            <p class="comparativo-nivel-valor" data-valor="faixa-gerada">Nv. ${faixa.ilvlLo}–${faixa.ilvlHi}</p>
+          </div>
+          <span class="badge-alx badge-alerta">! Nível médio inválido</span>
+        </div>
+        <p class="small muted" style="margin:8px 0 0;">
+          Corrija o campo de <strong>nível médio dos seus itens</strong> (entre 1 e 999) para comparar entrada × saída e exibir a faixa e o ouro da Forja.
+        </p>
+      </div>
+    `;
+  }
   if (!comparativoNivel) {
     return `
       <div class="comparativo-nivel-entrada comparativo-nivel-pendente" data-relacao-nivel="pendente">
@@ -810,13 +860,19 @@ function renderizarResultadosCalculadora() {
     ? ` (piso mínimo Nv. ${forja.pisoForja} aplicado)`
     : "";
 
+  const temErroNivelMedio = Boolean(estadoPagina.erroNivelMedio);
+
   const textoNivelForja = comparacao.temNivelReferencia
     ? `<strong>Nv. ${formatadorInteiro.format(forja.nivelMin)}–${formatadorInteiro.format(forja.nivelMax)}</strong> (+15% a +30% sobre média Nv. ${escaparHtml(formatarNivelReferencia(comparacao.nivelMedioItens))})${notaPisoForja}.`
-    : `Informe o nível médio dos equipamentos acima para calcular +15% a +30%${forja.pisoForja > 0 ? ` (piso Nv. ${forja.pisoForja} em ${escaparHtml(forja.destinoRaridade.rotulo)})` : ""}.`;
+    : temErroNivelMedio
+      ? "Corrija o nível médio informado (entre 1 e 999) para calcular +15% a +30% na Forja."
+      : `Informe o nível médio dos equipamentos acima para calcular +15% a +30%${forja.pisoForja > 0 ? ` (piso Nv. ${forja.pisoForja} em ${escaparHtml(forja.destinoRaridade.rotulo)})` : ""}.`;
 
   const textoOuroForja = comparacao.temNivelReferencia
     ? `Estimativa de <strong>${formatadorInteiro.format(forja.ouroPorTentativa)}g</strong> por tentativa${forja.tentativasPossiveis > 0 ? ` (~${formatadorInteiro.format(forja.ouroTotal)}g para ${formatadorInteiro.format(forja.tentativasPossiveis)} tentativa(s))` : ""}.`
-    : "Depende do nível médio dos equipamentos (informe acima para estimar o custo por tentativa).";
+    : temErroNivelMedio
+      ? "Corrija o nível médio informado (entre 1 e 999) para estimar o custo em ouro."
+      : "Depende do nível médio dos equipamentos (informe acima para estimar o custo por tentativa).";
 
   const resumoNivelAlquimiaCard = alquimia.comparativoNivel
     ? `<strong>Nv. ${alquimia.faixa.ilvlLo}–${alquimia.faixa.ilvlHi}</strong> (entrada média Nv. ${escaparHtml(formatarNivelReferencia(alquimia.comparativoNivel.nivelMedio))})`
@@ -824,11 +880,15 @@ function renderizarResultadosCalculadora() {
 
   const resumoNivelForjaCard = comparacao.temNivelReferencia
     ? `<strong>Nv. ${formatadorInteiro.format(forja.nivelMin)}–${formatadorInteiro.format(forja.nivelMax)}</strong>${notaPisoForja}`
-    : `Informe o nível médio (+15% a +30%${forja.pisoForja > 0 ? `, piso ${forja.pisoForja}` : ""})`;
+    : temErroNivelMedio
+      ? "Corrija o nível médio (1 a 999)"
+      : `Informe o nível médio (+15% a +30%${forja.pisoForja > 0 ? `, piso ${forja.pisoForja}` : ""})`;
 
   const resumoOuroForjaCard = comparacao.temNivelReferencia
     ? `~${formatadorInteiro.format(forja.ouroPorTentativa)}g / tentativa`
-    : "Informe o nível médio";
+    : temErroNivelMedio
+      ? "Corrija o nível médio"
+      : "Informe o nível médio";
 
   const rotuloLinhaSaldo = temGuardados
     ? "Saldo usado e resultado"
@@ -1046,57 +1106,66 @@ function vincularEventos() {
   vincularInputInteiro("#input-alquimia-guardados", "fragmentosGuardados", { min: 0, max: 99999, padrao: 0 });
 
   // Campos de nível médio de referência (opcionais, aceitam decimal com vírgula ou ponto e ficam sincronizados)
-  const inputsNivelMedio = [
-    doc.querySelector("#input-alquimia-nivel-medio"),
-    doc.querySelector("#input-comparacao-nivel-medio"),
-  ].filter(Boolean);
+  const camposNivelMedio = [
+    {
+      input: doc.querySelector("#input-alquimia-nivel-medio"),
+      dicaId: "dica-alquimia-nivel-medio",
+      erroEl: doc.querySelector("#erro-alquimia-nivel-medio"),
+    },
+    {
+      input: doc.querySelector("#input-comparacao-nivel-medio"),
+      dicaId: "dica-comparacao-nivel",
+      erroEl: doc.querySelector("#erro-comparacao-nivel-medio"),
+    },
+  ].filter((item) => Boolean(item.input));
 
-  const sincronizarInputsNivelMedio = (origem, valorTexto) => {
-    inputsNivelMedio.forEach((campo) => {
-      if (campo !== origem) {
-        campo.value = valorTexto;
-        campo.removeAttribute("aria-invalid");
+  const aplicarEstadoVisualNivelMedio = (origem, valorTexto, mensagemErro) => {
+    estadoPagina.erroNivelMedio = mensagemErro;
+    camposNivelMedio.forEach(({ input, dicaId, erroEl }) => {
+      if (input !== origem) {
+        input.value = valorTexto;
+      }
+      if (mensagemErro) {
+        input.setAttribute("aria-invalid", "true");
+        if (erroEl) {
+          erroEl.textContent = mensagemErro;
+          erroEl.hidden = false;
+          input.setAttribute("aria-describedby", `${dicaId} ${erroEl.id}`);
+        }
+      } else {
+        input.removeAttribute("aria-invalid");
+        if (erroEl) {
+          erroEl.textContent = "";
+          erroEl.hidden = true;
+        }
+        input.setAttribute("aria-describedby", dicaId);
       }
     });
   };
 
-  inputsNivelMedio.forEach((input) => {
+  camposNivelMedio.forEach(({ input }) => {
     input.addEventListener("input", () => {
-      const bruto = input.value.trim();
-      input.removeAttribute("aria-invalid");
-      if (bruto === "") {
-        estadoPagina.nivelMedioItens = null;
-        sincronizarInputsNivelMedio(input, "");
-        renderizarResultadosCalculadora();
-        return;
-      }
-      const numero = interpretarNumeroDecimal(bruto);
-      if (numero !== null && numero >= 1 && numero <= 999) {
-        estadoPagina.nivelMedioItens = numero;
-        sincronizarInputsNivelMedio(input, bruto);
-        renderizarResultadosCalculadora();
-      }
+      const bruto = input.value;
+      const validacao = validarNivelMedioReferencia(bruto, { aoSair: false });
+      estadoPagina.nivelMedioItens = validacao.valor;
+      aplicarEstadoVisualNivelMedio(input, bruto, validacao.erro);
+      renderizarResultadosCalculadora();
     });
 
     input.addEventListener("blur", () => {
-      const bruto = input.value.trim();
-      if (bruto === "") {
-        estadoPagina.nivelMedioItens = null;
-        input.removeAttribute("aria-invalid");
-        sincronizarInputsNivelMedio(input, "");
-        renderizarResultadosCalculadora();
-        return;
+      const bruto = input.value;
+      const validacao = validarNivelMedioReferencia(bruto, { aoSair: true });
+      estadoPagina.nivelMedioItens = validacao.valor;
+      if (validacao.estado === "valido") {
+        const formatado = formatarNivelReferencia(validacao.valor);
+        input.value = formatado;
+        aplicarEstadoVisualNivelMedio(input, formatado, "");
+      } else if (validacao.estado === "vazio") {
+        input.value = "";
+        aplicarEstadoVisualNivelMedio(input, "", "");
+      } else {
+        aplicarEstadoVisualNivelMedio(input, bruto.trim(), validacao.erro);
       }
-      const numero = interpretarNumeroDecimal(bruto);
-      if (numero === null || numero < 1 || numero > 999) {
-        input.setAttribute("aria-invalid", "true");
-        return;
-      }
-      const formatado = formatarNivelReferencia(numero);
-      estadoPagina.nivelMedioItens = numero;
-      input.removeAttribute("aria-invalid");
-      input.value = formatado;
-      sincronizarInputsNivelMedio(input, formatado);
       renderizarResultadosCalculadora();
     });
   });

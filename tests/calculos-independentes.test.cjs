@@ -366,6 +366,7 @@ test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e 
     gerarSvgFragmento,
     interpretarNumeroDecimal,
     obterFaixaNivelAlquimia,
+    validarNivelMedioReferencia,
   } = await import("../src/alquimia.mjs");
 
   // 1. Distinção clara e datada entre níveis liberados no patch de 14/11 (1..4) e documentado na wiki (5)
@@ -424,10 +425,20 @@ test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e 
   assert.equal(r4.reciclandoResultados.criacoes, 0);
   assert.equal(r4.reciclandoResultados.sobraSeReciclarTodos, 4);
 
-  // 3. Comparação de nível de entrada x faixa de saída + suporte a média decimal
+  // 3. Comparação de nível de entrada x faixa de saída + suporte a média decimal e validação
   assert.equal(interpretarNumeroDecimal("81,75"), 81.75);
   assert.equal(interpretarNumeroDecimal("81.75"), 81.75);
   assert.equal(interpretarNumeroDecimal(""), null);
+
+  assert.equal(validarNivelMedioReferencia("").estado, "vazio");
+  assert.equal(validarNivelMedioReferencia("81,75").estado, "valido");
+  assert.equal(validarNivelMedioReferencia("81,75").valor, 81.75);
+  assert.equal(validarNivelMedioReferencia("81,", { aoSair: false }).estado, "incompleto");
+  assert.equal(validarNivelMedioReferencia("81,", { aoSair: false }).valor, null);
+  assert.equal(validarNivelMedioReferencia("81,", { aoSair: true }).estado, "invalido");
+  assert.ok(validarNivelMedioReferencia("abc").erro.length > 0);
+  assert.equal(validarNivelMedioReferencia("1500").estado, "invalido");
+  assert.equal(validarNivelMedioReferencia("0").estado, "invalido");
 
   const faixa4 = obterFaixaNivelAlquimia(4); // 80..110
   assert.equal(compararNivelEntradaSaida(null, faixa4), null);
