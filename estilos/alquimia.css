@@ -1,0 +1,920 @@
+/* Estilos da Página de Alquimia · RiftInfos */
+
+.alx-cabecalho {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.alx-cabecalho h1 {
+  font-size: clamp(24px, 5vw, 38px);
+  color: var(--text);
+}
+
+.alx-atalhos-topo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-atalho-principal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--gold);
+  color: #1a1020;
+  font-family: var(--pix);
+  font-size: 0.8rem;
+  text-decoration: none;
+  box-shadow: inset -3px -3px #0004, inset 3px 3px #fff5, 0 3px #8a6a10;
+  transition: filter 0.14s ease, transform 0.12s ease;
+}
+
+.btn-atalho-principal:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.alx-secao {
+  margin-bottom: 24px;
+  scroll-margin-top: 18px;
+}
+
+.alx-secao-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.alx-secao-topo p {
+  margin: 6px 0 0;
+}
+
+.alx-subtitulo {
+  margin: 20px 0 10px;
+  color: var(--cyan);
+  font-size: 0.95rem;
+}
+
+.alx-nota-servidor {
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(143, 208, 255, 0.08), rgba(20, 17, 41, 0.94));
+  border: 1px solid rgba(143, 208, 255, 0.38);
+  border-left: 4px solid var(--cyan);
+  box-shadow: 0 3px #0a0818;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.alx-nota-servidor p {
+  margin: 0;
+}
+
+/* Fluxo em passos do guia */
+.alx-passos-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.alx-passo-card {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.alx-passo-numero {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pix);
+  font-size: 0.78rem;
+  color: var(--gold);
+}
+
+.alx-passo-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.48;
+}
+
+.alx-passo-card strong {
+  color: var(--text);
+}
+
+/* Galeria visual dos 5 fragmentos */
+.alx-galeria-controles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.alx-botoes-peca {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-galeria-peca {
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  background: var(--panel-alt);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.btn-galeria-peca.ativa {
+  background: rgba(143, 208, 255, 0.16);
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+
+.grade-fragmentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.card-fragmento {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cor-raridade, var(--line));
+}
+
+.card-fragmento-icone {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.svg-fragmento {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.card-fragmento-texto {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card-fragmento-texto strong {
+  font-family: var(--pix);
+  font-size: 0.82rem;
+}
+
+.micro-nota {
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+/* Regras: o que entra vs proteções */
+.grade-regras-alquimia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.bloco-regra {
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+}
+
+.bloco-regra h3 {
+  font-size: 0.88rem;
+  margin-bottom: 10px;
+}
+
+.bloco-regra-ok {
+  border-top: 3px solid var(--green);
+}
+
+.bloco-regra-ok h3 {
+  color: var(--green);
+}
+
+.bloco-regra-protecao {
+  border-top: 3px solid #ff8c7a;
+}
+
+.bloco-regra-protecao h3 {
+  color: #ff9b90;
+}
+
+.lista-regras {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 7px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.48;
+}
+
+.lista-regras strong {
+  color: var(--text);
+}
+
+/* Badges sem depender apenas de cor */
+.badge-alx {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-family: var(--pix);
+  font-size: 0.68rem;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.badge-liberado {
+  background: rgba(107, 224, 138, 0.14);
+  border-color: rgba(107, 224, 138, 0.5);
+  color: var(--green);
+}
+
+.badge-wiki {
+  background: rgba(255, 213, 74, 0.12);
+  border-color: rgba(255, 213, 74, 0.5);
+  color: var(--gold);
+}
+
+.badge-neutro {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.badge-ciano {
+  background: rgba(143, 208, 255, 0.14);
+  border-color: rgba(143, 208, 255, 0.48);
+  color: var(--cyan);
+}
+
+.badge-alerta {
+  background: rgba(255, 138, 122, 0.14);
+  border-color: rgba(255, 138, 122, 0.55);
+  color: #ff9b90;
+}
+
+/* Tabelas responsivas (guia responsive-table com container queries) */
+.tabela-alquimia-wrap {
+  overflow: auto;
+  max-inline-size: 100%;
+  border: 1px solid var(--line);
+  background: var(--panel-alt);
+  container-type: inline-size;
+}
+
+.tabela-alquimia-wrap table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.tabela-alquimia-wrap caption {
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--pix);
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabela-alquimia-wrap thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+}
+
+.tabela-alquimia-wrap thead th {
+  background: #100d21;
+  color: var(--cyan);
+  font-size: 0.75rem;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--line);
+}
+
+.tabela-alquimia-wrap tbody th,
+.tabela-alquimia-wrap tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(52, 45, 99, 0.75);
+  vertical-align: top;
+}
+
+.tabela-alquimia-wrap tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: #171330;
+  color: var(--text);
+  text-align: left;
+  font-size: 0.78rem;
+  min-width: 115px;
+}
+
+.tabela-alquimia-wrap tbody tr:last-child th,
+.tabela-alquimia-wrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.linha-faixa-wiki td,
+.linha-faixa-wiki th {
+  background: rgba(255, 213, 74, 0.04);
+}
+
+/* Labels CSS para layout empilhado em container estreito (< 600px) */
+.tabela-faixas-alquimia {
+  --col-2: "Faixa dos itens";
+  --col-3: "Situação";
+  --col-4: "Marcos do jogo";
+}
+
+.tabela-comparacao-destinos {
+  --col-2: "⚗️ Alquimia";
+  --col-3: "🔨 Forja";
+  --col-4: "⬆️ Aprimorar";
+}
+
+@container (width < 600px) {
+  .tabela-alquimia-wrap table,
+  .tabela-alquimia-wrap thead,
+  .tabela-alquimia-wrap tbody,
+  .tabela-alquimia-wrap tr,
+  .tabela-alquimia-wrap th,
+  .tabela-alquimia-wrap td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabela-alquimia-wrap thead {
+    display: none;
+  }
+
+  .tabela-alquimia-wrap tbody tr {
+    margin-block-end: 12px;
+    border-bottom: 2px solid var(--line);
+    background: var(--panel-alt);
+  }
+
+  .tabela-alquimia-wrap tbody tr:last-child {
+    margin-block-end: 0;
+    border-bottom: 0;
+  }
+
+  .tabela-alquimia-wrap tbody th {
+    position: static;
+    min-width: 0;
+    background: #100d21;
+    color: var(--gold);
+    border-bottom: 1px solid var(--line);
+    padding: 9px 12px;
+  }
+
+  .tabela-alquimia-wrap tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px dashed rgba(52, 45, 99, 0.7);
+  }
+
+  .tabela-alquimia-wrap tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .tabela-alquimia-wrap tbody td::before {
+    display: block;
+    font-family: var(--pix);
+    font-size: 0.7rem;
+    color: var(--cyan);
+    margin-bottom: 4px;
+  }
+
+  .tabela-alquimia-wrap tbody td:nth-child(2)::before {
+    content: var(--col-2);
+  }
+
+  .tabela-alquimia-wrap tbody td:nth-child(3)::before {
+    content: var(--col-3);
+  }
+
+  .tabela-alquimia-wrap tbody td:nth-child(4)::before {
+    content: var(--col-4);
+  }
+}
+
+/* Formulário acessível da calculadora (guia forms + accessibility) */
+.form-alquimia {
+  display: grid;
+  gap: 18px;
+}
+
+.fieldset-alquimia {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.fieldset-alquimia legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-family: var(--pix);
+  font-size: 0.78rem;
+  color: var(--cyan);
+  letter-spacing: 0.04em;
+}
+
+.grade-radios-alx {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+  gap: 8px;
+}
+
+.opcao-radio-card {
+  position: relative;
+}
+
+.visually-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
+.rotulo-radio-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-block-size: 58px;
+  padding: 10px 8px;
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.rotulo-radio-card:hover {
+  border-color: var(--cyan);
+}
+
+.opcao-radio-card input:checked + .rotulo-radio-card {
+  background: rgba(143, 208, 255, 0.14);
+  border-color: var(--cor-raridade, var(--gold));
+  box-shadow: inset 0 0 0 1px var(--cor-raridade, var(--gold));
+}
+
+.opcao-radio-card input:focus-visible + .rotulo-radio-card {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.rotulo-radio-wiki {
+  border-style: dashed;
+}
+
+.radio-icone {
+  display: grid;
+  place-items: center;
+}
+
+.radio-titulo {
+  font-family: var(--pix);
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.radio-subtitulo {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.radio-selo {
+  font-family: var(--pix);
+  font-size: 0.64rem;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+}
+
+.selo-liberado {
+  color: var(--green);
+  border-color: rgba(107, 224, 138, 0.45);
+  background: rgba(107, 224, 138, 0.1);
+}
+
+.selo-wiki {
+  color: var(--gold);
+  border-color: rgba(255, 213, 74, 0.45);
+  background: rgba(255, 213, 74, 0.1);
+}
+
+/* Campos numéricos com >= 48px e font-size >= 1rem */
+.grade-inputs-numericos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.campo-alx {
+  display: grid;
+  gap: 5px;
+}
+
+.campo-alx label {
+  font-family: var(--pix);
+  font-size: 0.76rem;
+  color: var(--text);
+}
+
+.campo-alx .dica-campo {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.campo-alx input {
+  font: inherit;
+  font-size: max(1rem, 1em);
+  min-height: 48px;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--line);
+}
+
+.campo-alx input:user-invalid,
+.campo-alx input[aria-invalid="true"] {
+  border-color: #ff7a70;
+}
+
+@media (pointer: coarse) {
+  .campo-alx input {
+    min-height: 52px;
+  }
+}
+
+.atalhos-quantidade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-atalho-qtd {
+  min-height: 36px;
+  min-width: 44px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  background: var(--panel-alt);
+  color: var(--cyan);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.btn-atalho-qtd:hover {
+  border-color: var(--cyan);
+  background: rgba(143, 208, 255, 0.12);
+}
+
+/* Resultados da calculadora */
+.resultados-calculadora {
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.resumo-entrada-calc {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--cor-raridade, var(--gold));
+}
+
+.resumo-entrada-icone {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.resumo-entrada-texto p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.resumo-entrada-texto p + p {
+  margin-top: 4px;
+}
+
+.aviso-inline-wiki {
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba(255, 213, 74, 0.08);
+  border: 1px solid rgba(255, 213, 74, 0.45);
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.aviso-inline-wiki strong {
+  color: var(--gold);
+}
+
+/* Destaque de nível de entrada x saída da Alquimia */
+.comparativo-nivel-entrada {
+  padding: 14px 16px;
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  border-left: 4px solid var(--cyan);
+}
+
+.comparativo-nivel-abaixo {
+  border-left-color: #ff9b90;
+  background: linear-gradient(90deg, rgba(255, 138, 122, 0.08), var(--panel-alt) 45%);
+}
+
+.comparativo-nivel-acima {
+  border-left-color: var(--green);
+  background: linear-gradient(90deg, rgba(107, 224, 138, 0.08), var(--panel-alt) 45%);
+}
+
+.comparativo-nivel-dentro {
+  border-left-color: var(--cyan);
+}
+
+.comparativo-nivel-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  flex-wrap: wrap;
+}
+
+.comparativo-nivel-valor {
+  margin: 4px 0 0;
+  font-family: var(--pix);
+  font-size: clamp(16px, 3.2vw, 22px);
+  color: var(--text);
+}
+
+.comparativo-seta {
+  font-family: var(--pix);
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+.comparativo-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.comparativo-nivel-resumo {
+  margin: 10px 0 0;
+  color: var(--text);
+  line-height: 1.48;
+}
+
+/* Resumo por caminho (Alquimia, Forja e Aprimorar) */
+.grade-resumo-caminhos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-caminho {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.card-caminho h3 {
+  font-size: 0.9rem;
+  color: var(--gold);
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.lista-caminho {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lista-caminho > div {
+  display: grid;
+  gap: 2px;
+  font-size: 0.85rem;
+  line-height: 1.42;
+}
+
+.lista-caminho dt {
+  font-family: var(--pix);
+  font-size: 0.68rem;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lista-caminho dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.detalhes-tabela-comparacao {
+  margin-top: 4px;
+}
+
+.sumario-tabela-comparacao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 12px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  color: var(--cyan);
+  font-family: var(--pix);
+  font-size: 0.78rem;
+  min-height: 44px;
+  margin-bottom: 10px;
+}
+
+.sumario-tabela-comparacao:hover {
+  border-color: var(--cyan);
+  color: var(--gold);
+}
+
+.grade-dois-modos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.card-modo-resultado {
+  background: var(--panel-alt);
+  border: 2px solid var(--line);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.card-modo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-modo-topo h3 {
+  color: var(--gold);
+  font-size: 0.92rem;
+}
+
+.valor-destaque-calc {
+  margin: 0;
+  font-family: var(--pix);
+  font-size: clamp(20px, 4vw, 28px);
+  color: var(--text);
+}
+
+.lista-metricas-calc {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lista-metricas-calc > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  font-size: 0.86rem;
+}
+
+.lista-metricas-calc dt {
+  color: var(--muted);
+}
+
+.lista-metricas-calc dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.nota-ciclo-reciclar {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+.faixa-gerada-bloco {
+  padding: 14px 16px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+}
+
+.faixa-gerada-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.faixa-gerada-valor {
+  margin: 4px 0 0;
+  font-family: var(--pix);
+  font-size: clamp(18px, 3.5vw, 24px);
+  color: var(--cyan);
+}
+
+/* Controle de nível médio na comparação */
+.barra-nivel-comparacao {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+}
+
+.barra-nivel-comparacao .campo-alx {
+  flex: 0 1 260px;
+}
+
+.alx-rodape {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 520px) {
+  .grade-radios-alx {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
