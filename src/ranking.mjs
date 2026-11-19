@@ -219,7 +219,8 @@ async function buscarPerfilCache(login, sinal) {
 }
 
 async function preencherPerfisEmBackground(listaJogadores, sinal, aoAtualizar) {
-  const faltantes = listaJogadores.filter((j) => !cachePerfisApi.has((j.login || "").toLowerCase()));
+  const lista = Array.isArray(listaJogadores) ? listaJogadores : [];
+  const faltantes = lista.filter((j) => j?.login && !cachePerfisApi.has((j.login || "").toLowerCase()));
   if (faltantes.length === 0) {
     if (aoAtualizar) aoAtualizar();
     return;
@@ -337,7 +338,7 @@ export async function carregarRanking(canalDigitado, tipoBoard = estado.boardTip
       });
     } else {
       // Carrega perfis da página atual
-      const paginacao = obterDadosFiltradosEPaginados();
+      const { paginacao } = obterDadosFiltradosEPaginados();
       void preencherPerfisEmBackground(paginacao.itens, controlador.signal, () => {
         if (!controlador.signal.aborted) {
           if (containerProgresso) containerProgresso.hidden = true;
@@ -563,6 +564,10 @@ function renderizarPaginacao(paginacao) {
       else if (acao === "proxima") estado.pagina = Math.min(totalPaginas, estado.pagina + 1);
       else if (acao === "ultima") estado.pagina = totalPaginas;
       renderizarTabela();
+      const { paginacao: pagAtual } = obterDadosFiltradosEPaginados();
+      void preencherPerfisEmBackground(pagAtual.itens, controladorRequisicaoAtiva?.signal, () => {
+        if (!controladorRequisicaoAtiva?.signal?.aborted) renderizarTabela();
+      });
       window.scrollTo({ top: containerInfoCanal?.offsetTop || 200, behavior: "smooth" });
     });
   });
