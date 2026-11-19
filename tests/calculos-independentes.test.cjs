@@ -356,3 +356,168 @@ test("ranking de lives: fidelidade de comunidade, filtros múltiplos e paginaç�
   assert.equal(resumo.totalTuristas, 1);
 });
 
+test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e comparação com Forja e Aprimorar", async () => {
+  const {
+    CONFIG_ALQUIMIA_SERVIDOR,
+    calcularAlquimiaFragmentos,
+    calcularComparacaoDestinos,
+    calcularEstimativaExpCriacao,
+    compararNivelEntradaSaida,
+    gerarSvgFragmento,
+    interpretarNumeroDecimal,
+    obterFaixaNivelAlquimia,
+  } = await import("../src/alquimia.mjs");
+
+  // 1. Distinção clara e datada entre níveis liberados no patch de 14/11 (1..4) e documentado na wiki (5)
+  assert.equal(obterFaixaNivelAlquimia(1).ilvlLo, 0);
+  assert.equal(obterFaixaNivelAlquimia(1).ilvlHi, 24);
+  assert.equal(obterFaixaNivelAlquimia(1).liberado, true);
+  assert.equal(obterFaixaNivelAlquimia(4).ilvlLo, 80);
+  assert.equal(obterFaixaNivelAlquimia(4).ilvlHi, 110);
+  assert.equal(obterFaixaNivelAlquimia(4).liberado, true);
+  assert.equal(obterFaixaNivelAlquimia(4).rotuloStatus, "Liberado no patch de 14/11");
+  assert.equal(obterFaixaNivelAlquimia(5).ilvlLo, 111);
+  assert.equal(obterFaixaNivelAlquimia(5).ilvlHi, 150);
+  assert.equal(obterFaixaNivelAlquimia(5).liberado, false);
+  assert.equal(obterFaixaNivelAlquimia(5).rotuloStatus, "Documentado na wiki");
+
+  // 2. Caso prático de 9 fragmentos (guardar 1 + 4 frags vs reciclar a 1ª peça para tentar a 2ª)
+  const r9 = calcularAlquimiaFragmentos({ peca: "weapon", raridade: 4, nivelAlquimia: 4, quantidadeItens: 9 });
+  assert.equal(r9.guardandoResultados.criacoes, 1);
+  assert.equal(r9.guardandoResultados.sobraFragmentos, 4);
+  assert.equal(r9.reciclandoResultados.criacoes, 2);
+  assert.equal(r9.reciclandoResultados.criacoesExtras, 1);
+  assert.equal(r9.reciclandoResultados.sobraSeGuardarUltimo, 0);
+  assert.equal(r9.reciclandoResultados.sobraSeReciclarTodos, 1);
+
+  // Com 20 fragmentos e custo 5:
+  // - Guardando: 20 / 5 = 4 criações, 0 sobra
+  // - Reciclando: 20->16->12->8->4 = 4 criações, 4 frags de sobra (se guardar o último = 3 de sobra)
+  const r20 = calcularAlquimiaFragmentos({ peca: "weapon", raridade: 4, nivelAlquimia: 4, quantidadeItens: 20 });
+  assert.equal(r20.guardandoResultados.criacoes, 4);
+  assert.equal(r20.guardandoResultados.sobraFragmentos, 0);
+  assert.equal(r20.reciclandoResultados.criacoes, 4);
+  assert.equal(r20.reciclandoResultados.sobraSeReciclarTodos, 4);
+  assert.equal(r20.reciclandoResultados.sobraSeGuardarUltimo, 3);
+
+  // Com 21 fragmentos (20 itens + 1 guardado):
+  // - Guardando: 4 criações, 1 sobra
+  // - Reciclando: 21->17->13->9->5->1 = 5 criações (+1 extra), 1 de sobra (0 se guardar o último)
+  const r21 = calcularAlquimiaFragmentos({
+    peca: "ring",
+    raridade: 3,
+    nivelAlquimia: 3,
+    quantidadeItens: 20,
+    fragmentosGuardados: 1,
+  });
+  assert.equal(r21.fragmentosTotais, 21);
+  assert.equal(r21.guardandoResultados.criacoes, 4);
+  assert.equal(r21.guardandoResultados.sobraFragmentos, 1);
+  assert.equal(r21.reciclandoResultados.criacoes, 5);
+  assert.equal(r21.reciclandoResultados.criacoesExtras, 1);
+  assert.equal(r21.reciclandoResultados.sobraSeReciclarTodos, 1);
+  assert.equal(r21.reciclandoResultados.sobraSeGuardarUltimo, 0);
+
+  // Com 4 itens (abaixo de 5): 0 criações em ambos os modos, sobra 4
+  const r4 = calcularAlquimiaFragmentos({ quantidadeItens: 4 });
+  assert.equal(r4.guardandoResultados.criacoes, 0);
+  assert.equal(r4.reciclandoResultados.criacoes, 0);
+  assert.equal(r4.reciclandoResultados.sobraSeReciclarTodos, 4);
+
+  // 3. Comparação de nível de entrada x faixa de saída + suporte a média decimal
+  assert.equal(interpretarNumeroDecimal("81,75"), 81.75);
+  assert.equal(interpretarNumeroDecimal("81.75"), 81.75);
+  assert.equal(interpretarNumeroDecimal(""), null);
+
+  const faixa4 = obterFaixaNivelAlquimia(4); // 80..110
+  assert.equal(compararNivelEntradaSaida(null, faixa4), null);
+  assert.equal(compararNivelEntradaSaida(150, faixa4).relacao, "abaixo");
+  assert.equal(compararNivelEntradaSaida(40, faixa4).relacao, "acima");
+  assert.equal(compararNivelEntradaSaida(95, faixa4).relacao, "dentro");
+
+  // 4. Estimativa de EXP de criação: null quando servidor não foi calibrado; fórmula exata do cliente quando fornecido
+  assert.equal(calcularEstimativaExpCriacao(4, 4, CONFIG_ALQUIMIA_SERVIDOR), null);
+  const expSimulado = calcularEstimativaExpCriacao(4, 4, {
+    ...CONFIG_ALQUIMIA_SERVIDOR,
+    destroyXp: [10, 20, 40, 80, 160],
+    xpIlvlDiv: 100,
+    craftXpMult: 1.5,
+  });
+  // mediaFaixa = (80 + 110) / 2 = 95; round(160 * (1 + 95/100)) = round(312) = 312; round(312 * 1.5) = 468
+  assert.equal(expSimulado.ehEstimativa, true);
+  assert.equal(expSimulado.xpEstimado, 468);
+
+  // 5. Comparação com Forja e Aprimorar:
+  // Sem nível médio informado -> não assume 60 como dado do jogador
+  const compSemNivel = calcularComparacaoDestinos({
+    peca: "weapon",
+    raridade: 3,
+    nivelAlquimia: 4,
+    quantidadeItens: 0,
+    fragmentosGuardados: 10,
+    nivelMedioItens: null,
+  });
+  assert.equal(compSemNivel.temNivelReferencia, false);
+  assert.equal(compSemNivel.forja.nivelMin, null);
+  assert.equal(compSemNivel.forja.ouroPorTentativa, null);
+  // Com 0 equipamentos e 10 fragmentos guardados: Alquimia cria 2, Forja e Aprimorar usam 0 equipamentos
+  assert.equal(compSemNivel.alquimia.guardandoResultados.criacoes, 2);
+  assert.equal(compSemNivel.forja.tentativasPossiveis, 0);
+  assert.equal(compSemNivel.aprimorar.itensDisponiveis, 0);
+
+  // Média decimal na Forja (como YI do jogo): 81,75 -> floor(81.75 * 1.15)=94, floor(81.75 * 1.3)=106 (não 105!)
+  const compDecimal = calcularComparacaoDestinos({
+    peca: "weapon",
+    raridade: 3,
+    nivelAlquimia: 4,
+    quantidadeItens: 12,
+    nivelMedioItens: "81,75",
+  });
+  assert.equal(compDecimal.temNivelReferencia, true);
+  assert.equal(compDecimal.nivelMedioItens, 81.75);
+  assert.equal(compDecimal.forja.nivelMin, 94);
+  assert.equal(compDecimal.forja.nivelMax, 106);
+
+  // Lendário (4) -> Imortal (6): 4 itens por tentativa, piso Nv. 100, fator ouro 7
+  const compLendario = calcularComparacaoDestinos({
+    peca: "weapon",
+    raridade: 4,
+    nivelAlquimia: 4,
+    quantidadeItens: 20,
+    nivelMedioItens: 60,
+  });
+  assert.equal(compLendario.forja.destinoRaridade.id, 6);
+  assert.equal(compLendario.forja.itensPorTentativa, 4);
+  assert.equal(compLendario.forja.tentativasPossiveis, 5);
+  assert.equal(compLendario.forja.nivelMin, 100); // piso Imortal 100 > floor(60 * 1.15)=69
+  assert.equal(compLendario.forja.nivelMax, 100);
+  assert.equal(compLendario.forja.pisoAplicado, true);
+  // ouroPorTentativa = round((5 + 100*2) * 7 * 2) = 205 * 14 = 2870
+  assert.equal(compLendario.forja.ouroPorTentativa, 2870);
+  assert.equal(compLendario.aprimorar.lotesNecessarios, 1);
+
+  // Incomum (1) -> Raro (2): 3 itens por tentativa, sem roleta
+  const compIncomum = calcularComparacaoDestinos({
+    peca: "helmet",
+    raridade: 1,
+    nivelAlquimia: 2,
+    quantidadeItens: 35,
+    nivelMedioItens: 40,
+  });
+  assert.equal(compIncomum.forja.destinoRaridade.id, 2);
+  assert.equal(compIncomum.forja.itensPorTentativa, 3);
+  assert.equal(compIncomum.forja.tentativasPossiveis, 11);
+  assert.equal(compIncomum.forja.sobraItens, 2);
+  assert.equal(compIncomum.forja.temRoleta, false);
+  assert.equal(compIncomum.forja.nivelMin, 46); // floor(40 * 1.15)
+  assert.equal(compIncomum.forja.nivelMax, 52); // floor(40 * 1.30)
+  assert.equal(compIncomum.aprimorar.lotesNecessarios, 2); // ceil(35 / 30)
+
+  // 6. Geração SVG pixel-art fiel dos fragmentos
+  const svg = gerarSvgFragmento("ring", 4, { tamanho: 48, decorativo: false });
+  assert.ok(svg.includes('viewBox="0 0 16 16"'));
+  assert.ok(svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(svg.includes('role="img"'));
+  assert.ok(svg.includes("Ouro Rúnico"));
+});
+

@@ -588,6 +588,24 @@ export async function instalarMocksApi(page, opcoes = {}) {
       });
     }
 
+    if (path === "/api/wiki") {
+      return aplicarModoResposta(route, cenarios.wiki, () =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            events: [],
+            achievements: [],
+            eventCooldownMin: 30,
+            fuseEpicChance: 0.5,
+            fuseImmortalChance: 0.35,
+            fuseArcaneChance: 0.25,
+            luckScrollBonus: 0.1,
+          }),
+        })
+      );
+    }
+
     if (path.startsWith("/api/profile/")) {
       const login = decodeURIComponent(path.replace("/api/profile/", "")).toLowerCase();
       const clsParam = url.searchParams.get("cls");
