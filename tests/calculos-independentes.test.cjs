@@ -532,3 +532,223 @@ test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e 
   assert.ok(svg.includes("Ouro Rúnico"));
 });
 
+test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternativos 50/50 e lacaios oficiais", async () => {
+  const { catalogoTemasZona } = await importarModulo("src/dados.mjs");
+  assert.equal(catalogoTemasZona.length, 8);
+
+  const [ruinas, cavernas, cripta, fornalha, pantano, recife, galaxia, circo] = catalogoTemasZona;
+
+  // Circo dos Horrores (Z8, Z16, Z24...) — Mestre de Cerimônias com os 6 efeitos da Roleta incluindo ANEL DE FOGO
+  assert.equal(circo.boss, "Mestre de Cerimônias");
+  assert.equal(circo.temBleedBoss, true);
+  assert.equal(circo.fatorDotVerdadeiroPorSeg, 0.3);
+  for (const termo of ["FACAS", "RISADA", "ANEL DE FOGO", "HOLOFOTE", "MÁGICA", "ESTRONDO"]) {
+    assert.ok(circo.resumoSkillBoss.includes(termo), `Mestre de Cerimônias deve listar ${termo}`);
+  }
+  assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("Balão-Bomba") || descricao.includes("Balão-Bomba")));
+  assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("invulnerável enquanto o Domador vive") || descricao.includes("invulnerável enquanto o Domador vive")));
+
+  // Os 4 temas com chefe alternativo 50/50 e seus multiplicadores reais
+  assert.equal(ruinas.boss, "Rei Esqueleto");
+  assert.equal(ruinas.varianteAlternativa.boss, "Colosso Rúnico");
+  assert.equal(ruinas.varianteAlternativa.multHp, 1.3);
+  assert.equal(ruinas.varianteAlternativa.multDef, 1.4);
+  assert.equal(ruinas.varianteAlternativa.multAtk, 0.95);
+  assert.equal(ruinas.varianteAlternativa.cdSkillBoss, 8);
+
+  assert.equal(cavernas.boss, "Senhor da Guerra Gruk");
+  assert.equal(cavernas.temFrenesiGruk, true);
+  assert.equal(cavernas.varianteAlternativa.boss, "Mímico Voraz");
+  assert.ok(cavernas.lacaios.some(({ nome, descricao }) => nome.includes("Goblin Pesadelo") || descricao.includes("Goblin Pesadelo")));
+
+  assert.equal(fornalha.boss, "Senhor Demônio");
+  assert.equal(fornalha.varianteAlternativa.boss, "Forjador de Almas");
+  assert.equal(fornalha.varianteAlternativa.multHp, 1.2);
+  assert.equal(fornalha.varianteAlternativa.multDef, 1.15);
+  assert.equal(fornalha.varianteAlternativa.cdSkillBoss, 8);
+  assert.ok(fornalha.lacaios.some(({ nome, descricao }) => nome.includes("Carcereiro Acorrentado") || descricao.includes("Carcereiro Acorrentado")));
+  assert.ok(fornalha.lacaios.some(({ nome, descricao }) => nome.includes("Inquisidora das Cinzas") || descricao.includes("Inquisidora das Cinzas")));
+
+  assert.equal(pantano.boss, "Rei Lagarto");
+  assert.equal(pantano.multHp, 1.1);
+  assert.equal(pantano.varianteAlternativa.boss, "Bruxa do Brejo");
+  assert.equal(pantano.varianteAlternativa.multHp, 1.1);
+  assert.equal(pantano.varianteAlternativa.multDef, 1.1);
+  assert.equal(pantano.varianteAlternativa.multAtk, 0.95);
+  assert.equal(pantano.varianteAlternativa.cdSkillBoss, 6.5);
+  assert.equal(pantano.varianteAlternativa.fatorDotVerdadeiroPorSeg, 0.8);
+
+  // Somente Gruk ativa checkbox de frenesi
+  const comFrenesi = catalogoTemasZona.filter((t) => t.temFrenesiGruk);
+  assert.deepEqual(comFrenesi.map((t) => t.boss), ["Senhor da Guerra Gruk"]);
+
+  // Demais zonas sem lacaios faltantes
+  assert.ok(cripta.lacaios.some(({ nome, descricao }) => nome.includes("Lobo Gélido") || descricao.includes("Lobo Gélido")));
+  assert.ok(recife.lacaios.some(({ nome, descricao }) => nome.includes("Homem-Peixe Arpoador") || descricao.includes("Homem-Peixe Arpoador")));
+  assert.ok(recife.lacaios.some(({ nome, descricao }) => nome.includes("Água-viva Elétrica") || descricao.includes("Água-viva Elétrica")));
+  assert.ok(galaxia.lacaios.some(({ nome, descricao }) => nome.includes("Alienígena Eletro") || descricao.includes("Alienígena Eletro")));
+  assert.ok(galaxia.lacaios.some(({ nome, descricao }) => nome.includes("Drone Escudeiro") || descricao.includes("Drone Escudeiro")));
+});
+
+test("combo Hit + DoT em ticks de 0,5s (ex.: Anel de Fogo no 16-10) modela queda quase instantânea e letalidade real", async () => {
+  const { calcularImpactoComboSkillDot } = await importarModulo("src/combate.mjs");
+
+  // Z16-10 Mestre de Cerimônias: bossAtk ~146.909 -> bleed = 44.073/s (22.036 por tick de 0,5s, 8 ticks = 176.288)
+  // Caso 1: Herói com 35.000 HP que leva 15.000 no hit inicial do Anel de Fogo (0,7×)
+  // Sobra 20.000 HP -> 1º tick de 0,5s (22.036) já derruba -> 0,5s (quase instantâneo!)
+  const quedaInstantanea = calcularImpactoComboSkillDot({
+    maxHp: 35000,
+    danoFisicoCombo: 15000,
+    dotPorSeg: 44073,
+    duracaoSeg: 4,
+  });
+  assert.equal(quedaInstantanea.letalNoCombo, true);
+  assert.equal(quedaInstantanea.ticksParaMorrer, 1);
+  assert.equal(quedaInstantanea.tempoParaMorrerSeg, 0.5);
+
+  // Caso 2: Herói com 180.000 HP (DoT sozinho = 176.288 NÃO matava, mas hit inicial de 45.000 + DoT mata em 3,5s!)
+  const mataComHitInicial = calcularImpactoComboSkillDot({
+    maxHp: 180000,
+    danoFisicoCombo: 45000,
+    dotPorSeg: 44073,
+    duracaoSeg: 4,
+  });
+  assert.equal(mataComHitInicial.letalNoCombo, true);
+  assert.equal(mataComHitInicial.ticksParaMorrer, 7);
+  assert.equal(mataComHitInicial.tempoParaMorrerSeg, 3.5);
+
+  // Caso 3: Herói com 400.000 HP sobrevive ao combo completo (15.000 + 176.296)
+  const sobrevive = calcularImpactoComboSkillDot({
+    maxHp: 400000,
+    danoFisicoCombo: 15000,
+    dotPorSeg: 44073,
+    duracaoSeg: 4,
+  });
+  assert.equal(sobrevive.letalNoCombo, false);
+  assert.equal(sobrevive.tempoParaMorrerSeg, null);
+  assert.ok(sobrevive.hpAposCombo > 200000);
+
+  // Caso 4: Faixa de limiar no impacto e 1º tick (ex.: 158,6k HP, impacto ~105, tick 22.037 -> ~14% HP cai no 1º tick; vida cheia cai em 4s)
+  const limiares = calcularImpactoComboSkillDot({
+    maxHp: 158600,
+    danoFisicoCombo: 105,
+    danoFisicoComboMin: 95,
+    danoFisicoComboMax: 202,
+    dotPorSeg: 44073,
+    duracaoSeg: 4,
+  });
+  assert.equal(limiares.letalNoCombo, true);
+  assert.equal(limiares.tempoParaMorrerSeg, 4);
+  assert.equal(limiares.limiarImpactoMin, 95);
+  assert.equal(limiares.limiarImpactoMax, 202);
+  assert.equal(limiares.limiarPrimeiroTickMin, 95 + 22037);
+  assert.equal(limiares.limiarPrimeiroTickMax, 202 + 22037);
+  assert.equal(Math.round(limiares.pctHpPrimeiroTickMedio), 14);
+
+  // Caso 5: Forjador de Almas (pisão + marca 0,8s depois + queimadura de 4s)
+  const forjador = calcularImpactoComboSkillDot({
+    maxHp: 100000,
+    danoFisicoCombo: 30000,
+    dotPorSeg: 30000, // 15.000 por tick de 0,5s
+    duracaoSeg: 4,
+    golpeExtraAntesDot: 30000,
+    atrasoAntesDotSeg: 0.8,
+  });
+  // Sobra 40.000 após os 2 golpes -> precisa de 3 ticks (45.000) -> 0,8 + 1,5 = 2,3s
+  assert.equal(forjador.letalNoCombo, true);
+  assert.equal(forjador.causaQueda, "dot");
+  assert.equal(forjador.ticksParaMorrer, 3);
+  assert.equal(forjador.tempoParaMorrerSeg, 2.3);
+
+  // Caso 6: Mímico Voraz (mordida + 12 ticks de 0,5s + expulsão 1,4× aos 6s)
+  const mimico = calcularImpactoComboSkillDot({
+    maxHp: 100000,
+    danoFisicoCombo: 10000,
+    dotPorSeg: 14000, // 7.000 por tick x 12 = 84.000 (total pré-expulsão = 94.000 < 100.000)
+    duracaoSeg: 6,
+    golpeExtraFimDot: 15000, // expulsão derruba aos 6s!
+    primeiroTickImediato: true,
+  });
+  assert.equal(mimico.letalNoCombo, true);
+  assert.equal(mimico.causaQueda, "golpe_final");
+  assert.equal(mimico.tempoParaMorrerSeg, 6);
+  assert.equal(mimico.tempoPrimeiroTickSeg, 0.017);
+});
+
+test("Mímico: primeiro tick sai em ~0,017s (1 frame a 60fps), não em 0,5s, pelo floor(swallowT*2)", async () => {
+  const { calcularImpactoComboSkillDot } = await importarModulo("src/combate.mjs");
+
+  // Cliente oficial: Math.floor(r*2) !== Math.floor(swallowT*2) a cada frame
+  // Frame 1: floor(6.0*2) !== floor(6.0*2) → 12 !== 12? NÃO
+  // Frame 2: floor(6.0*2) !== floor(5.983*2) → 12 !== 11? SIM → TICK!
+  const mimico = calcularImpactoComboSkillDot({
+    maxHp: 100000,
+    danoFisicoCombo: 15000,
+    dotPorSeg: 28000, // 14.000 por tick de 0,5s
+    duracaoSeg: 6,
+    primeiroTickImediato: true,
+  });
+
+  assert.equal(mimico.tempoPrimeiroTickSeg, 0.017);
+  assert.equal(mimico.limiarPrimeiroTickMedio, 15000 + 14000); // mordida + 1º tick imediato
+
+  // Herói com 29.000 HP cai no 1º tick (quase instantâneo):
+  const quedaInstantanea = calcularImpactoComboSkillDot({
+    maxHp: 29000,
+    danoFisicoCombo: 15000,
+    dotPorSeg: 28000,
+    duracaoSeg: 6,
+    primeiroTickImediato: true,
+  });
+  assert.equal(quedaInstantanea.letalNoCombo, true);
+  assert.equal(quedaInstantanea.ticksParaMorrer, 1);
+  assert.equal(quedaInstantanea.tempoParaMorrerSeg, 0.02);
+
+  // Herói com 55.000 HP (sobra 40.000 após mordida de 15.000) cai no 3º tick:
+  // 1º tick (~0s) + 2º tick (0,5s) + 3º tick (1,0s) → 1,0s (não 1,5s!)
+  const quedaTerceiroTick = calcularImpactoComboSkillDot({
+    maxHp: 55000,
+    danoFisicoCombo: 15000,
+    dotPorSeg: 28000,
+    duracaoSeg: 6,
+    primeiroTickImediato: true,
+  });
+  assert.equal(quedaTerceiroTick.letalNoCombo, true);
+  assert.equal(quedaTerceiroTick.ticksParaMorrer, 3);
+  assert.equal(quedaTerceiroTick.tempoParaMorrerSeg, 1);
+});
+
+test("Forjador de Almas: limiar do 1º tick inclui pisão (1,0×) + marca (1,0× aos 0,8s) + tick (aos 1,3s)", async () => {
+  const { calcularImpactoComboSkillDot } = await importarModulo("src/combate.mjs");
+
+  // Cliente oficial: pisão 1,0× → marca 0,8s depois 1,0× → queimadura 30% ATK/s por 4s
+  // ATK 150.000, herói 100k HP, DEF 150 → dano físico por golpe: 21.429
+  const forjador = calcularImpactoComboSkillDot({
+    maxHp: 100000,
+    danoFisicoCombo: 21429, // pisão
+    dotPorSeg: 45000, // 22.500 por tick de 0,5s
+    duracaoSeg: 4,
+    golpeExtraAntesDot: 21429, // marca em 0,8s
+    atrasoAntesDotSeg: 0.8,
+  });
+
+  // Limiar correto do 1º tick: pisão + marca + 1º tick aos 1,3s
+  assert.equal(forjador.limiarPrimeiroTickMedio, 21429 + 21429 + 22500); // 65.358 HP
+  assert.equal(forjador.tempoPrimeiroTickSeg, 1.3); // 0.8s (marca) + 0.5s (tick)
+
+  // Herói com 100k HP cai no 3º tick aos 2,3s (não sobrevive):
+  assert.equal(forjador.letalNoCombo, true);
+  assert.equal(forjador.causaQueda, "dot");
+  assert.equal(forjador.ticksParaMorrer, 3);
+  assert.equal(forjador.tempoParaMorrerSeg, 2.3); // 0.8s (marca) + 1.5s (3 ticks)
+
+  // HP restante após cada etapa:
+  // Após pisão: 100.000 - 21.429 = 78.571
+  // Após marca (0,8s): 78.571 - 21.429 = 57.142
+  // Após 1º tick (1,3s): 57.142 - 22.500 = 34.642
+  // Após 2º tick (1,8s): 34.642 - 22.500 = 12.142
+  // Após 3º tick (2,3s): 12.142 - 22.500 = -10.358 → MORTO
+  assert.equal(forjador.hpAposCombo, 0); // Math.max(0, negativo)
+  assert.ok(forjador.letalNoCombo);
+});
+

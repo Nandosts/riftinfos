@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { prepararPagina } from "./helpers/ambiente.mjs";
+import { prepararPagina, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Chefes, Radar e Comparação", () => {
   test("Gruk e Mímico na zona 18, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
@@ -32,6 +32,82 @@ test.describe("Chefes, Radar e Comparação", () => {
     expect(await ataque()).toBe(ataqueBase);
     await page.fill("#input-monstro-zona", "19");
     await expect(page.locator("#select-variante-chefe")).toHaveCount(0);
+    expect(erros).toEqual([]);
+  });
+
+  test("Zona 16-10 exibe Anel de Fogo no Mestre de Cerimônias e zonas com 2 chefes alternam sem frenesi do Gruk", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Testa variantes revisadas no desktop");
+    const { erros } = await prepararPagina(page, "/index.html");
+    await page.fill("#input-nick", "halscriolo");
+    await page.click('#formulario-busca button[type="submit"]');
+    await page.click("#aba-monstros");
+
+    // Zona 16-10: Circo dos Horrores (Mestre de Cerimônias com ANEL DE FOGO e os 6 efeitos da Roleta)
+    await page.fill("#input-monstro-zona", "16");
+    await page.fill("#input-monstro-onda", "10");
+    await expect(page.locator(".card-monstro.boss")).toContainText("MESTRE DE CERIMÔNIAS");
+    await expect(page.locator("#resultado-monstros")).toContainText("ANEL DE FOGO");
+    await expect(page.locator("#resultado-monstros")).toContainText("HOLOFOTE");
+    await expect(page.locator("#resultado-monstros")).toContainText("ESTRONDO");
+    const risco = page.locator(".resumo-sobrevivencia-chefe");
+    await expect(risco).toContainText("Começando com vida cheia");
+    await expect(risco).toContainText("Pode cair no primeiro dano contínuo (em cerca de 0,5 s)");
+    await expect(page.locator(".card-monstro.boss")).toContainText("Facas:");
+    await expect(risco.getByText("Impacto:", { exact: false })).toBeHidden();
+    await risco.getByText("Ver detalhes do dano").click();
+    await expect(risco.getByText("Impacto:", { exact: false })).toBeVisible();
+    await expect(page.locator("#resultado-monstros")).toContainText("Atributos base");
+    await expect(page.locator("#select-variante-chefe")).toHaveCount(0);
+
+    // Zona 20-10: Fornalha Infernal (Senhor Demônio / Forjador de Almas, sem checkbox de frenesi do Gruk)
+    await page.fill("#input-monstro-zona", "20");
+    await expect(page.locator(".card-monstro.boss")).toContainText("SENHOR DEMÔNIO");
+    await expect(page.locator("#input-frenesi-gruk")).toHaveCount(0);
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(page.locator(".card-monstro.boss")).toContainText("FORJADOR DE ALMAS");
+    await expect(page.locator("#resultado-monstros")).toContainText("CD Base: 8s");
+
+    // Zona 13-10: Pântano Sombrio (Rei Lagarto / Bruxa do Brejo)
+    await page.fill("#input-monstro-zona", "13");
+    await page.selectOption("#select-variante-chefe", "principal");
+    await expect(page.locator(".card-monstro.boss")).toContainText("REI LAGARTO");
+    await expect(page.locator("#resultado-monstros")).toContainText("Poça Ácida do Sapo-Boi");
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(page.locator(".card-monstro.boss")).toContainText("BRUXA DO BREJO");
+
+    expect(erros).toEqual([]);
+  });
+
+  test("lista os lacaios de cada tema e destaca por que o Clérigo pode parar de curar", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/index.html");
+    await page.click("#aba-monstros");
+    const catalogo = page.getByRole("region", { name: "Monstros da zona" });
+    const detalhes = catalogo.locator(".catalogo-lacaios-detalhes");
+    await expect(detalhes).not.toHaveAttribute("open", "");
+    await detalhes.locator("summary").click();
+    await expect(detalhes).toHaveAttribute("open", "");
+    const zona = page.locator("#input-monstro-zona");
+    const exemplos = [
+      [1, 4, "Espectro das Ruínas"],
+      [2, 4, "Goblin Ladino"],
+      [3, 4, "Lobo Sombrio"],
+      [4, 4, "Inquisidora das Cinzas"],
+      [5, 4, "Bruxa do Pântano"],
+      [6, 4, "Água-viva Elétrica"],
+      [7, 8, "Drone Escudeiro"],
+      [16, 8, "Leão do Domador"],
+    ];
+    for (const [numero, quantidade, nome] of exemplos) {
+      await zona.fill(String(numero));
+      await expect(catalogo.locator("dt")).toHaveCount(quantidade);
+      await expect(catalogo.locator("dt").filter({ hasText: nome })).toBeVisible();
+    }
+    await expect(catalogo).toContainText("As Facas aplicam sangramento");
+    await zona.fill("20");
+    await expect(catalogo).toContainText("silencia um Clérigo por 5 s");
+    await expect(catalogo).toContainText("Pode impedir a cura");
+    await expect(catalogo).not.toContainText("Leão do Domador");
+    await verificarSemOverflowHorizontal(page, "catalogo dos lacaios");
     expect(erros).toEqual([]);
   });
 

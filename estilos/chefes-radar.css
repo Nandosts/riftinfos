@@ -17,6 +17,34 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 12px;
 }
+.controles-variante-chefe {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(90deg, rgba(184, 59, 94, 0.16), rgba(240, 180, 41, 0.08));
+  border: 2px solid #b83b5e;
+  border-left: 4px solid var(--gold);
+  box-shadow: 0 0 14px rgba(184, 59, 94, 0.16);
+}
+.controles-variante-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.badge-variante-chefe {
+  font-family: var(--pix);
+  font-size: 0.78rem;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.controles-variante-campos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
 .controles-variante-chefe label {
   display: flex;
   flex-wrap: wrap;
@@ -24,12 +52,46 @@
   gap: 8px;
   min-width: 0;
   max-width: 100%;
+  font-weight: 700;
+  color: var(--text);
 }
 .controles-variante-chefe select {
   min-height: 40px;
+  border-color: var(--gold);
+  background: var(--bg);
+  font-weight: 700;
 }
 .controles-variante-chefe input[type="checkbox"] {
   width: auto;
+}
+.controles-variante-nota {
+  margin: 0;
+}
+.btn-trocar-variante {
+  min-height: 34px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(240, 180, 41, 0.12);
+  border: 1px solid rgba(240, 180, 41, 0.55);
+  cursor: pointer;
+}
+.btn-trocar-variante:hover {
+  background: rgba(240, 180, 41, 0.22);
+  border-color: var(--gold);
+}
+.banner-outro-chefe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: rgba(240, 180, 41, 0.08);
+  border: 1px solid rgba(240, 180, 41, 0.35);
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 .card-monstro {
   background: var(--panel-alt);
@@ -58,6 +120,191 @@
 }
 .card-monstro.boss .card-monstro-topo h4 {
   color: #ff7a90;
+}
+
+.catalogo-lacaios {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.catalogo-lacaios-detalhes {
+  margin: 0;
+}
+.catalogo-lacaios-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.catalogo-lacaios-topo::-webkit-details-marker {
+  display: none;
+}
+.catalogo-lacaios-topo:hover {
+  border-color: var(--gold);
+}
+.catalogo-lacaios-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pix);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: var(--gold);
+}
+.catalogo-lacaios-titulo::before {
+  content: "▸";
+  color: var(--cyan);
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  transition: transform 0.15s ease;
+}
+.catalogo-lacaios-detalhes[open] .catalogo-lacaios-titulo::before {
+  transform: rotate(90deg);
+}
+.catalogo-lacaios-conteudo {
+  margin-top: 10px;
+}
+.catalogo-lacaios-contagem {
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+}
+.catalogo-lacaios-mecanica {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: rgba(240, 180, 41, 0.08);
+  border-left: 3px solid var(--gold);
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.lista-lacaios-zona {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.card-lacaio-corpo {
+  margin: 0;
+}
+.card-lacaio {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+}
+.card-lacaio--perigo {
+  border-left-color: #ff7a90;
+}
+.card-lacaio--controle {
+  border-left-color: var(--gold);
+}
+.card-lacaio--suporte {
+  border-left-color: var(--cyan);
+}
+.card-lacaio-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px 8px;
+  flex-wrap: wrap;
+}
+.card-lacaio-nome {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.card-lacaio-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.badge-lacaio-tipo {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  padding: 1px 6px;
+}
+.destaque-lacaio {
+  color: #ff9aa8;
+  background: rgba(255, 122, 144, 0.12);
+  border: 1px solid rgba(255, 122, 144, 0.35);
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.card-lacaio-pontos {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+.card-lacaio-pontos li::marker {
+  color: var(--line);
+}
+.lacaio-efeito {
+  color: var(--muted);
+}
+.lacaio-efeito strong {
+  font-weight: 700;
+}
+.lacaio-efeito--perigo {
+  color: #ff9aa8;
+}
+.lacaio-efeito--perigo::marker {
+  color: #ff7a90;
+}
+.lacaio-efeito--controle {
+  color: #ffd97a;
+}
+.lacaio-efeito--controle::marker {
+  color: var(--gold);
+}
+.lacaio-efeito--suporte {
+  color: var(--cyan);
+}
+.lacaio-efeito--suporte::marker {
+  color: var(--cyan);
+}
+
+.resumo-sobrevivencia-chefe {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.resumo-sobrevivencia-chefe .risco-letal {
+  color: #ff9aa8;
+}
+.resumo-sobrevivencia-chefe p {
+  margin: 0;
+}
+.resumo-sobrevivencia-chefe details p {
+  margin-top: 6px;
+}
+.resumo-sobrevivencia-chefe summary {
+  color: var(--cyan);
+  cursor: pointer;
+  padding: 4px 0;
 }
 
 .raid-guia-casulo {

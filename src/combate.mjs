@@ -369,10 +369,108 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   };
 }
 
+function calcularImpactoComboSkillDot({
+  maxHp,
+  danoFisicoCombo,
+  danoFisicoComboMin = danoFisicoCombo,
+  danoFisicoComboMax = danoFisicoCombo,
+  dotPorSeg,
+  duracaoSeg = 4,
+  intervaloTickSeg = 0.5,
+  golpeExtraAntesDot = 0,
+  atrasoAntesDotSeg = 0,
+  golpeExtraFimDot = 0,
+  primeiroTickImediato = false,
+}) {
+  const hpMaximo = Math.max(1, Number(maxHp) || 1);
+  const hitInicial = Math.max(0, Math.round(danoFisicoCombo || 0));
+  const hitInicialMin = Math.max(0, Math.round(danoFisicoComboMin ?? hitInicial));
+  const hitInicialMax = Math.max(hitInicialMin, Math.round(danoFisicoComboMax ?? hitInicial));
+  const hitAntesDot = Math.max(0, Math.round(golpeExtraAntesDot || 0));
+  const hitFimDot = Math.max(0, Math.round(golpeExtraFimDot || 0));
+  const atrasoDot = hitAntesDot > 0 ? Math.max(0, Number(atrasoAntesDotSeg) || 0) : 0;
+  const danoPorTick = dotPorSeg > 0 ? Math.max(1, Math.round(dotPorSeg * intervaloTickSeg)) : 0;
+  const totalTicks = danoPorTick > 0 ? Math.max(1, Math.round(duracaoSeg / intervaloTickSeg)) : 0;
+  const danoDotTotal = danoPorTick * totalTicks;
+  const danoFisicoTotal = hitInicial + hitAntesDot + hitFimDot;
+  const danoTotalCombo = danoFisicoTotal + danoDotTotal;
+  const hpAposHitInicial = Math.max(0, hpMaximo - hitInicial);
+  const hpAposHitsPreDot = Math.max(0, hpAposHitInicial - hitAntesDot);
+  const hpAposDot = Math.max(0, hpAposHitsPreDot - danoDotTotal);
+  const hpAposCombo = Math.max(0, hpMaximo - danoTotalCombo);
+  const letalNoCombo = danoPorTick > 0 && danoTotalCombo >= hpMaximo;
+
+  let ticksParaMorrer = null;
+  let tempoParaMorrerSeg = null;
+  let causaQueda = null;
+  if (letalNoCombo) {
+    if (hpAposHitInicial <= 0) {
+      ticksParaMorrer = 0;
+      tempoParaMorrerSeg = 0;
+      causaQueda = "impacto";
+    } else if (hitAntesDot > 0 && hpAposHitsPreDot <= 0) {
+      ticksParaMorrer = 0;
+      tempoParaMorrerSeg = atrasoDot;
+      causaQueda = "segundo_golpe";
+    } else if (hpAposDot <= 0) {
+      ticksParaMorrer = Math.min(totalTicks, Math.ceil(hpAposHitsPreDot / danoPorTick));
+      const tempoDosTicks = primeiroTickImediato
+        ? (ticksParaMorrer === 1 ? 0.017 : (ticksParaMorrer - 1) * intervaloTickSeg)
+        : ticksParaMorrer * intervaloTickSeg;
+      tempoParaMorrerSeg = Number((atrasoDot + tempoDosTicks).toFixed(2));
+      causaQueda = "dot";
+    } else {
+      ticksParaMorrer = totalTicks;
+      tempoParaMorrerSeg = Number((atrasoDot + duracaoSeg).toFixed(2));
+      causaQueda = "golpe_final";
+    }
+  }
+
+  const pctHpCombo = (danoTotalCombo / hpMaximo) * 100;
+  const limiarImpactoMin = hitInicialMin;
+  const limiarImpactoMax = hitInicialMax;
+  const limiarPrimeiroTickMin = hitInicialMin + hitAntesDot + danoPorTick;
+  const limiarPrimeiroTickMedio = hitInicial + hitAntesDot + danoPorTick;
+  const limiarPrimeiroTickMax = hitInicialMax + hitAntesDot + danoPorTick;
+  const pctHpPrimeiroTickMedio = Math.min(100, (limiarPrimeiroTickMedio / hpMaximo) * 100);
+  const tempoPrimeiroTickSeg = primeiroTickImediato ? atrasoDot + 0.017 : atrasoDot + intervaloTickSeg;
+
+  return {
+    hitInicial,
+    hitInicialMin,
+    hitInicialMax,
+    hitAntesDot,
+    hitFimDot,
+    danoFisicoTotal,
+    danoPorTick,
+    totalTicks,
+    duracaoSeg,
+    atrasoDot,
+    intervaloTickSeg,
+    danoDotTotal,
+    danoTotalCombo,
+    hpAposHitInicial,
+    hpAposCombo,
+    letalNoCombo,
+    ticksParaMorrer,
+    tempoParaMorrerSeg,
+    causaQueda,
+    pctHpCombo,
+    limiarImpactoMin,
+    limiarImpactoMax,
+    limiarPrimeiroTickMin,
+    limiarPrimeiroTickMedio,
+    limiarPrimeiroTickMax,
+    pctHpPrimeiroTickMedio,
+    tempoPrimeiroTickSeg,
+  };
+}
+
 export {
   agregarItens,
   aplicarTetoGolpeHeroi,
   calcularFc,
+  calcularImpactoComboSkillDot,
   calcularMetricasCombate,
   calcularStatusSimulados,
   inferirAtributosBase,
