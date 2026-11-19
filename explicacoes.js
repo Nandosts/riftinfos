@@ -284,9 +284,9 @@
       categoria: "equipamentos"
     },
     alquimia: {
-      termo: "Alquimia (5 Fragmentos = 1 Item Garantido)",
-      curto: "Transforma equipamentos sobrando em fragmentos (1 por item) e junta 5 fragmentos iguais para criar 1 item novo com 100% de certeza.",
-      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos ou com gemas) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos do mesmo tipo e raridade, você cria 1 peça nova garantida (sem chance de falhar), até Lendário. 3) Níveis: Nv. 1 cria itens nível 0–24; Nv. 2 cria 25–49; Nv. 3 cria 50–79; Nv. 4 cria 80–110. A wiki atual também lista o Nv. 5, com itens de nível 111–150. Confira a disponibilidade na aba Alquimia do jogo.",
+      termo: "Alquimia (5 Fragmentos = 1 Item Novo)",
+      curto: "Transforma equipamentos sobrando em fragmentos (1 por item) e junta 5 fragmentos iguais para criar 1 item novo da mesma raridade sem risco de falha.",
+      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos, com gemas, cosméticos/auras, consumíveis e itens Evento/Imortal/Arcano) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos iguais (conforme wiki, sujeito à configuração do servidor), você cria 1 peça nova sem roleta e sem custo em ouro, até Lendário. 3) Níveis: no patch de 14/11/2026 foram liberados Nv. 1 (0–24), Nv. 2 (25–49), Nv. 3 (50–79) e Nv. 4 (80–110); a wiki do cliente também documenta o Nv. 5 (111–150), sujeito à liberação no servidor.",
       categoria: "forjas"
     },
     aprimorar: {

@@ -179,6 +179,13 @@
   padding-bottom: 8px;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
 }
+.cabecalho-aba-com-atalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .descricao-aba {
   color: var(--muted);
   font-size: 0.88rem;
