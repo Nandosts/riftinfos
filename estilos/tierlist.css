@@ -156,6 +156,7 @@
 }
 
 .tl-card {
+  position: relative;
   --tl-rar-cor: var(--muted);
   --tl-rar-fundo: rgba(255, 255, 255, 0.035);
   --tl-rar-borda: rgba(255, 255, 255, 0.16);
@@ -217,6 +218,14 @@
 
 .tl-card :is(.tl-card-nome, .tl-card-classe, .tl-card-tag) {
   max-inline-size: 100%;
+}
+
+.tl-card-novo {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
+  font: 600 0.625rem/1.15 system-ui, sans-serif;
+  color: var(--cyan);
 }
 
 .tl-card-nome {

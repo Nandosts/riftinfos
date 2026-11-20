@@ -75,6 +75,13 @@ test.describe("Tier List (funcional completo)", () => {
 
   test("Relojoeiro acima da Árvore-Mundo e conjuntos Épicos e armas Lendárias", async ({ page }) => {
     const { erros } = await prepararPagina(page, "/tierlist.html");
+    const cardsNovos = page.locator(".tl-card").filter({ has: page.locator(".tl-card-novo") });
+    await expect(cardsNovos).toHaveCount(6);
+    const idsNovos = await cardsNovos.evaluateAll((cards) => cards.map((card) => card.dataset.tlCard).sort());
+    expect(idsNovos).toEqual([
+      "set_aeronaut", "set_etheralch", "set_madtinker",
+      "set_royalclock", "set_steamknight", "set_tesladuel",
+    ]);
     await page.click('[data-tl-cat="cleric"]');
     const ids = await page.locator(".tl-tier-splus .tl-card").evaluateAll((cards) => cards.map((card) => card.dataset.tlCard));
     expect(ids.indexOf("set_royalclock")).toBeLessThan(ids.indexOf("set_worldtree"));

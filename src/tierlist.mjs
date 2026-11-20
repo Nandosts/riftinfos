@@ -33,12 +33,12 @@ let engasteSelecionado = 0;
 let anelReferencia = 0;
 
 const UTILIDADE_CONJUNTOS = {
-  royalclock: { tier: "S+", prioridade: 29, tag: "Revive + recarga do grupo", motivo: "O pulso de 14s revive um aliado com 45% de vida e logo cura 14% da vida máxima de cada herói, inclusive do revivido, que fica com cerca de 59%. O pulso também deixa em no máximo 0,5s a recarga restante das habilidades de classe do grupo.", limite: "Levanta um aliado por pulso. As passivas periódicas de armas e anéis têm recarga própria." },
-  steamknight: { tier: "S", prioridade: 158, tag: "Escudo pessoal + três golpes", motivo: "Ataca o inimigo com mais vida atual e se protege com escudo de 6% da vida máxima por 6s a cada 12s.", limite: "A proteção é pessoal e os três golpes da passiva não acionam o eco do Eclipse Arcano." },
-  tesladuel: { tier: "S", prioridade: 146, tag: "Quatro golpes + atordoamento", motivo: "A cada 10s concentra quatro golpes no inimigo com mais vida atual. O último pulso atordoa os inimigos visíveis.", limite: "O atordoamento do chefe dura só 0,2s e a arma não oferece escudo nem cura." },
-  etheralch: { tier: "A", prioridade: 215, tag: "Dano em área + cura reativa", motivo: "A cada 13s acerta os inimigos visíveis e cura o aliado mais ferido em 4% da vida máxima por alvo, até cinco curas.", limite: "Contra um chefe isolado vem apenas uma cura de 4%. Sem escudo ou revive." },
-  aeronaut: { tier: "S", prioridade: 137, tag: "Cinco bombas (10s)", motivo: "As cinco bombas podem somar 7,5× ATK por ciclo contra um chefe isolado, além do dano em área quando há inimigos próximos.", limite: "As bombas escolhem alvos aleatórios e podem dispersar o dano. Não oferece sustentação." },
-  madtinker: { tier: "S", prioridade: 149, tag: "Seis disparos + controle", motivo: "A cada 9s dispara seis tiros de 0,9× ATK. Cada tiro pode atordoar, somando dano e pequenas interrupções.", limite: "Os tiros escolhem alvos aleatórios, o atordoamento dura 0,2s em chefes e não há proteção ao grupo." },
+  royalclock: { novo: true, tier: "S+", prioridade: 29, tag: "Revive + recarga do grupo", motivo: "O pulso de 14s revive um aliado com 45% de vida e logo cura 14% da vida máxima de cada herói, inclusive do revivido, que fica com cerca de 59%. O pulso também deixa em no máximo 0,5s a recarga restante das habilidades de classe do grupo.", limite: "Levanta um aliado por pulso. As passivas periódicas de armas e anéis têm recarga própria." },
+  steamknight: { novo: true, tier: "S", prioridade: 158, tag: "Escudo pessoal + três golpes", motivo: "Ataca o inimigo com mais vida atual e se protege com escudo de 6% da vida máxima por 6s a cada 12s.", limite: "A proteção é pessoal e os três golpes da passiva não acionam o eco do Eclipse Arcano." },
+  tesladuel: { novo: true, tier: "S", prioridade: 146, tag: "Quatro golpes + atordoamento", motivo: "A cada 10s concentra quatro golpes no inimigo com mais vida atual. O último pulso atordoa os inimigos visíveis.", limite: "O atordoamento do chefe dura só 0,2s e a arma não oferece escudo nem cura." },
+  etheralch: { novo: true, tier: "A", prioridade: 215, tag: "Dano em área + cura reativa", motivo: "A cada 13s acerta os inimigos visíveis e cura o aliado mais ferido em 4% da vida máxima por alvo, até cinco curas.", limite: "Contra um chefe isolado vem apenas uma cura de 4%. Sem escudo ou revive." },
+  aeronaut: { novo: true, tier: "S", prioridade: 137, tag: "Cinco bombas (10s)", motivo: "As cinco bombas podem somar 7,5× ATK por ciclo contra um chefe isolado, além do dano em área quando há inimigos próximos.", limite: "As bombas escolhem alvos aleatórios e podem dispersar o dano. Não oferece sustentação." },
+  madtinker: { novo: true, tier: "S", prioridade: 149, tag: "Seis disparos + controle", motivo: "A cada 9s dispara seis tiros de 0,9× ATK. Cada tiro pode atordoar, somando dano e pequenas interrupções.", limite: "Os tiros escolhem alvos aleatórios, o atordoamento dura 0,2s em chefes e não há proteção ao grupo." },
   singular: { tier: "S+", prioridade: 20, tag: "Dano %HP em chefes", motivo: "A implosão tira 4% da vida máxima do chefe a cada 13s ignorando defesa. Com Eclipse Arcano sobe para 4,8% em média, e com Sanguessuga recupera muita vida de uma vez.", limite: "Tem 1,4s de atraso no pulso e usa atributos base e 5 engastes de Imortal." },
   strongman: { tier: "S", prioridade: 105, tag: "Tanque + controle", motivo: "Maior vida e defesa do jogo na linha de frente (segura mais sangramento entre curas), somando alto ataque na marreta e atordoamento em área a cada 12s.", limite: "A onda só alcança 140 px (não pega assassinos na retaguarda), o stun dura 0,5s em chefes e só cai no Circo." },
   tamer: { tier: "S", prioridade: 115, tag: "DPS contínuo + sangramento", motivo: "Combina +34% VEL nas peças e boa vida, além de aplicar sangramento que ignora defesa em todos os inimigos a cada 11s.", limite: "Não traz atordoamento, escudo ou revive para segurar picos na Raid e só cai no Circo dos Horrores." },
@@ -209,6 +209,7 @@ function construirCatalogoItens() {
       categoria: setInfo.classe,
       categoriaLabel: nomesClasses[setInfo.classe] || setInfo.classe,
       nome: setInfo.nome,
+      novo: util?.novo,
       subnome: setInfo.armaNome,
       raridade: setInfo.raridadePadrao,
       raridadeNome: nomesRaridade[rarity],
@@ -494,9 +495,11 @@ function renderizarTabela() {
               const badgeTag = modoAtual === "fc"
                 ? `${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
                 : item.tagUtilidade;
-              const rotulo = [item.nome, item.categoriaLabel, item.raridadeNome, badgeTag].filter(Boolean).join(" · ");
+              const seloNovo = item.novo ? "Novo" : "";
+              const rotulo = [item.nome, item.categoriaLabel, item.raridadeNome, seloNovo, badgeTag].filter(Boolean).join(" · ");
               return `
                 <button type="button" class="tl-card ${clsRar} ${clsSel}" data-tl-card="${escaparHtml(item.id)}" aria-pressed="${item.id === itemSelecionadoId}" aria-label="${escaparHtml(rotulo)}">
+                  ${seloNovo ? `<span class="tl-card-novo" aria-hidden="true">${seloNovo}</span>` : ""}
                   <canvas data-tl-sprite="${escaparHtml(item.id)}" data-tl-escala="3"></canvas>
                   <span class="tl-card-nome">${escaparHtml(item.nome)}</span>
                   <span class="tl-card-classe">${escaparHtml(item.categoriaLabel)}</span>
