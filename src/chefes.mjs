@@ -211,6 +211,7 @@ function renderizarSimuladorMonstros() {
   const bleedLadinoNormalPorSeg = Math.max(1, Math.round(atkLadino * 0.3));
   const bleedLadinoSuper5s = Math.max(1, Math.round(atkLadino * 0.5 * 5.5)); // 275% ATK do Ladino (+40% ATK) ignorando DEF
   const pocaSapoBoiPorSeg = Math.max(1, Math.round(esc.goblin.atk * 0.95 * 0.7)); // 70% ATK/s do Sapo-Boi (-5% ATK) por 5s ignorando DEF
+  const vaporCaldeireiroTick = Math.max(1, Math.round(esc.skeleton.atk * 0.95 * 0.25)); // 25% ATK do Caldeireiro (-5% ATK) a cada 0,5s por 4,5s ignorando DEF e teto 60%
 
   // Tabela de Fúria (Rage a cada 15s: +10% ATK, +8% ASPD, -7% DEF, -5% HP máx, -8% CD da Skill)
   const ticksRage = [0, 15, 30, 45, 60, 75].map((seg) => {
@@ -441,7 +442,9 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits para morrer)</strong></div>
         ${temaBase.mostrarBleedLadino ? `
         <div class="card-info-linha"><span>Sangramento do Ladino (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(bleedLadinoNormalPorSeg)}/s (${formatarNumeroCompacto(bleedLadinoNormalPorSeg * 4)} em 4s)</strong></div>
-        <div class="card-info-linha"><span class="small muted">Super do Ladino (3,2× + DoT)</span><span class="small" style="color:#ff9aa8;">${formatarNumeroCompacto(bleedLadinoSuper5s)} total em 5,5s</span></div>` : temaBase.destaqueMelee ? `
+        <div class="card-info-linha"><span class="small muted">Super do Ladino (3,2× + DoT)</span><span class="small" style="color:#ff9aa8;">${formatarNumeroCompacto(bleedLadinoSuper5s)} total em 5,5s</span></div>` : temaBase.mostrarVaporCaldeireiro ? `
+        <div class="card-info-linha"><span>Vapor do Caldeireiro (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(vaporCaldeireiroTick)} a cada 0,5s (${formatarNumeroCompacto(vaporCaldeireiroTick * 2)}/s)</strong></div>
+        <div class="card-info-linha"><span class="small muted">Nuvem 4,5s (ignora teto 60%)</span><span class="small" style="color:#ff9aa8;">${formatarNumeroCompacto(vaporCaldeireiroTick * 9)} total por nuvem</span></div>` : temaBase.destaqueMelee ? `
         <div class="card-info-linha"><span>${escaparHtml(temaBase.destaqueMelee.rotulo)}</span><strong class="small" style="color:var(--gold);">${escaparHtml(temaBase.destaqueMelee.texto)}</strong></div>` : ""}
       </article>
 
