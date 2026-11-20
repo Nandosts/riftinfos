@@ -66,6 +66,7 @@ test('history records equipment and gem changes even when FC and counters do not
 test('shared link initializes the simulator and removes excess gems from a legacy build', async (t) => {
   const original = build();
   original.itens[0].rarity = 4;
+  original.itens[0].kind = 'dawnscepter';
   original.itens[0].gems[5].value = 99999;
   const hash = await sharing.serializarBuildParaHash(original);
   const w = new JSDOM(fs.readFileSync('index.html', 'utf8'), {
@@ -106,7 +107,8 @@ test('shared link initializes the simulator and removes excess gems from a legac
 
   await import('../app.mjs');
   const { simulacao } = await import('../src/simulador/estado.mjs');
-  const { calcularFc, calcularStatusSimulados } = await import('../src/combate.mjs');
+  const { calcularFc, calcularMetricasCombate, calcularStatusSimulados } = await import('../src/combate.mjs');
+  const { formatadorInteiro } = await import('../src/formato.mjs');
   const { renderizarPlanejadorForjas } = await import('../src/forjas.mjs');
   const { atualizarTop1Dinamicos } = await import('../src/panorama.mjs');
   const { cls, level, atributos, itens } = simulacao.estadoSimulador;
@@ -115,7 +117,13 @@ test('shared link initializes the simulator and removes excess gems from a legac
   assert.deepEqual(structuredClone(itens[0].gems), original.itens[0].gems.slice(0, 4));
   assert.equal(itens[1].sockets, 6);
   assert.match(w.document.querySelector('.rs-gem-badge-top').textContent, /4\/4/);
-  assert.ok(Number.isFinite(calcularFc(cls, calcularStatusSimulados(cls, level, atributos, itens))));
+  const status = calcularStatusSimulados(cls, level, atributos, itens);
+  assert.ok(Number.isFinite(calcularFc(cls, status)));
+  const { curaSkillLuzDivina, healPower } = calcularMetricasCombate(cls, level, status, itens);
+  const cardCura = w.document.querySelector('.rs-hero-tiles .rs-htile:not(.fc)');
+  assert.equal(cardCura.querySelector('span').textContent, 'CURA EM GRUPO');
+  assert.equal(cardCura.querySelector('b').textContent, formatadorInteiro.format(Math.round(curaSkillLuzDivina)));
+  assert.equal(cardCura.querySelector('small strong').textContent, formatadorInteiro.format(Math.round(healPower)));
   renderizarPlanejadorForjas(null);
   const slots = [...w.document.querySelectorAll('#select-planejador-slot option')].map(node => node.textContent);
   assert.deepEqual(slots, ['Arma', 'Elmo', 'Armadura', 'Anel']);

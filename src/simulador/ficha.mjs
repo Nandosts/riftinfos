@@ -150,6 +150,8 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
       }).join("")
     : `<div class="small muted">Nenhum item de conjunto equipado.</div>`;
 
+  const ehClerigo = simulacao.estadoSimulador.cls === "cleric";
+  const temCuraEmGrupo = ehClerigo && passivas.armaInfo?.skillTipo !== "dano";
   const textoArmaPassiva = passivas.armaInfo?.efeito?.texto || passivas.armaInfo?.notaSkill || "Ataque básico e habilidade padrão da classe.";
   const projecaoAnel = descreverProjecaoAnel(metSim);
   const textoAnelPassiva = passivas.anelInfo?.efeito || "Sem efeito especial de anel.";
@@ -186,7 +188,8 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
         <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
         <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
         <div class="card-info-linha"><span>DPS Real em Combate</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s ${metOrig ? `(${metSim.dpsCombateMedio >= metOrig.dpsCombateMedio ? "+" : ""}${formatarNumeroCompacto(metSim.dpsCombateMedio - metOrig.dpsCombateMedio)})` : ""}</strong></div>
-        ${simulacao.estadoSimulador.cls === "cleric" ? `<div class="card-info-linha"><span>Poder de Cura (Luz Divina)</span><strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></div>` : ""}
+        ${temCuraEmGrupo ? `<div class="card-info-linha"><span>Cura em grupo</span><strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></div>` : ""}
+        ${ehClerigo ? `<div class="card-info-linha"><span>Poder de cura base</span><strong>${formatarNumeroCompacto(metSim.healPower)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Mitigação de Defesa</span><strong>${(metSim.reducaoDefesa * 100).toFixed(1)}%</strong></div>
       </div>
 
@@ -259,6 +262,8 @@ function construirModoFichaVisualHtml(
   // Conjuntos equipados (no painel esquerdo de /character)
   const projecaoAnel = descreverProjecaoAnel(metSim);
   const passivas = obterResumoPassivasBuildSimulador();
+  const ehClerigo = simulacao.estadoSimulador.cls === "cleric";
+  const temCuraEmGrupo = ehClerigo && passivas.armaInfo?.skillTipo !== "dano";
   const caixasSetsEquipadosHtml = passivas.setsDetectados.length > 0
     ? passivas.setsDetectados.map(({ chave, qtd, info }) => {
         const b2Texto = window.RiftSprites?.catalogoConjuntosOficial?.[chave]?.b2 || formatarBonusConjuntoCurto(info.b2);
@@ -616,8 +621,13 @@ function construirModoFichaVisualHtml(
             ${deltaFc !== null ? `<small class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} vs atual</small>` : ""}
           </div>
           <div class="rs-htile">
-            <span>${simulacao.estadoSimulador.cls === "cleric" ? "LUZ DIVINA (CURA)" : "DPS EM COMBATE"}</span>
-            <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(simulacao.estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio))}</b>
+            <span>${temCuraEmGrupo ? "CURA EM GRUPO" : "DPS EM COMBATE"}</span>
+            <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(temCuraEmGrupo ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio))}</b>
+            ${ehClerigo ? `
+              <small class="muted" title="Valor antes do multiplicador da habilidade">
+                Poder de cura base<br><strong>${formatadorInteiro.format(Math.round(metSim.healPower))}</strong>
+              </small>
+            ` : ""}
           </div>
         </div>
 
@@ -675,8 +685,8 @@ function construirModoFichaVisualHtml(
             <small>Mitig. ${(metSim.reducaoDefesa * 100).toFixed(1)}%</small>
           </div>
           <div class="rs-tile">
-            <span>${simulacao.estadoSimulador.cls === "cleric" ? "PODER DE CURA" : "DANO DA SKILL"}</span>
-            <b style="color:${simulacao.estadoSimulador.cls === "cleric" ? "var(--green)" : "var(--cyan)"};">${formatarNumeroCompacto(simulacao.estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.skillDanoTotal)}</b>
+            <span>${temCuraEmGrupo ? "CURA EM GRUPO" : "DANO DA SKILL"}</span>
+            <b style="color:${temCuraEmGrupo ? "var(--green)" : "var(--cyan)"};">${formatarNumeroCompacto(temCuraEmGrupo ? metSim.curaSkillLuzDivina : metSim.skillDanoTotal)}</b>
             <small>Recarga ${metSim.cdSkillReal.toFixed(1)}s</small>
           </div>
         </div>
@@ -713,7 +723,7 @@ function construirModoFichaVisualHtml(
           <span>FC simulado: <strong style="color:var(--gold); font-family:var(--pix);">${formatadorInteiro.format(fcSim)}</strong></span>
           ${deltaFc !== null ? `<span class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">(${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)})</span>` : ""}
           <span>·</span>
-          <span>${simulacao.estadoSimulador.cls === "cleric" ? "Cura" : "DPS"}: <strong style="color:var(--cyan);">${formatarNumeroCompacto(simulacao.estadoSimulador.cls === "cleric" ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio)}${simulacao.estadoSimulador.cls === "cleric" ? "" : "/s"}</strong></span>
+          <span>${temCuraEmGrupo ? "Cura em grupo" : "DPS"}: <strong style="color:var(--cyan);">${formatarNumeroCompacto(temCuraEmGrupo ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio)}${temCuraEmGrupo ? "" : "/s"}</strong></span>
           <span>·</span>
           <span>HP: <strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></span>
         </div>
