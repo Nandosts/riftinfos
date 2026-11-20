@@ -63,8 +63,11 @@ test('history records equipment and gem changes even when FC and counters do not
   assert.equal(h.compararSnapshots(...history).alteracoesItens.length,1);
   delete global.localStorage;
 });
-test('shared link initializes the actual simulator and renders finite calculations', async (t) => {
-  const hash = await sharing.serializarBuildParaHash(build());
+test('shared link initializes the simulator and removes excess gems from a legacy build', async (t) => {
+  const original = build();
+  original.itens[0].rarity = 4;
+  original.itens[0].gems[5].value = 99999;
+  const hash = await sharing.serializarBuildParaHash(original);
   const w = new JSDOM(fs.readFileSync('index.html', 'utf8'), {
     url: 'https://example.test/?aba=simulador#' + hash,
     runScripts: 'outside-only',
@@ -108,7 +111,10 @@ test('shared link initializes the actual simulator and renders finite calculatio
   const { atualizarTop1Dinamicos } = await import('../src/panorama.mjs');
   const { cls, level, atributos, itens } = simulacao.estadoSimulador;
   assert.equal(cls, 'cleric');
-  assert.equal(itens[0].gems.length, 6);
+  assert.equal(itens[0].sockets, 4);
+  assert.deepEqual(structuredClone(itens[0].gems), original.itens[0].gems.slice(0, 4));
+  assert.equal(itens[1].sockets, 6);
+  assert.match(w.document.querySelector('.rs-gem-badge-top').textContent, /4\/4/);
   assert.ok(Number.isFinite(calcularFc(cls, calcularStatusSimulados(cls, level, atributos, itens))));
   renderizarPlanejadorForjas(null);
   const slots = [...w.document.querySelectorAll('#select-planejador-slot option')].map(node => node.textContent);

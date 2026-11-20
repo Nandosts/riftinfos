@@ -21,6 +21,7 @@ const escalaGemasUz = [1, 1.6, 2.4, 3.5, 5, 7.5];
 const escalaGemasXz = [1, 2, 3.5, 6, 9, 14];
 const fatoresGemasHz = { atk: 1.5, crit: 0.8, spd: 0.8 };
 
+const engastesPorRaridade = [0, 1, 2, 3, 4, 3, 5, 6];
 const multiplicadoresRaridadeItem = [0.35, 0.45, 0.55, 0.68, 0.78, 0.84, 0.92, 1.0];
 
 const simulacao = {
@@ -138,6 +139,16 @@ function recalcularGemasBuildComModo(rollForcado = undefined) {
   simulacao.estadoSimulador.itens.forEach((item) => {
     recalcularGemasItem(item, rollForcado);
   });
+}
+
+function adequarEngastesSimulados(item) {
+  item.sockets = Number(item.itemLevel) >= 20 ? engastesPorRaridade[item.rarity] ?? 0 : 0;
+  if (item.gems?.length !== item.sockets) {
+    const gemas = item.gems;
+    item.gems = Array.from({ length: item.sockets }, (_, indice) => gemas?.[indice] ?? null);
+  }
+  adequarTierGemas(item);
+  return item;
 }
 
 function resolverKindEfetivoItem(item) {
@@ -286,11 +297,11 @@ function criarModeloSimuladorPadrao() {
     level: 400,
     atributos: { str: 200, vit: 180, def: 150, agi: 140, luk: 120 },
     itens: [
-      { id: "sim-weapon", slot: "weapon", name: "Lâmina da Singularidade", kind: "singblade", set: "singular", rarity: 6, itemLevel: 200, ...w, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-helmet", slot: "helmet", name: "Elmo da Singularidade", kind: "singhelm", set: "singular", rarity: 6, itemLevel: 200, ...h, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-armor", slot: "armor", name: "Couraça da Singularidade", kind: "singplate", set: "singular", rarity: 6, itemLevel: 200, ...a, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-      { id: "sim-ring", slot: "ring", name: "Anel do Eclipse Arcano", kind: "", look: 14, set: "", rarity: 7, itemLevel: 180, ...r, sockets: 6, gemTierPadrao: 5, gems: Array(6).fill(null) },
-    ],
+      { id: "sim-weapon", slot: "weapon", name: "Lâmina da Singularidade", kind: "singblade", set: "singular", rarity: 6, itemLevel: 200, ...w, gemTierPadrao: 5 },
+      { id: "sim-helmet", slot: "helmet", name: "Elmo da Singularidade", kind: "singhelm", set: "singular", rarity: 6, itemLevel: 200, ...h, gemTierPadrao: 5 },
+      { id: "sim-armor", slot: "armor", name: "Couraça da Singularidade", kind: "singplate", set: "singular", rarity: 6, itemLevel: 200, ...a, gemTierPadrao: 5 },
+      { id: "sim-ring", slot: "ring", name: "Anel do Eclipse Arcano", kind: "", look: 14, set: "", rarity: 7, itemLevel: 180, ...r, gemTierPadrao: 5 },
+    ].map(adequarEngastesSimulados),
   };
 }
 
@@ -302,7 +313,7 @@ function importarPerfilParaSimulador(perfil) {
   const itensImportados = slots.map((slot) => {
     const orig = (perfil.equipped || []).find((i) => i.slot === slot);
     if (!orig) {
-      return {
+      return adequarEngastesSimulados({
         id: `sim-${slot}`,
         slot,
         name: `Peça (${nomesSlots[slot]})`,
@@ -316,10 +327,8 @@ function importarPerfilParaSimulador(perfil) {
         hp: 0,
         crit: 0,
         spd: 0,
-        sockets: 6,
         gemTierPadrao: 5,
-        gems: Array(6).fill(null),
-      };
+      });
     }
     pecasImportadas[slot] = {
       slot,
@@ -336,11 +345,11 @@ function importarPerfilParaSimulador(perfil) {
     };
     const origGems = Array.isArray(orig.gems) ? orig.gems : [];
     const tierDetectado = origGems.find((g) => g?.tier)?.tier || 5;
-    return {
+    return adequarEngastesSimulados({
       ...orig,
       gemTierPadrao: tierDetectado,
-      gems: Array.from({ length: 6 }, (_, i) => (origGems[i] ? { ...origGems[i] } : null)),
-    };
+      gems: origGems.map((gema) => gema ? { ...gema } : null),
+    });
   });
 
   simulacao.estadoSimulador = {
@@ -473,6 +482,7 @@ function obterResumoPassivasBuildSimulador() {
 }
 
 export {
+  adequarEngastesSimulados,
   adequarTierGemas,
   aplicarAtributosPadraoNoItem,
   aplicarTrocaAnelSimulador,

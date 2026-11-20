@@ -99,7 +99,7 @@ test.describe("Simulador e Compartilhamento", () => {
     await expect(page.locator('#simulador-container [data-sim-selecionar-engaste="0"]')).toContainText(/Safira/i);
     await expect(page.locator('#simulador-container [data-sim-selecionar-engaste="5"]')).toContainText(/Topázio/i);
 
-    // Abre Opções Avançadas e aplica rolagem máxima nas 24 pedras
+    // Abre Opções Avançadas e aplica rolagem máxima às gemas engastadas
     const detailsAvancadas = page.locator("#sim-details-avancadas");
     if (!(await detailsAvancadas.evaluate((el) => el.open))) {
       await detailsAvancadas.locator("summary").click();
@@ -109,11 +109,32 @@ test.describe("Simulador e Compartilhamento", () => {
     await btnMax.click();
     await page.locator('#simulador-container [data-sim-aplicar-roll-todas="1"]').click();
 
-    // Reduz raridade para Épico (4) — T6 deve ficar bloqueado / não disponível
-    const btnEpico = page.locator('#simulador-container [data-sim-raridade-rapida="0:4"]');
-    await expect(btnEpico).toBeVisible();
-    await btnEpico.click();
-    await expect(page.locator('#simulador-container [data-sim-slot-tier="0:0:6"]')).toHaveCount(0);
+    const sim = page.locator("#simulador-container");
+    await sim.getByRole("button", { name: "Lendário", exact: true }).click();
+    await expect(sim.locator("[data-sim-selecionar-engaste]")).toHaveCount(4);
+    await expect(sim.locator('[data-sim-selecionar-engaste="0"]')).toContainText("T5");
+    await expect(sim.getByRole("button", { name: "T6 Prismática" })).toBeDisabled();
+    await expect(sim.locator(".rs-gem-badge-top")).toContainText("4/4");
+
+    await sim.locator('[data-sim-modo-vis="lista"]').click();
+    const arma = sim.locator('.sim-slot-card[data-slot-index="0"]');
+    const raridade = arma.getByTitle("Raridade");
+    const engastes = arma.locator("[data-sim-engaste-tier]");
+    for (const [rar, quantidade] of [["5", 3], ["3", 3], ["2", 2], ["1", 1], ["0", 0], ["6", 5], ["7", 6], ["4", 4]]) {
+      await raridade.selectOption(rar);
+      await expect(engastes).toHaveCount(quantidade);
+    }
+    const nivelArma = arma.getByTitle("Item Level");
+    await nivelArma.fill("19");
+    await nivelArma.dispatchEvent("change");
+    await expect(engastes).toHaveCount(0);
+    await nivelArma.fill("20");
+    await nivelArma.dispatchEvent("change");
+    await expect(engastes).toHaveCount(4);
+    await expect(arma.locator(".badge-gemas-resumo")).toContainText("0/4");
+    await sim.locator('[data-sim-modo-vis="ficha"]').click();
+    await sim.locator('[data-sim-preset-criativo="gemas_safira"]').click();
+    await expect(sim.locator(".rs-gem-badge-top")).toContainText("4/4");
 
     // Comparar melhorias por FC, DPS, HP e Cura + Aplicar e Desfazer
     const selOrdem = page.locator("#select-ordem-melhorias");

@@ -19,7 +19,7 @@ import { escaparHtml, formatadorInteiro, formatarGemaTexto } from "../formato.mj
 import { perfilCarregadoP1 } from "../perfil.mjs";
 import { renderizarCompararMelhorias, renderizarPainelGerenciadorBuilds } from "./builds.mjs";
 import { vincularEventosSimulador } from "./controles.mjs";
-import { limitarTierGema, obterOrigemBuildSimulador, obterTierEngaste, resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
+import { adequarEngastesSimulados, limitarTierGema, obterOrigemBuildSimulador, obterTierEngaste, resumoCurtoGemaBotao, simulacao, slotsAbertosSimulador } from "./estado.mjs";
 import {
   construirBarraModoCriativoHtml,
   construirModoFichaVisualHtml,
@@ -31,6 +31,7 @@ const containerSimulador = document.querySelector("#simulador-container");
 
 function renderizarSimulador() {
   if (!containerSimulador) return;
+  simulacao.estadoSimulador.itens.forEach(adequarEngastesSimulados);
 
   // Preserva estado dos cards expansíveis abertos e scroll interno da galeria
   const cardsExistentes = containerSimulador.querySelectorAll(".sim-slot-card");
@@ -222,12 +223,8 @@ function renderizarSimulador() {
     const slotsHtml = simulacao.estadoSimulador.itens.map((item, idxSlot) => {
       const ehArma = item.slot === "weapon";
       const ehAnel = item.slot === "ring";
-      const maxGemas = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
-      if (!Array.isArray(item.gems) || item.gems.length < 6) {
-        const antigas = Array.isArray(item.gems) ? item.gems : [];
-        item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
-      }
-      const qtdGemasAtivas = item.gems.slice(0, maxGemas).filter(Boolean).length;
+      const maxGemas = item.sockets;
+      const qtdGemasAtivas = item.gems.filter(Boolean).length;
       const maxTier = limitarTierGema(6, item.rarity);
 
       const linhasGemasHtml = Array.from({ length: maxGemas }, (_, idxGema) => {
@@ -313,7 +310,7 @@ function renderizarSimulador() {
                 </div>
                 <div class="sim-tier-bar">
                   <button type="button" class="btn-mini" data-sim-gem-reroll="${idxSlot}" title="Recalcula as gemas engastadas nesta peça">🎲 Re-rolar</button>
-                  <button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Copia a gema da linha #1 para todas as 6 linhas">Repetir #1 nas 6</button>
+                  ${maxGemas > 1 ? `<button type="button" class="btn-mini" data-sim-gem-repetir="${idxSlot}" title="Preenche os engastes da peça">Repetir em ${maxGemas} engastes</button>` : ""}
                   <button type="button" class="btn-mini" data-sim-gem-limpar="${idxSlot}" title="Desseleciona todas as gemas desta peça">Limpar</button>
                 </div>
               </div>

@@ -68,7 +68,7 @@ function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3
             </button>
           </div>
           <button type="button" class="btn-mini" data-sim-aplicar-roll-todas="1" title="Recalcula todas as pedras já engastadas nas 4 peças usando o modo acima">
-            🔄 Aplicar nas 24 pedras
+            🔄 Aplicar às gemas engastadas
           </button>
         </div>
 
@@ -80,11 +80,11 @@ function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3
           <button type="button" class="btn-mini" data-sim-preset-criativo="max330" title="Coloca as 4 peças em Arcano Nível 330 e recalcula os atributos base e gemas">
             ⚡ Tudo Arcano Nv.330
           </button>
-          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_safira" title="Engasta 6 Safiras T5 Suprema em todas as 4 peças (24 pedras no total)">
-            💎 24× Safira T5
+          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_safira" title="Preenche os engastes disponíveis com Safiras">
+            💎 Preencher com Safiras
           </button>
-          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_rubi" title="Engasta 6 Rubis T5 Suprema em todas as 4 peças (24 pedras no total)">
-            ❤️ 24× Rubi T5
+          <button type="button" class="btn-mini" data-sim-preset-criativo="gemas_rubi" title="Preenche os engastes disponíveis com Rubis">
+            ❤️ Preencher com Rubis
           </button>
         </div>
 
@@ -228,12 +228,8 @@ function construirModoFichaVisualHtml(
 ) {
   const idxAtivo = Math.min(3, Math.max(0, Number(simulacao.slotSelecionadoSimulador) || 0));
   const itemAtivo = simulacao.estadoSimulador.itens[idxAtivo] || simulacao.estadoSimulador.itens[0];
-  const maxGemasAtivo = Math.max(0, Math.min(6, Number(itemAtivo.sockets ?? 6)));
-  if (!Array.isArray(itemAtivo.gems) || itemAtivo.gems.length < 6) {
-    const antigas = Array.isArray(itemAtivo.gems) ? itemAtivo.gems : [];
-    itemAtivo.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
-  }
-  const qtdGemasAtivas = itemAtivo.gems.slice(0, maxGemasAtivo).filter(Boolean).length;
+  const maxGemasAtivo = itemAtivo.sockets;
+  const qtdGemasAtivas = itemAtivo.gems.filter(Boolean).length;
   const ehArma = itemAtivo.slot === "weapon";
   const ehAnel = itemAtivo.slot === "ring";
 
@@ -288,8 +284,7 @@ function construirModoFichaVisualHtml(
   // Os 4 quadrados EQUIPADO (.slots4 > .ibox.rbg-X)
   const quadradosEquipadoHtml = simulacao.estadoSimulador.itens.map((item, idxSlot) => {
     const rarIdx = Math.max(0, Math.min(7, Number(item.rarity) || 0));
-    const maxSock = Math.max(0, Math.min(6, Number(item.sockets ?? 6)));
-    const qtdGemas = (item.gems || []).slice(0, maxSock).filter((g) => g && g.type).length;
+    const qtdGemas = item.gems.filter(Boolean).length;
     const selecionado = idxSlot === idxAtivo;
     return `
       <button
@@ -354,7 +349,7 @@ function construirModoFichaVisualHtml(
   if (ehAnel) {
     const anelComumAtivo = !Number(itemAtivo.look);
     const listaAneis = [
-      { look: 0, nome: "Anel Comum", raridadeMin: 5, foco: "Base padrão", efeito: "Apenas atributos base e 6 engastes de gemas." },
+      { look: 0, nome: "Anel Comum", raridadeMin: 5, foco: "Base padrão", efeito: "Apenas atributos base, com engastes conforme a raridade." },
       ...Object.entries(catalogoAneis)
         .sort((a, b) => (b[1].raridadeMin || 6) - (a[1].raridadeMin || 6) || Number(b[0]) - Number(a[0]))
         .map(([k, v]) => ({ look: Number(k), nome: v.nome, raridadeMin: v.raridadeMin || 7, foco: v.foco || "", efeito: v.efeito })),

@@ -82,7 +82,7 @@ function vincularEventosSimulador() {
         const tipoGema = preset === "gemas_safira" ? "sapphire" : "ruby";
         simulacao.estadoSimulador.itens.forEach((it) => {
           const t = Number(it.gemTierPadrao || 5);
-          it.gems = Array.from({ length: 6 }, () => criarGemaPreset(tipoGema, it.slot, t, it.itemLevel || 300));
+          it.gems = Array.from({ length: it.sockets }, () => criarGemaPreset(tipoGema, it.slot, t, it.itemLevel || 300));
         });
       }
       renderizarSimulador();
@@ -118,9 +118,8 @@ function vincularEventosSimulador() {
       if (repetir) {
         const tipo = gema.type || gema.kind;
         if (!Object.hasOwn(catalogoGemas, tipo)) return;
-        const limite = Math.min(6, Number(item.sockets ?? 6));
-        item.gems = Array.from({ length: 6 }, (_, i) =>
-          i >= limite ? null : i === idxGema ? gema : criarGemaPreset(tipo, item.slot, gema.tier, item.itemLevel)
+        item.gems = Array.from({ length: item.sockets }, (_, i) =>
+          i === idxGema ? gema : criarGemaPreset(tipo, item.slot, gema.tier, item.itemLevel)
         );
       } else {
         item.gems[idxGema] = null;
@@ -263,7 +262,7 @@ function vincularEventosSimulador() {
       const item = simulacao.estadoSimulador.itens[Number(idxStr)];
       if (!item) return;
       const tierSlot = Number(item.gemTierPadrao || 5);
-      item.gems = Array.from({ length: 6 }, () => criarGemaPreset(tipoGema, item.slot, tierSlot, item.itemLevel || 300));
+      item.gems = Array.from({ length: item.sockets }, () => criarGemaPreset(tipoGema, item.slot, tierSlot, item.itemLevel || 300));
       renderizarSimulador();
     });
   });
@@ -415,11 +414,7 @@ function vincularEventosSimulador() {
       const idxSlot = Number(idxSlotStr);
       const idxGema = Number(idxGemaStr);
       const item = simulacao.estadoSimulador.itens[idxSlot];
-      if (!item || idxGema < 0 || idxGema >= Math.min(6, Number(item.sockets ?? 6))) return;
-      if (!Array.isArray(item.gems) || item.gems.length < 6) {
-        const antigas = Array.isArray(item.gems) ? item.gems : [];
-        item.gems = Array.from({ length: 6 }, (_, i) => (antigas[i] ? { ...antigas[i] } : null));
-      }
+      if (!item || idxGema < 0 || idxGema >= item.sockets) return;
       const gemaAtual = item.gems[idxGema];
       const tier = obterTierEngaste(item, idxGema);
 
@@ -451,14 +446,13 @@ function vincularEventosSimulador() {
       const [slot, indice, tier = controle.value] = (controle.dataset.simSlotTier ?? controle.dataset.simEngasteTier).split(":");
       const item = simulacao.estadoSimulador.itens[Number(slot)];
       const engaste = Number(indice);
-      if (!item || engaste < 0 || engaste >= (item.sockets ?? 6)) return;
+      if (!item || engaste < 0 || engaste >= item.sockets) return;
       simulacao.simuladorEditadoManual = true;
       definirTierEngaste(item, engaste, tier);
       renderizarSimulador();
     });
   });
 
-  // Botão "Repetir #1 nas 6"
   containerSimulador.querySelectorAll("[data-sim-gem-repetir]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       simulacao.simuladorEditadoManual = true;
@@ -467,7 +461,7 @@ function vincularEventosSimulador() {
       if (!item) return;
       const tierSlot = Number(item.gemTierPadrao || 5);
       const primeira = item.gems?.find(Boolean) || criarGemaPreset("ruby", item.slot, tierSlot, item.itemLevel);
-      item.gems = Array.from({ length: 6 }, () => criarGemaPreset(primeira.type, item.slot, primeira.tier || tierSlot, item.itemLevel));
+      item.gems = Array.from({ length: item.sockets }, () => criarGemaPreset(primeira.type || primeira.kind, item.slot, primeira.tier || tierSlot, item.itemLevel));
       renderizarSimulador();
     });
   });
@@ -479,7 +473,7 @@ function vincularEventosSimulador() {
       const idxSlot = Number(e.currentTarget.dataset.simGemLimpar);
       const item = simulacao.estadoSimulador.itens[idxSlot];
       if (!item) return;
-      item.gems = Array(6).fill(null);
+      item.gems.fill(null);
       renderizarSimulador();
     });
   });
