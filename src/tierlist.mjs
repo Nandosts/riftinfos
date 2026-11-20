@@ -16,6 +16,7 @@ const containerTabela = document.querySelector("#tierlist-tabela");
 const containerDetalhe = document.querySelector("#tierlist-detalhe");
 const descricaoModo = document.querySelector("#tierlist-descricao-modo");
 const controlesFc = document.querySelector("#tierlist-controles-fc");
+const filtroRaridade = document.querySelector("#tierlist-raridade");
 const filtroArmas = document.querySelector('[data-tl-cat="weapon"]');
 const selectAnelReferencia = document.querySelector("#tierlist-anel-referencia");
 
@@ -122,7 +123,7 @@ function calcularFcReferencia(classe, pecas) {
   const itens = pecas.map((peca) => {
     const item = { ...peca };
     item.itemLevel = NIVEL_ITEM_REFERENCIA;
-    item.sockets = item.rarity === 7 ? 6 : 5;
+    item.sockets = ({ 3: 3, 4: 4, 6: 5, 7: 6 })[item.rarity];
     const engastes = Array.from({ length: item.sockets }, (_, index) => gemasPorSlot.get(`${item.slot}:${index}`) || {});
     item.tiersEngastes = engastes.map(({ tier }) => limitarTierGema(tier, item.rarity));
     aplicarAtributosPadraoNoItem(item);
@@ -191,10 +192,9 @@ function construirCatalogoItens() {
   }] : [];
   for (const [key, setInfo] of Object.entries(catalogoConjuntos)) {
     const util = UTILIDADE_CONJUNTOS[key];
-    if (!util) continue;
     const arma = catalogoArmas[setInfo.armaKind];
     const rarity = setInfo.raridadePadrao;
-    const referenciaFc = setInfo.curvaReferencia || rarity < 6 ? null : calcularFcReferencia(setInfo.classe, [
+    const referenciaFc = setInfo.curvaReferencia ? null : calcularFcReferencia(setInfo.classe, [
       { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
       { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
       { slot: "armor", kind: setInfo.armaduraKind, name: setInfo.armaduraNome, rarity, set: key },
@@ -216,11 +216,11 @@ function construirCatalogoItens() {
       kindSprite: setInfo.armaKind,
       lookSprite: 0,
       classeSprite: setInfo.classe,
-      tierUtilidade: util.tier,
-      prioridadeUtilidade: util.prioridade ?? Number.MAX_SAFE_INTEGER,
-      tagUtilidade: util.tag,
-      motivoUtilidade: util.motivo,
-      limiteUtilidade: util.limite,
+      tierUtilidade: util?.tier,
+      prioridadeUtilidade: util?.prioridade,
+      tagUtilidade: util?.tag,
+      motivoUtilidade: util?.motivo,
+      limiteUtilidade: util?.limite,
       referenciaFc,
       bonusConjunto,
       curvaEstimada: anel?.estimado,
@@ -356,8 +356,16 @@ function desenharTodosSprites() {
     const escala = Number(canvas.dataset.tlEscala || 3);
     if (canvas.hasAttribute("data-tl-heroi") || canvas.dataset.tlPeca !== undefined) {
       const { classe, itens } = obterItemContextualizado(item).referenciaFc;
-      if (canvas.hasAttribute("data-tl-heroi")) window.RiftSprites.iniciarPalcoHeroi(canvas, classe, itens);
-      else window.RiftSprites.desenharIconeItem(canvas, itens[Number(canvas.dataset.tlPeca)], classe, escala);
+      if (canvas.hasAttribute("data-tl-heroi")) {
+        try {
+          window.RiftSprites.iniciarPalcoHeroi(canvas, classe, itens);
+        } catch (erro) {
+          if (!(erro instanceof ReferenceError)) throw erro;
+          window.RiftSprites.iniciarPalcoHeroi(canvas, classe, []);
+        }
+      } else {
+        window.RiftSprites.desenharIconeItem(canvas, itens[Number(canvas.dataset.tlPeca)], classe, escala);
+      }
       return;
     }
     window.RiftSprites.desenharIconeItem(
@@ -392,8 +400,9 @@ function renderizarDetalhe() {
   if (!containerDetalhe) return;
   const raw = catalogoTierList.find((x) => x.id === itemSelecionadoId);
   const item = raw ? obterItemContextualizado(raw) : null;
+  containerDetalhe.hidden = !item;
   if (!item) {
-    containerDetalhe.innerHTML = `<div class="muted small">Selecione um item para ver os detalhes.</div>`;
+    containerDetalhe.replaceChildren();
     return;
   }
   if (modoAtual === "fc") {
@@ -429,8 +438,10 @@ function renderizarDetalhe() {
 
 function renderizarTabela() {
   if (!containerTabela) return;
+  const raridade = filtroRaridade?.value || "";
   const filtrados = catalogoTierList
     .filter((item) => {
+      if (raridade && String(item.raridade ?? "variavel") !== raridade) return false;
       if (categoriaAtual === "todos") return true;
       if (categoriaAtual === "weapon") return item.id.startsWith("weapon_");
       if (["warrior", "archer", "cleric"].includes(categoriaAtual)) {
@@ -439,7 +450,7 @@ function renderizarTabela() {
       return item.categoria === categoriaAtual;
     })
     .map(obterItemContextualizado)
-    .filter((item) => modoAtual !== "fc" || item.referenciaFc);
+    .filter((item) => modoAtual === "fc" ? item.referenciaFc : item.tierUtilidade);
 
   const grupos = modoAtual === "fc"
     ? atribuirTiersPorFc(filtrados)
@@ -452,11 +463,17 @@ function renderizarTabela() {
 
   if (descricaoModo) {
     descricaoModo.textContent = modoAtual === "fc"
-      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate. Veja armas avulsas e conjuntos Épicos em Por Utilidade. Os novos conjuntos da Cidade Mecânica entram quando houver dados dos atributos por nível."
+      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate. Armas avulsas aparecem em Por Utilidade. Os novos conjuntos da Cidade Mecânica entram quando houver dados dos atributos por nível."
       : "Tier List opinativa com foco em chefes e Raids. A ordem considera proteção, revive, controle e dano. No filtro Armas avulsas, a nota considera a habilidade da arma equipada.";
   }
   if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
   if (filtroArmas) filtroArmas.hidden = modoAtual === "fc";
+
+  if (!filtrados.length) {
+    containerTabela.innerHTML = `<p class="note" role="status">Nenhum item para esta combinação de filtros.</p>`;
+    renderizarDetalhe();
+    return;
+  }
 
   const linhasMeta = [
     { key: "S+", classe: "tl-tier-splus", sub: modoAtual === "fc" ? "Topo FC" : "Meta" },
@@ -515,6 +532,8 @@ function renderizarTabela() {
     });
   });
 }
+
+filtroRaridade?.addEventListener("change", renderizarTabela);
 
 document.querySelectorAll("[data-tl-modo]").forEach((btn) => {
   btn.addEventListener("click", () => {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { prepararPagina, verificarCanvasComSprite } from "./helpers/ambiente.mjs";
+import { prepararPagina, verificarCanvasComSprite, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Tier List (funcional completo)", () => {
   test("matriz completa 2x5 (Por Utilidade e Por FC x Todos, classes e Anéis) e catálogo por classe, conjuntos, armas e anéis", async ({ page }, testInfo) => {
@@ -22,13 +22,13 @@ test.describe("Tier List (funcional completo)", () => {
         const sets = ids.filter((id) => id.startsWith("set_"));
 
         if (filtro === "todos") {
-          expect(sets.length).toBe(modo === "utilidade" ? 36 : 24);
+          expect(sets.length).toBe(36);
           expect(rings.length).toBe(10);
         } else if (filtro === "ring") {
           expect(sets.length).toBe(0);
           expect(rings.length).toBe(10);
         } else {
-          expect(sets.length).toBe(modo === "utilidade" ? 12 : 8);
+          expect(sets.length).toBe(12);
           expect(rings.length).toBe(10);
         }
       }
@@ -111,6 +111,58 @@ test.describe("Tier List (funcional completo)", () => {
     await expect(filtroArmas).toBeHidden();
     await expect(foice).toHaveCount(0);
     await expect(page.locator("#tierlist-detalhe .tl-ficha-fc")).toBeVisible();
+    expect(erros).toEqual([]);
+  });
+
+  test("combina raridade com classe, tipo e critério de FC", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/tierlist.html");
+    const raridade = page.getByLabel("Raridade");
+    const cards = page.locator("#tierlist-tabela .tl-card");
+    const detalhe = page.locator("#tierlist-detalhe");
+
+    await raridade.selectOption("3");
+    await expect(cards).toHaveCount(6);
+    await page.click('[data-tl-cat="cleric"]');
+    await expect(cards).toHaveCount(2);
+    await expect(cards.first()).toHaveClass(/epico/);
+
+    await page.click('[data-tl-modo="fc"]');
+    await expect(raridade).toHaveValue("3");
+    await expect(cards).toHaveCount(2);
+    await expect(detalhe.locator("[data-tl-slot]")).toHaveCount(3);
+    await expect(detalhe.locator("[data-tl-selecionar-engaste]")).toHaveCount(3);
+
+    await raridade.selectOption("4");
+    await expect(cards).toHaveCount(2);
+    await expect(cards.first()).toHaveClass(/lendario/);
+    await expect(detalhe.locator("[data-tl-selecionar-engaste]")).toHaveCount(4);
+
+    await page.click('[data-tl-cat="todos"]');
+    for (const [valor, engastes] of [["3", 3], ["4", 4]]) {
+      await raridade.selectOption(valor);
+      await expect(cards).toHaveCount(6);
+      const ids = await cards.evaluateAll((itens) => itens.map((item) => item.dataset.tlCard));
+      for (const id of ids) {
+        await page.click(`[data-tl-card="${id}"]`);
+        await expect(detalhe.locator("[data-tl-selecionar-engaste]")).toHaveCount(engastes);
+        await verificarCanvasComSprite(page, "canvas[data-tl-heroi]");
+      }
+    }
+
+    await page.click('[data-tl-cat="ring"]');
+    await expect(cards).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("Nenhum item para esta combinação");
+    await expect(detalhe).toBeHidden();
+    await raridade.selectOption("7");
+    await expect(cards).toHaveCount(6);
+    await expect(detalhe.locator("[data-tl-selecionar-engaste]")).toHaveCount(6);
+
+    await page.click('[data-tl-modo="utilidade"]');
+    await page.click('[data-tl-cat="weapon"]');
+    await raridade.selectOption("variavel");
+    await expect(cards).toHaveCount(14);
+    await expect(page.locator("#tierlist-tabela .tl-card.lendario")).toHaveCount(0);
+    await verificarSemOverflowHorizontal(page, "Tier List com filtro de raridade");
     expect(erros).toEqual([]);
   });
 

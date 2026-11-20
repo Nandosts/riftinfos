@@ -32,6 +32,13 @@
   letter-spacing: 0.06em;
 }
 
+#tierlist-raridade {
+  width: auto;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
 .tl-btn {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
