@@ -54,6 +54,29 @@ test.describe("Simulador e Compartilhamento", () => {
     expect(erros).toEqual([]);
   });
 
+  test("equipa peças da Cidade Mecânica e mostra as projeções dos anéis da Raid", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/index.html?aba=simulador");
+    const sim = page.locator("#simulador-container");
+    await sim.locator('[data-sim-classe-btn="cleric"]').first().click();
+    await sim.locator("#sim-details-avancadas summary").click();
+    await sim.locator('[data-sim-set-rapido="royalclock"]').first().click();
+    await expect(sim.locator(".rs-set-box")).toContainText("Relojoeiro Real");
+    await expect(sim).toContainText("Os atributos gerados automaticamente");
+    await sim.locator('.rs-slots4 [data-sim-selecionar-slot="3"]').click();
+    await sim.locator('[data-sim-equipar-anel="18"]').click();
+    await expect(sim.locator(".rs-attrs")).toContainText("dano direto antes da DEF contra alvo já sangrando ou envenenado");
+    await page.click("#aba-monstros");
+    await page.selectOption("#select-monstro-origem", "simulador");
+    await expect(page.locator(".grade-tres-indicadores-boss")).toContainText("sem o veneno e o bônus condicional da Presa");
+    await page.click("#aba-simulador");
+    await sim.locator('[data-sim-equipar-anel="19"]').click();
+    await expect(sim.locator(".rs-attrs")).toContainText("Teia Escarlate: escudo pessoal de");
+    await expect(sim.locator(".rs-attrs")).toContainText("A primeira vem aos 3s");
+    await sim.locator('[data-sim-modo-vis="lista"]').first().click();
+    await expect(sim.locator(".sim-resumo-bonus-ativos")).toContainText("Teia Escarlate: escudo pessoal de");
+    expect(erros).toEqual([]);
+  });
+
   test("gemas T1-T6, seleção de engaste sem sobrescrever anterior, mistura de tiers, raridade, presets e melhorias (aplicar/desfazer)", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Editor de gemas completo no desktop");
     const { erros } = await prepararPagina(page, "/index.html");

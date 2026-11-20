@@ -4,6 +4,7 @@ import {
   catalogoArmas,
   catalogoConjuntos,
   catalogoEscalasPecas,
+  curvasReferenciaPecas,
   catalogoGemas,
   nomesSlots,
   rotulosStats,
@@ -159,7 +160,8 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
     const kindPadraoClasse = slot === "weapon"
       ? ({ warrior: "sword", archer: "bow", cleric: "staff" }[classe] || "sword")
       : "";
-    const escPeca = (kind && catalogoEscalasPecas[kind]) || (kindPadraoClasse && catalogoEscalasPecas[kindPadraoClasse]);
+    const kindCurva = curvasReferenciaPecas.get(kind) || kind;
+    const escPeca = catalogoEscalasPecas[kindCurva] || catalogoEscalasPecas[kindPadraoClasse];
     if (escPeca) {
       const rarBase = escPeca.raridadeBase ?? 7;
       const fatorRar = multRar / (multiplicadoresRaridadeItem[rarBase] ?? 1.0);

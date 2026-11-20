@@ -113,6 +113,17 @@ function construirBarraModoCriativoHtml(conjuntosDaClasse = [], setAtivo3Pecas =
   `;
 }
 
+function descreverProjecaoAnel(metricas) {
+  const { presaIxtharra, escudoTeiaEscarlate } = metricas;
+  if (presaIxtharra) {
+    return `Presa de Ixtharra: ${formatarNumeroCompacto(presaIxtharra.dpsDiretoContraAlvoAfetado)}/s de dano direto antes da DEF contra alvo já sangrando ou envenenado. Veneno ativo: ${formatarNumeroCompacto(presaIxtharra.danoVenenoPorSegundo)}/s, sem somar ao sangramento.`;
+  }
+  if (escudoTeiaEscarlate) {
+    return `Teia Escarlate: escudo pessoal de ${formatadorInteiro.format(escudoTeiaEscarlate)} de vida por ativação. A primeira vem aos 3s de combate, com novas ativações a cada 8s.`;
+  }
+  return "";
+}
+
 function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOrig) {
   const deltaFc = fcOrig !== null ? fcSim - fcOrig : 0;
   const classeBanner = deltaFc > 0 ? "up" : deltaFc < 0 ? "down" : "eq";
@@ -140,6 +151,7 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
     : `<div class="small muted">Nenhum item de conjunto equipado.</div>`;
 
   const textoArmaPassiva = passivas.armaInfo?.efeito?.texto || passivas.armaInfo?.notaSkill || "Ataque básico e habilidade padrão da classe.";
+  const projecaoAnel = descreverProjecaoAnel(metSim);
   const textoAnelPassiva = passivas.anelInfo?.efeito || "Sem efeito especial de anel.";
   const resumoGemasHtml = passivas.totalGemas > 0
     ? Object.entries(passivas.contagemGemas)
@@ -188,6 +200,7 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
         <div class="sim-passiva-linha">
           <strong>💍 Anel:</strong> <span>${escaparHtml(passivas.anelInfo?.nome || "Anel Comum")}</span>
           <small>${escaparHtml(textoAnelPassiva)}</small>
+          ${projecaoAnel ? `<small>${escaparHtml(projecaoAnel)}</small>` : ""}
         </div>
         <div class="sim-passiva-linha">
           <strong>💎 Pedras (${passivas.totalGemas}/24):</strong>
@@ -248,6 +261,7 @@ function construirModoFichaVisualHtml(
   }).join("");
 
   // Conjuntos equipados (no painel esquerdo de /character)
+  const projecaoAnel = descreverProjecaoAnel(metSim);
   const passivas = obterResumoPassivasBuildSimulador();
   const caixasSetsEquipadosHtml = passivas.setsDetectados.length > 0
     ? passivas.setsDetectados.map(({ chave, qtd, info }) => {
@@ -671,6 +685,8 @@ function construirModoFichaVisualHtml(
             <small>Recarga ${metSim.cdSkillReal.toFixed(1)}s</small>
           </div>
         </div>
+
+        ${projecaoAnel ? `<p class="note-compacto">${escaparHtml(projecaoAnel)}</p>` : ""}
 
         <div class="rs-attrs-head">
           <h3>GASTAR OURO</h3>

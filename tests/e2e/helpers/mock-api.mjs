@@ -493,6 +493,30 @@ export async function instalarMocksApi(page, opcoes = {}) {
       );
     }
 
+    if (path === "/api/ranking/potential") {
+      return aplicarModoResposta(route, cenarios.potential, () => {
+        const apenasOnline = url.searchParams.get("online") === "true";
+        const itens = CANAIS_RUNS_PADRAO
+          .filter((c) => (!apenasOnline || c.online !== false) && Number(c.potential) > 0)
+          .sort((a, b) => Number(b.potential) - Number(a.potential))
+          .map(({ login, name, bestZone, bestWave, potential = 0, playersNow, online }, i) => ({
+            rank: i + 1,
+            login,
+            name,
+            bestZone,
+            bestWave,
+            potential,
+            playersNow,
+            online,
+          }));
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ items: itens }),
+        });
+      });
+    }
+
     if (path === "/api/ranking/records") {
       return aplicarModoResposta(route, cenarios.records, () =>
         route.fulfill({

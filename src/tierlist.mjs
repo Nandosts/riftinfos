@@ -5,6 +5,7 @@ import {
   catalogoGemas,
   coresRaridade,
   nomesClasses,
+  nomesRaridade,
 } from "./dados.mjs";
 import { calcularFc, calcularStatusSimulados } from "./combate.mjs";
 import { aplicarAtributosPadraoNoItem, criarGemaPreset, limitarTierGema, sortearRolagemGema } from "./simulador/estado.mjs";
@@ -15,10 +16,11 @@ const containerTabela = document.querySelector("#tierlist-tabela");
 const containerDetalhe = document.querySelector("#tierlist-detalhe");
 const descricaoModo = document.querySelector("#tierlist-descricao-modo");
 const controlesFc = document.querySelector("#tierlist-controles-fc");
+const filtroArmas = document.querySelector('[data-tl-cat="weapon"]');
 const selectAnelReferencia = document.querySelector("#tierlist-anel-referencia");
 
 let modoAtual = "utilidade"; // "utilidade" | "fc"
-let categoriaAtual = "todos"; // "todos" | "warrior" | "archer" | "cleric" | "ring"
+let categoriaAtual = "todos"; // "todos" | "warrior" | "archer" | "cleric" | "ring" | "weapon"
 let itemSelecionadoId = null;
 
 const NIVEL_ITEM_REFERENCIA = 300;
@@ -30,9 +32,15 @@ let engasteSelecionado = 0;
 let anelReferencia = 0;
 
 const UTILIDADE_CONJUNTOS = {
+  royalclock: { tier: "S+", prioridade: 29, tag: "Revive + recarga do grupo", motivo: "O pulso de 14s revive um aliado com 45% de vida e logo cura 14% da vida máxima de cada herói, inclusive do revivido, que fica com cerca de 59%. O pulso também deixa em no máximo 0,5s a recarga restante das habilidades de classe do grupo.", limite: "Levanta um aliado por pulso. As passivas periódicas de armas e anéis têm recarga própria." },
+  steamknight: { tier: "S", prioridade: 158, tag: "Escudo pessoal + três golpes", motivo: "Ataca o inimigo com mais vida atual e se protege com escudo de 6% da vida máxima por 6s a cada 12s.", limite: "A proteção é pessoal e os três golpes da passiva não acionam o eco do Eclipse Arcano." },
+  tesladuel: { tier: "S", prioridade: 146, tag: "Quatro golpes + atordoamento", motivo: "A cada 10s concentra quatro golpes no inimigo com mais vida atual. O último pulso atordoa os inimigos visíveis.", limite: "O atordoamento do chefe dura só 0,2s e a arma não oferece escudo nem cura." },
+  etheralch: { tier: "A", prioridade: 215, tag: "Dano em área + cura reativa", motivo: "A cada 13s acerta os inimigos visíveis e cura o aliado mais ferido em 4% da vida máxima por alvo, até cinco curas.", limite: "Contra um chefe isolado vem apenas uma cura de 4%. Sem escudo ou revive." },
+  aeronaut: { tier: "S", prioridade: 137, tag: "Cinco bombas (10s)", motivo: "As cinco bombas podem somar 7,5× ATK por ciclo contra um chefe isolado, além do dano em área quando há inimigos próximos.", limite: "As bombas escolhem alvos aleatórios e podem dispersar o dano. Não oferece sustentação." },
+  madtinker: { tier: "S", prioridade: 149, tag: "Seis disparos + controle", motivo: "A cada 9s dispara seis tiros de 0,9× ATK. Cada tiro pode atordoar, somando dano e pequenas interrupções.", limite: "Os tiros escolhem alvos aleatórios, o atordoamento dura 0,2s em chefes e não há proteção ao grupo." },
   singular: { tier: "S+", prioridade: 20, tag: "Dano %HP em chefes", motivo: "A implosão tira 4% da vida máxima do chefe a cada 13s ignorando defesa. Com Eclipse Arcano sobe para 4,8% em média, e com Sanguessuga recupera muita vida de uma vez.", limite: "Tem 1,4s de atraso no pulso e usa atributos base e 5 engastes de Imortal." },
   strongman: { tier: "S", prioridade: 105, tag: "Tanque + controle", motivo: "Maior vida e defesa do jogo na linha de frente (segura mais sangramento entre curas), somando alto ataque na marreta e atordoamento em área a cada 12s.", limite: "A onda só alcança 140 px (não pega assassinos na retaguarda), o stun dura 0,5s em chefes e só cai no Circo." },
-  tamer: { tier: "S", prioridade: 115, tag: "Maior DPS + sangramento", motivo: "Maior DPS contínuo entre os Arcanos do Guerreiro (+34% VEL nas peças e boa vida), aplicando sangramento em todos os inimigos a cada 11s que ignora defesa.", limite: "Não traz atordoamento, escudo ou revive para segurar picos na Raid e só cai no Circo dos Horrores." },
+  tamer: { tier: "S", prioridade: 115, tag: "DPS contínuo + sangramento", motivo: "Combina +34% VEL nas peças e boa vida, além de aplicar sangramento que ignora defesa em todos os inimigos a cada 11s.", limite: "Não traz atordoamento, escudo ou revive para segurar picos na Raid e só cai no Circo dos Horrores." },
   thunderlord: { tier: "S", prioridade: 148, tag: "Dano + stun em cadeia", motivo: "A cada 11s dispara raio em cadeia que causa alto dano e interrompe até cinco inimigos (1,1s em lacaios / 0,45s em chefe).", limite: "Tem metade da vida bruta do Homem-Forte (~87k HP no cenário padrão), ficando mais exposto a sangramento na frente." },
   chrono: { tier: "S", prioridade: 150, tag: "Controle da tela toda", motivo: "Maior atordoamento entre as armas: a cada 14s congela todos os inimigos visíveis por 1,7s (0,9s em chefes), parando inclusive assassinos na retaguarda.", limite: "A passiva não adiciona dano direto e o conjunto usa base Imortal." },
   ember: { tier: "S", prioridade: 155, tag: "Auto-revive cumulativo", motivo: "Maior vida entre os Imortais do Guerreiro e renasce com 60% HP + 30% escudo na Raid (onde não há revive por tempo), acumulando com Fênix Rubra ou Coração do Vazio.", limite: "O revive funciona uma vez por jornada ou Raid e entrega o menor DPS entre os conjuntos da lista." },
@@ -40,7 +48,7 @@ const UTILIDADE_CONJUNTOS = {
   gore: { tier: "B", prioridade: 330, tag: "Janela de roubo de vida", motivo: "A Ceifa-Reis dá +60% de ataque e 25% de roubo de vida em dano direto por 4s a cada 12s.", limite: "Passa 8s do ciclo sem sustentação e tem a menor vida do Guerreiro, ficando vulnerável a sangramentos." },
 
   auroraborealis: { tier: "S+", prioridade: 66, tag: "Escudo em grupo (12s)", motivo: "Maior vida do Arqueiro, ótimo DPS contínuo e escudo de 10% do HP máximo para cada aliado a cada 12s — passa de 100% da barra e evita mortes por 2 hits ou sangramento.", limite: "Entrega menos DPS puro que o Trapezista por usar a curva base padrão (~3,35 ATK/nv no arco)." },
-  trapeze: { tier: "S+", prioridade: 74, tag: "Maior DPS (ciclo 9s)", motivo: "Lidera o DPS sustentado do Arqueiro (+67% sobre o Abissal no chefe): matar o chefe muito mais rápido evita estágios altos de Fúria que matariam o grupo todo.", limite: "Vida base mais baixa e sem escudo ou autocura própria; só cai no Circo dos Horrores." },
+  trapeze: { tier: "S+", prioridade: 74, tag: "DPS sustentado (9s)", motivo: "É uma das armas de maior DPS sustentado do Arqueiro entre as peças com curva medida. Encurtar a luta evita chegar a estágios altos de Fúria.", limite: "Vida base mais baixa e sem escudo ou autocura própria; só cai no Circo dos Horrores." },
   abysshunter: { tier: "S", prioridade: 125, tag: "Alvo certo + autocura", motivo: "A cada 11s foca garantidamente o inimigo de maior vida atual (3,2× sem desperdiçar em lacaio) e cura 8% do próprio HP, aliviando o trabalho do Clérigo.", limite: "Com a curva base de ~3,35 ATK/nv e +8% VEL, tem DPS bem menor que o Trapezista e só protege o próprio portador." },
   firework: { tier: "S", prioridade: 140, tag: "Explosão de ataque", motivo: "Maior ataque bruto nas peças do Arqueiro com +90% ATK de conjunto e foguete de 2,4× a cada 10s.", limite: "Sorteia o alvo principal entre os inimigos visíveis (podendo acertar lacaio), tem a menor vida Arcana e zero proteção." },
   tempest: { tier: "A", prioridade: 260, tag: "Cadência dobrada", motivo: "Dobra a cadência dos ataques básicos por 4s a cada 12s, mantendo ótimo DPS Imortal mesmo contra chefe isolado.", limite: "Janela temporária sem proteção própria e sem reduzir a recarga da Rajada de Flechas." },
@@ -48,7 +56,7 @@ const UTILIDADE_CONJUNTOS = {
   luna: { tier: "B", prioridade: 315, tag: "VEL + ricochete (10s)", motivo: "Soma +34% VEL nas peças (superando o Dragão Ancestral até em alvo único via SpeedBonus) e ricocheteia 55% do dano em +2 inimigos por 4s a cada 10s.", limite: "O ganho do ricochete depende de lacaios próximos e não oferece sustentação." },
   dragon: { tier: "C", prioridade: 350, tag: "Baforada em área", motivo: "Bônus percentual de ataque e baforada de 2,4× nos inimigos visíveis a cada 12s.", limite: "Baixa velocidade nas peças (+8% VEL), menor DPS sustentado e nenhuma utilidade defensiva." },
 
-  worldtree: { tier: "S+", prioridade: 30, tag: "Revive em Raid (15s)", motivo: "A cada 15s levanta um aliado caído com 50% HP (essencial na Raid, onde não há revive por tempo) e cura o grupo em 8%, ou 16% se todos estiverem vivos.", limite: "Revive um aliado por pulso e usa atributos base e 5 engastes de Imortal." },
+  worldtree: { tier: "S+", prioridade: 30, tag: "Revive ou cura em grupo", motivo: "Em um pulso de 15s, revive um aliado com 50% de vida e aplica a cura de 8% a todo o grupo, inclusive ao revivido. Se todos já estiverem vivos, cura 16% da vida máxima de cada um.", limite: "Levanta um aliado por pulso. Seu destaque é a cura recorrente em grupos que permanecem de pé." },
   fortune: { tier: "S+", prioridade: 40, tag: "Escudo 25% (ciclo 12s)", motivo: "A cada 12s dá escudo de 25% HP por 7s (evita combo de 2 hits no teto de 60% e absorve sangramento sem desperdiçar em sobrecura) + 10% cura, com a maior vida do Clérigo.", limite: "Luz Divina direta menor (o que raramente faz falta, já que curas gigantes costumam sobrar em sobrecura); só cai no Circo." },
   seraphgold: { tier: "S+", prioridade: 50, tag: "Salva <50% HP + escudo", motivo: "A cada 14s cura cada aliado em 20% HP — subindo para 30% em quem ficou abaixo de metade da vida após uma pancada — e aplica 8% de escudo no grupo.", limite: "Menos vida e defesa próprias nas peças que a Madame Cartomante e não levanta aliados já caídos." },
   communion: { tier: "S", prioridade: 110, tag: "Cura 25% + 30% ATK (12s)", motivo: "Ciclo rápido de 12s que cura 25% do HP máximo dos aliados vivos e dá +30% de ataque ao grupo inteiro por 5s, encurtando a luta contra o chefe.", limite: "Não aplica escudo acima de 100% da vida para segurar dois golpes pesados seguidos." },
@@ -56,6 +64,45 @@ const UTILIDADE_CONJUNTOS = {
   illusion: { tier: "A", prioridade: 205, tag: "Ciclo 10s (aleatório)", motivo: "Boa vida própria e maior Luz Divina direta do Clérigo, além de puxar uma carta a cada 10s (cura 40%, escudo 12% ou dano 1,6×).", limite: "Boa parte da Luz Divina gigante vira sobrecura em aliados leves, e em 1/3 das cartas sai ataque quando o grupo precisava de proteção." },
   eclipsepriest: { tier: "A", prioridade: 255, tag: "Dano + mini-stun (15s)", motivo: "Alto ataque e passiva em área a cada 15s que interrompe inimigos por 1,3s (0,5s em chefes).", limite: "Zero escudo ou cura na passiva, vida baixa para o suporte (~83k HP) e ataque extra desperdiçado em sobrecura na Luz Divina." },
   echo: { tier: "C", prioridade: 340, tag: "Reset da Luz Divina", motivo: "A cada 18s prepara reset para lançar duas Luzes Divinas seguidas.", limite: "Duas curas diretas seguidas costumam desperdiçar muito em sobrecura sem proteger contra o próximo pico; menor vida do Clérigo e sem escudo ou revive." },
+  berserker: { tier: "C", prioridade: 400, tag: "Ataque e crítico", motivo: "Bom conjunto de entrada para o Guerreiro que quer combinar ataque, vida e crítico.", limite: "O Machado Sanguinário usa o Golpe Giratório padrão. O conjunto oferece apenas atributos." },
+  cosmicvan: { tier: "C", prioridade: 410, tag: "Ataque, vida e defesa", motivo: "Combina ataque com vida e defesa para a linha de frente.", limite: "O Sabre de Plasma mantém o Golpe Giratório padrão." },
+  lunar: { tier: "C", prioridade: 405, tag: "Vida e defesa", motivo: "Vida e defesa ajudam o Clérigo a se manter vivo enquanto cura com a Luz Divina.", limite: "O Cajado Lunar usa a Luz Divina padrão." },
+  oracle: { tier: "C", prioridade: 415, tag: "Vida e ataque", motivo: "Dá vida ao Clérigo e melhora o poder de cura graças ao ataque e à velocidade.", limite: "O Cajado Orbital usa a Luz Divina padrão." },
+  wind: { tier: "C", prioridade: 420, tag: "Velocidade e crítico", motivo: "Combina ataque, velocidade e crítico para o Arqueiro.", limite: "A Rajada de Flechas do Yumi é a padrão da classe." },
+  etehunter: { tier: "C", prioridade: 425, tag: "Foco em crítico", motivo: "O bônus bruto de crítico ajuda o Arqueiro a subir o dano, inclusive acima do teto da chance de crítico.", limite: "O Arco de Plasma mantém a Rajada de Flechas padrão." },
+};
+
+const UTILIDADE_ARMAS = {
+  reaper: {
+    tier: "S",
+    prioridade: 199,
+    tag: "Execução + cura em grupo",
+    motivo: "A Ceifa de Almas executa lacaios com até 20% de vida, ignorando a DEF. A vida que tira dos alvos cura o Guerreiro em 40% e cada aliado vivo em 12%. Nas ondas altas e nas Raids com lacaios resistentes, uma execução pode recuperar boa parte da vida do grupo.",
+    limite: "Contra um chefe isolado, a cura depende do dano da Ceifa. A Foice tem 4 engastes, contra 5 nas Imortais e 6 nas Arcanas. Trocar só a arma de um conjunto completo também custa o bônus de 3 peças.",
+    detalhes: [
+      "Com Eclipse Arcano, o golpe da Ceifa ricocheteia 60% do dano em até dois alvos próximos e tem 20% de chance de repetir o dano no alvo principal. Esse eco no mesmo alvo entra na conta da cura.",
+      "A execução não aciona o anel. O dano do ricochete em outros inimigos fica fora da cura daquele golpe, mas pode deixá-los na faixa de execução para a próxima Ceifa ou para um golpe posterior da mesma Ceifa.",
+    ],
+  },
+  magmablade: { tier: "B", prioridade: 310, tag: "Onda de choque frontal", motivo: "O Terremoto percorre a frente do Guerreiro, atinge os inimigos no caminho e interrompe chefes por 0,25s.", limite: "A recarga é 20% maior que a do Golpe Giratório e a onda segue para a frente." },
+  chainblade: { tier: "B", prioridade: 303, tag: "Agrupa e interrompe", motivo: "Puxa até seis inimigos à frente e aplica atordoamento de 0,7s. É útil para juntar alvos alcançáveis perto do Guerreiro.", limite: "Chefes recebem o golpe sem serem puxados. A recarga da habilidade aumenta 10%." },
+  shockblade: { tier: "C", prioridade: 380, tag: "Descarga na tela", motivo: "A Descarga Elétrica atinge os inimigos na tela e aplica uma lentidão breve.", limite: "A lentidão dura só 0,15s e a recarga da habilidade aumenta 15%." },
+  axe: { nome: "Machado Berserker", tier: "C", prioridade: 384, tag: "Giro mais frequente", motivo: "O Golpe Giratório ganha alcance e 20% de dano, com recarga 25% menor.", limite: "O efeito depende de estar perto do alvo e só oferece dano." },
+  hammer: { nome: "Martelo de Guerra", tier: "C", prioridade: 386, tag: "Dano em alvos juntos", motivo: "Ataques básicos acertam inimigos colados no alvo com metade do dano. O Golpe Giratório também ganha alcance e 10% de dano.", limite: "O dano colateral depende de inimigos próximos do alvo principal." },
+  greatsword: { nome: "Montante", tier: "C", prioridade: 388, tag: "Golpe amplo e empurrão", motivo: "O Golpe Devastador acerta os inimigos à frente com 80% a mais de dano que a habilidade padrão e empurra lacaios.", limite: "A recarga é 20% maior e chefes recebem dano sem o empurrão." },
+  dawnscepter: { tier: "A", prioridade: 230, tag: "Escudo para o grupo", motivo: "A Égide da Aurora protege cada aliado por 6s com um escudo de 120% do poder de cura do Clérigo e cura imediatamente em 30% desse mesmo poder.", limite: "A recarga aumenta 20%. O escudo depende dos atributos do Clérigo e vale conferir o tamanho dele ao trocar uma arma de raridade maior." },
+  ankh: { tier: "A", prioridade: 212, tag: "Revive com a Luz Divina", motivo: "Ao usar a habilidade, revive um aliado com 55% da vida máxima e aplica a cura em grupo, inclusive no aliado revivido.", limite: "A habilidade tem recarga 30% maior e usa 75% da potência da Luz Divina padrão." },
+  tome: { tier: "B", prioridade: 300, tag: "Luz Divina mais frequente", motivo: "Aumenta em 15% a cura direta e em grupo e reduz em 30% a recarga da Luz Divina.", limite: "Pode produzir sobrecura e não oferece escudo nem revive." },
+  lantern: { tier: "B", prioridade: 306, tag: "Cura persistente em área", motivo: "Cria uma zona sagrada por 4s que cura aliados e fere inimigos que estiverem dentro dela.", limite: "O alcance depende de onde o grupo está. A habilidade tem recarga 25% maior." },
+  froststaff: { tier: "B", prioridade: 313, tag: "Congela até três inimigos", motivo: "A Prisão de Gelo causa dano e congela até três inimigos por meio segundo.", limite: "O congelamento ocupa o lugar da cura em grupo. As curas individuais continuam disponíveis." },
+  sunstaff: { tier: "C", prioridade: 377, tag: "Cura e dano na tela", motivo: "A Luz Divina cura 30% a mais e a mesma habilidade causa dano aos inimigos visíveis.", limite: "A força da cura depende dos atributos e o efeito não dá escudo." },
+  voidstaff: { tier: "C", prioridade: 382, tag: "Vórtice e dano em área", motivo: "Agrupa inimigos comuns num vórtice que causa dano e termina em uma implosão.", limite: "Chefes não são puxados. A habilidade substitui a cura em grupo e demora 30% a mais para recarregar." },
+  starbow: { tier: "C", prioridade: 361, tag: "Meteoro de alto impacto", motivo: "O meteoro causa cerca de 3,52× ATK no centro e metade disso nos arredores. Os atingidos ficam lentos.", limite: "O impacto chega após 0,8s e a habilidade tem recarga 25% maior." },
+  piercebow: { tier: "C", prioridade: 367, tag: "Atravessa a fileira", motivo: "A Flecha Perfurante atravessa os inimigos na fileira do alvo e causa 2,2× ATK em cada um.", limite: "O alcance lateral é limitado à fileira. A habilidade tem recarga 10% maior." },
+  prismbow: { tier: "C", prioridade: 372, tag: "Ricochete em até seis alvos", motivo: "A Flecha Prisma começa com cerca de 1,40× ATK e perde 8% do dano a cada salto.", limite: "Precisa de outros inimigos próximos para aproveitar os ricochetes. A recarga aumenta 10%." },
+  crossbow: { tier: "C", prioridade: 374, tag: "Tiros mais pesados", motivo: "Ataques básicos causam 50% a mais de dano e a Rajada recebe 25% a mais de dano.", limite: "O intervalo dos ataques básicos é 35% maior." },
+  stormbow: { tier: "C", prioridade: 381, tag: "Rajada mais frequente", motivo: "A Rajada atinge até cinco inimigos e recarrega 15% mais rápido.", limite: "Em alvo único, o número maior de alvos não gera disparos extras." },
+  rainbow: { tier: "C", prioridade: 385, tag: "Chuva de flechas em área", motivo: "Espalha 22 flechas pela região do alvo. Pode atingir mais de uma vez quem ficar dentro da área.", limite: "As flechas se espalham por posições diferentes. A habilidade tem recarga 20% maior." },
 };
 
 const UTILIDADE_ANEIS = {
@@ -64,8 +111,8 @@ const UTILIDADE_ANEIS = {
   14: { tier: "S+", prioridade: 60, tag: "Eco sem recarga", motivo: "Atua em todos os golpes e skills elegíveis sem tempo de espera: ricocheteia 60% em 2 alvos e tem 20% de chance de repetir 100% do dano (inclusive Singularidade).", limite: "O eco de 20% é probabilístico e não oferece defesa nem ressurreição." },
   11: { tier: "S", prioridade: 160, tag: "Roubo de vida contínuo", motivo: "Recupera 8% de todo dano direto em cada acerto sem depender da recarga do Clérigo, curando muito em conjunto com Singularidade ou alta cadência.", limite: "Exige continuar batendo vivo e não impede morte caso falte vida/escudo entre dois golpes." },
   13: { tier: "S", prioridade: 168, tag: "Auto-revive na Raid", motivo: "Garante uma ressurreição imediata (40% HP + 20% escudo) na Raid onde não há revive por tempo, podendo somar com a Brasa Eterna.", limite: "Atributos base de Imortal e volta com menos vida/escudo que o Coração do Vazio." },
-  19: { tier: "S", prioridade: 185, tag: "HP, DEF e VEL puros", motivo: "Pacote bruto de vida e defesa (ajuda a aguentar ticks de sangramento) com +18% VEL que eleva o SpeedBonus.", limite: "Curva estimada e sem passiva prática (não revive, não limpa controle nem protege o grupo)." },
-  18: { tier: "S", prioridade: 195, tag: "ATK e crítico puros", motivo: "Pacote bruto de ataque e crítico para acelerar o abate do chefe antes que a Fúria escale.", limite: "Curva estimada e zero utilidade defensiva ou de grupo." },
+  19: { tier: "S", prioridade: 175, tag: "Escudo pessoal + lentidão", motivo: "Após 3s em combate e depois a cada 8s, ganha escudo de 15% da vida por 4s e desacelera os inimigos visíveis por 3s.", limite: "O escudo é pessoal. Curva medida em 1 amostra real (Nv. 225); pode variar ligeiramente com mais amostras." },
+  18: { tier: "S", prioridade: 182, tag: "Veneno + dano condicional", motivo: "Críticos envenenam por 4s (50% do ATK por segundo). Seus golpes causam 20% a mais de dano contra alvos que já sofrem veneno ou sangramento.", limite: "Compartilha o efeito de sangramento e não oferece escudo nem revive." },
   16: { tier: "A", prioridade: 230, tag: "Depende de abates", motivo: "Acumula até +40% ATK e dispara ceifa em área a cada 10 inimigos abatidos na live.", limite: "Contra chefes isolados ou sem lacaios constantes, a passiva quase não roda." },
   10: { tier: "A", prioridade: 295, tag: "Sangramento (2,5s)", motivo: "Aplica sangramento contínuo (25% ATK/s por 2,5s) que ignora defesa em chefes muito resistentes.", limite: "Precisa bater sem parar para renovar os 2,5s e tem atributos baixos de Imortal." },
   12: { tier: "B", prioridade: 310, tag: "Só nos 30% finais", motivo: "Aumenta em +60% o dano direto (incluindo Singularidade) quando o chefe já está com 30% de vida ou menos.", limite: "Passa os primeiros 70% da luta desligado e sem ajudar a sobreviver." },
@@ -95,8 +142,8 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
     15: { tier: "S+", prioridade: 55, tag: "Auto-revive na frente", motivo: "Volta imediatamente à linha de frente na Raid com 70% HP + 40% escudo por 5s, evitando que os monstros avancem sobre os suportes." },
     11: { tier: "S+", prioridade: 65, tag: "Sustentação contínua", motivo: "Recupera vida a cada golpe sem esperar o Clérigo, e uma única implosão da Singularidade em chefe pode encher a barra inteira." },
     13: { tier: "S", prioridade: 162, tag: "Revive Imortal", motivo: "Garante segunda vida na linha de frente durante a Raid e acumula com o revive da Brasa Eterna." },
-    19: { tier: "S", prioridade: 170, motivo: "Reforça vida, defesa e VEL (+18%) para aguentar sangramentos pesados, mas sem passiva de escudo, revive ou eco (curva estimada)." },
-    18: { tier: "S", prioridade: 180, motivo: "Pacote bruto de ataque e crítico para Domador e Homem-Forte, sem proteção extra na Raid (curva estimada)." },
+    19: { tier: "S", prioridade: 170, motivo: "O escudo pessoal de 15% da vida máxima ganha força na linha de frente. A lentidão dura 3s e atinge os inimigos visíveis." },
+    18: { tier: "S", prioridade: 180, motivo: "O sangramento do Domador já habilita os 20% de dano extra. Com outras armas, um crítico da Presa pode ativar o bônus ao envenenar o alvo." },
     16: { tier: "A", prioridade: 250, motivo: "Só rende bem quando a luta tem lacaios constantes para renovar as 10 almas." },
     12: { tier: "A", prioridade: 270, motivo: "Acelera apenas os 30% finais da vida do chefe (incluindo Singularidade)." },
     10: { tier: "A", prioridade: 295, motivo: "Sangramento contínuo ignorando defesa, mas com atributos baixos de Imortal." },
@@ -106,9 +153,9 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
     15: { tier: "S+", prioridade: 78, tag: "Segunda vida na Raid", motivo: "Salva a classe de menor vida base quando um sangramento ou golpe atravessa a defesa na Raid, voltando com 70% HP + 40% escudo." },
     11: { tier: "S+", prioridade: 90, tag: "Cura a cada flecha", motivo: "Com alta cadência à distância, recupera 8% do dano continuamente e se mantém cheio entre uma Luz Divina e outra." },
     17: { tier: "S", prioridade: 105, motivo: "Limpa sangramentos e controles do grupo a cada 10s, embora o escudo de 12% fique menor por usar o HP do Arqueiro." },
-    18: { tier: "S", prioridade: 115, motivo: "Máximo ataque e crítico brutos para derreter o chefe rápido, mas sem revive nem sustentação se levar dano contínuo (curva estimada)." },
+    18: { tier: "S", prioridade: 115, motivo: "Flechas e rajadas críticas ajudam a manter o veneno no chefe e aproveitar os 20% de dano extra. O efeito não oferece escudo ou revive." },
     13: { tier: "S", prioridade: 150, motivo: "Alternativa Imortal essencial na Raid para não ficar fora da luta caso caia." },
-    19: { tier: "A", prioridade: 210, motivo: "Dá fôlego extra de vida contra sangramento e +18% VEL para o SpeedBonus, sem passiva ativa (curva estimada)." },
+    19: { tier: "A", prioridade: 210, motivo: "Escudo pessoal periódico ajuda a sobreviver ao sangramento, apesar de a vida base menor reduzir o valor do escudo. A lentidão atinge os inimigos visíveis." },
     16: { tier: "A", prioridade: 225, motivo: "Rende bem em ondas cheias de lacaios, mas perde força contra chefe isolado." },
     10: { tier: "A", prioridade: 295, motivo: "A alta cadência mantém o sangramento de 2,5s ativo contra chefes de defesa alta." },
     12: { tier: "B", prioridade: 310, motivo: "Atua apenas quando o alvo já está com 30% de vida ou menos." },
@@ -117,8 +164,8 @@ const UTILIDADE_ANEIS_POR_CLASSE = {
     17: { tier: "S+", prioridade: 10, tag: "Purifica + escudo (10s)", motivo: "Prioridade máxima do suporte: a cada 10s remove silêncio (que trava a Luz Divina!), sangramento e stun do grupo todo, aplicando escudo com a vida alta do Clérigo." },
     15: { tier: "S+", prioridade: 55, tag: "Mantém o suporte vivo", motivo: "Se o Clérigo cair na Raid, o grupo fica sem cura; renascer com 70% HP + 40% escudo salva a tentativa inteira." },
     13: { tier: "S", prioridade: 120, tag: "Revive Imortal", motivo: "Alternativa acessível ao Coração do Vazio: garantir uma vida extra ao curandeiro na Raid vale mais na prática que atributos puros." },
-    19: { tier: "S", prioridade: 135, motivo: "Muita vida e defesa para o Clérigo não cair em sangramentos, mais +18% VEL (ajuda no SpeedBonus acima de 4,6/s, com curva estimada)." },
-    18: { tier: "A", prioridade: 240, tag: "Excesso vira sobrecura", motivo: "O ataque extra sobe a Luz Divina, mas grande parte vira sobrecura em aliados leves, o crítico não afeta curas e o anel não traz escudo nem revive (curva estimada)." },
+    19: { tier: "S", prioridade: 135, motivo: "Escudo pessoal de 15% da vida máxima ajuda a manter o suporte vivo. Acima de 4,6/s, a VEL extra melhora o poder da cura via bônus de velocidade e mantém a recarga da Luz Divina." },
+    18: { tier: "A", prioridade: 240, tag: "Veneno para build ofensiva", motivo: "Vale para o Clérigo ofensivo que aproveita o veneno e o bônus de 20% nos golpes. O crítico e o veneno não entram no cálculo da Luz Divina." },
     14: { tier: "A", prioridade: 265, motivo: "Útil apenas em builds ofensivas (como Cajado do Eclipse); não aumenta nem repete curas." },
     16: { tier: "B", prioridade: 315, motivo: "Depende de abates de lacaios e pouco agrega à função de manter o grupo vivo." },
     11: { tier: "B", prioridade: 325, motivo: "Roubo de vida baixo devido ao menor dano direto do Clérigo, sem ajudar aliados." },
@@ -143,11 +190,11 @@ function construirCatalogoItens() {
     slot: "ring", kind: "ring", name: anel.nome, rarity: anel.raridadeMin, look: anelReferencia,
   }] : [];
   for (const [key, setInfo] of Object.entries(catalogoConjuntos)) {
-    if ((setInfo.raridadePadrao || 0) < 6) continue;
+    const util = UTILIDADE_CONJUNTOS[key];
+    if (!util) continue;
     const arma = catalogoArmas[setInfo.armaKind];
-    const util = UTILIDADE_CONJUNTOS[key] || { tier: "B", tag: "Conjunto", motivo: "" };
     const rarity = setInfo.raridadePadrao;
-    const referenciaFc = calcularFcReferencia(setInfo.classe, [
+    const referenciaFc = setInfo.curvaReferencia || rarity < 6 ? null : calcularFcReferencia(setInfo.classe, [
       { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
       { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
       { slot: "armor", kind: setInfo.armaduraKind, name: setInfo.armaduraNome, rarity, set: key },
@@ -164,7 +211,7 @@ function construirCatalogoItens() {
       nome: setInfo.nome,
       subnome: setInfo.armaNome,
       raridade: setInfo.raridadePadrao,
-      raridadeNome: setInfo.raridadePadrao === 7 ? "Arcano" : "Imortal",
+      raridadeNome: nomesRaridade[rarity],
       slotSprite: "weapon",
       kindSprite: setInfo.armaKind,
       lookSprite: 0,
@@ -179,7 +226,42 @@ function construirCatalogoItens() {
       curvaEstimada: anel?.estimado,
       detalhes: [
         ...bonusConjunto,
-        `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || "Sem efeito extra."}`,
+        ...(setInfo.curvaReferencia ? [
+          "Onde conseguir: drop raríssimo dos chefes da Cidade Mecânica. A partir da zona 18 no ciclo normal, cai uma peça da classe do jogador que recebeu o drop.",
+          "Simulador: os atributos automáticos dessas peças usam outros Arcanos como referência. A comparação Por FC aguarda dados das peças.",
+        ] : []),
+        `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || arma?.notaSkill || "Habilidade padrão da classe."}`,
+      ],
+    });
+  }
+
+  for (const [kind, util] of Object.entries(UTILIDADE_ARMAS)) {
+    const arma = catalogoArmas[kind];
+    const conjunto = Object.values(catalogoConjuntos).find((info) => info.armaKind === kind);
+    const raridade = conjunto?.raridadePadrao;
+    lista.push({
+      id: `weapon_${kind}`,
+      categoria: arma.classe,
+      categoriaLabel: nomesClasses[arma.classe],
+      nome: util.nome || arma.nome,
+      raridade,
+      raridadeNome: nomesRaridade[raridade],
+      slotSprite: "weapon",
+      kindSprite: kind,
+      lookSprite: 0,
+      classeSprite: arma.classe,
+      tierUtilidade: util.tier,
+      prioridadeUtilidade: util.prioridade,
+      tagUtilidade: util.tag,
+      motivoUtilidade: util.motivo,
+      limiteUtilidade: util.limite,
+      detalhes: [
+        ...(util.detalhes ?? []),
+        ...(conjunto ? [
+          `Peça do conjunto ${conjunto.nome} (${nomesRaridade[raridade]}).`,
+          `Bônus com 2 peças: ${formatarBonusCurto(conjunto.b2)}`,
+          `Bônus adicional com 3 peças: ${formatarBonusCurto(conjunto.b3)}`,
+        ] : []),
       ],
     });
   }
@@ -311,7 +393,7 @@ function renderizarDetalhe() {
   const raw = catalogoTierList.find((x) => x.id === itemSelecionadoId);
   const item = raw ? obterItemContextualizado(raw) : null;
   if (!item) {
-    containerDetalhe.innerHTML = `<div class="muted small">Clique em qualquer conjunto ou anel acima para ver os bônus, passiva, onde conseguir e FC simulado.</div>`;
+    containerDetalhe.innerHTML = `<div class="muted small">Selecione um item para ver os detalhes.</div>`;
     return;
   }
   if (modoAtual === "fc") {
@@ -324,7 +406,7 @@ function renderizarDetalhe() {
     return;
   }
 
-  const corRar = coresRaridade[item.raridade];
+  const corRar = coresRaridade[item.raridade] || "var(--text)";
   const tierAtual = `Tier de utilidade ${item.tierUtilidade} · ${item.tagUtilidade}`;
   containerDetalhe.innerHTML = `
     <div class="tl-detalhe-icone">
@@ -332,15 +414,15 @@ function renderizarDetalhe() {
     </div>
     <div>
       <div class="tl-detalhe-topo">
-        <h3 class="tl-detalhe-titulo" style="color:${corRar};" aria-label="${escaparHtml(`${item.nome} · ${item.raridadeNome}`)}">${escaparHtml(item.nome)}</h3>
+        <h3 class="tl-detalhe-titulo" style="color:${corRar};" aria-label="${escaparHtml([item.nome, item.raridadeNome].filter(Boolean).join(" · "))}">${escaparHtml(item.nome)}</h3>
         <span class="tl-card-tag">${escaparHtml(item.categoriaLabel)}</span>
         <span class="tl-card-tag">${escaparHtml(tierAtual)}</span>
       </div>
       <p class="small"><strong>Ponto forte.</strong> ${escaparHtml(item.motivoUtilidade)}</p>
       ${item.limiteUtilidade ? `<p class="small"><strong>Limitação.</strong> ${escaparHtml(item.limiteUtilidade)}</p>` : ""}
-      <ul class="tl-detalhe-lista">
+      ${item.detalhes.length ? `<ul class="tl-detalhe-lista">
         ${item.detalhes.map((linha) => `<li>${escaparHtml(linha)}</li>`).join("")}
-      </ul>
+      </ul>` : ""}
     </div>
   `;
 }
@@ -350,12 +432,14 @@ function renderizarTabela() {
   const filtrados = catalogoTierList
     .filter((item) => {
       if (categoriaAtual === "todos") return true;
+      if (categoriaAtual === "weapon") return item.id.startsWith("weapon_");
       if (["warrior", "archer", "cleric"].includes(categoriaAtual)) {
         return item.categoria === categoriaAtual || item.categoria === "ring";
       }
       return item.categoria === categoriaAtual;
     })
-    .map(obterItemContextualizado);
+    .map(obterItemContextualizado)
+    .filter((item) => modoAtual !== "fc" || item.referenciaFc);
 
   const grupos = modoAtual === "fc"
     ? atribuirTiersPorFc(filtrados)
@@ -368,10 +452,11 @@ function renderizarTabela() {
 
   if (descricaoModo) {
     descricaoModo.textContent = modoAtual === "fc"
-      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate."
-      : "Este ranking avalia a utilidade prática em chefes e Raids: prioriza evitar mortes reais (escudos e purificação valem mais que sobrecura desperdiçada), reviver aliados, tempo de ação das passivas, impacto no grupo e dano que encurta a luta.";
+      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate. Veja armas avulsas e conjuntos Épicos em Por Utilidade. Os novos conjuntos da Cidade Mecânica entram quando houver dados dos atributos por nível."
+      : "Tier List opinativa com foco em chefes e Raids. A ordem considera proteção, revive, controle e dano. No filtro Armas avulsas, a nota considera a habilidade da arma equipada.";
   }
   if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
+  if (filtroArmas) filtroArmas.hidden = modoAtual === "fc";
 
   const linhasMeta = [
     { key: "S+", classe: "tl-tier-splus", sub: modoAtual === "fc" ? "Topo FC" : "Meta" },
@@ -387,12 +472,12 @@ function renderizarTabela() {
       const cardsHtml = itens.length
         ? itens
             .map((item) => {
-              const clsRar = item.raridade === 7 ? "arcano" : "imortal";
+              const clsRar = ({ 3: "epico", 4: "lendario", 6: "imortal", 7: "arcano" })[item.raridade] || "";
               const clsSel = item.id === itemSelecionadoId ? "selecionado" : "";
               const badgeTag = modoAtual === "fc"
                 ? `${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
                 : item.tagUtilidade;
-              const rotulo = `${item.nome} · ${item.categoriaLabel} · ${item.raridadeNome} · ${badgeTag}`;
+              const rotulo = [item.nome, item.categoriaLabel, item.raridadeNome, badgeTag].filter(Boolean).join(" · ");
               return `
                 <button type="button" class="tl-card ${clsRar} ${clsSel}" data-tl-card="${escaparHtml(item.id)}" aria-pressed="${item.id === itemSelecionadoId}" aria-label="${escaparHtml(rotulo)}">
                   <canvas data-tl-sprite="${escaparHtml(item.id)}" data-tl-escala="3"></canvas>
@@ -434,6 +519,10 @@ function renderizarTabela() {
 document.querySelectorAll("[data-tl-modo]").forEach((btn) => {
   btn.addEventListener("click", () => {
     modoAtual = btn.dataset.tlModo;
+    if (modoAtual === "fc" && categoriaAtual === "weapon") {
+      categoriaAtual = "todos";
+      document.querySelectorAll("[data-tl-cat]").forEach((b) => b.classList.toggle("ativa", b.dataset.tlCat === categoriaAtual));
+    }
     document.querySelectorAll("[data-tl-modo]").forEach((b) => b.classList.toggle("ativa", b === btn));
     renderizarTabela();
   });

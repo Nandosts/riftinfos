@@ -139,6 +139,24 @@ test("mecânicas de anéis que justificam a Tier List: Eclipse+Singularidade, Sa
   assert.ok(mCronarca.dpsCombateMedio > 0 && Number.isFinite(mCronarca.dpsCombateMedio));
 });
 
+test("anéis da Raid separam o dano condicional e o escudo das métricas base", async () => {
+  const { calcularMetricasCombate } = await importarModulo("src/combate.mjs");
+  const status = { maxHp: 12345, atk: 1600, def: 300, aspd: 5, crit: 60 };
+  const arma = { slot: "weapon", kind: "steamhammer", rarity: 7 };
+  const semAnel = calcularMetricasCombate("warrior", 300, status, [arma]);
+  const comAnel = (look, rarity = 7) => calcularMetricasCombate("warrior", 300, status, [
+    arma, { slot: "ring", kind: "ring", look, rarity },
+  ]);
+
+  assert.equal(comAnel(18).dpsCombateMedio, semAnel.dpsCombateMedio);
+  assert.equal(comAnel(18).presaIxtharra.dpsDiretoContraAlvoAfetado, semAnel.dpsFisicoMedio * 1.2);
+  assert.equal(comAnel(18).presaIxtharra.danoVenenoPorSegundo, 800);
+  assert.equal(comAnel(19).escudoTeiaEscarlate, 1852);
+  assert.equal(comAnel(18, 4).presaIxtharra, null);
+  assert.equal(comAnel(14).dpsEfeitoArma, semAnel.dpsEfeitoArma);
+  assert.ok(comAnel(14).dpsBasico > semAnel.dpsBasico);
+});
+
 test("formatarZonaOndaDeOndas converte total de ondas em Z{zona}-W{onda} conforme fórmula oficial", async () => {
   const { formatarZonaOndaDeOndas } = await importarModulo("src/formato.mjs");
 
@@ -369,18 +387,18 @@ test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e 
     validarNivelMedioReferencia,
   } = await import("../src/alquimia.mjs");
 
-  // 1. Distinção clara e datada entre níveis liberados no patch de 14/11 (1..4) e documentado na wiki (5)
+  // 1. Faixas do patch de 20/11
   assert.equal(obterFaixaNivelAlquimia(1).ilvlLo, 0);
   assert.equal(obterFaixaNivelAlquimia(1).ilvlHi, 24);
   assert.equal(obterFaixaNivelAlquimia(1).liberado, true);
   assert.equal(obterFaixaNivelAlquimia(4).ilvlLo, 80);
   assert.equal(obterFaixaNivelAlquimia(4).ilvlHi, 110);
   assert.equal(obterFaixaNivelAlquimia(4).liberado, true);
-  assert.equal(obterFaixaNivelAlquimia(4).rotuloStatus, "Liberado no patch de 14/11");
+  assert.equal(obterFaixaNivelAlquimia(4).rotuloStatus, "Disponível no patch de 20/11");
   assert.equal(obterFaixaNivelAlquimia(5).ilvlLo, 111);
   assert.equal(obterFaixaNivelAlquimia(5).ilvlHi, 150);
-  assert.equal(obterFaixaNivelAlquimia(5).liberado, false);
-  assert.equal(obterFaixaNivelAlquimia(5).rotuloStatus, "Documentado na wiki");
+  assert.equal(obterFaixaNivelAlquimia(5).liberado, true);
+  assert.equal(obterFaixaNivelAlquimia(5).rotuloStatus, "Disponível no patch de 20/11");
 
   // 2. Caso prático de 9 fragmentos (guardar 1 + 4 frags vs reciclar a 1ª peça para tentar a 2ª)
   const r9 = calcularAlquimiaFragmentos({ peca: "weapon", raridade: 4, nivelAlquimia: 4, quantidadeItens: 9 });
@@ -534,11 +552,11 @@ test("alquimia: fragmentos guardando vs reciclando, distinção liberado/wiki e 
 
 test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternativos 50/50 e lacaios oficiais", async () => {
   const { catalogoTemasZona } = await importarModulo("src/dados.mjs");
-  assert.equal(catalogoTemasZona.length, 8);
+  assert.equal(catalogoTemasZona.length, 9);
 
-  const [ruinas, cavernas, cripta, fornalha, pantano, recife, galaxia, circo] = catalogoTemasZona;
+  const [ruinas, cavernas, cripta, fornalha, pantano, recife, galaxia, circo, cidade] = catalogoTemasZona;
 
-  // Circo dos Horrores (Z8, Z16, Z24...) — Mestre de Cerimônias com os 6 efeitos da Roleta incluindo ANEL DE FOGO
+  // Circo dos Horrores (Z8, Z17, Z26...) — Mestre de Cerimônias com os 6 efeitos da Roleta incluindo ANEL DE FOGO
   assert.equal(circo.boss, "Mestre de Cerimônias");
   assert.equal(circo.temBleedBoss, true);
   assert.equal(circo.fatorDotVerdadeiroPorSeg, 0.3);
@@ -548,7 +566,7 @@ test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternati
   assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("Balão-Bomba") || descricao.includes("Balão-Bomba")));
   assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("invulnerável enquanto o Domador vive") || descricao.includes("invulnerável enquanto o Domador vive")));
 
-  // Os 4 temas com chefe alternativo 50/50 e seus multiplicadores reais
+  // Temas com chefe alternativo 50/50 e seus multiplicadores reais
   assert.equal(ruinas.boss, "Rei Esqueleto");
   assert.equal(ruinas.varianteAlternativa.boss, "Colosso Rúnico");
   assert.equal(ruinas.varianteAlternativa.multHp, 1.3);
@@ -582,6 +600,13 @@ test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternati
   const comFrenesi = catalogoTemasZona.filter((t) => t.temFrenesiGruk);
   assert.deepEqual(comFrenesi.map((t) => t.boss), ["Senhor da Guerra Gruk"]);
 
+  assert.equal(cripta.skillBossNome, "Túmulo de Gelo");
+  assert.equal(cripta.varianteAlternativa.boss, "Mamute Sepulcral");
+  assert.equal(cripta.varianteAlternativa.multHp, 1.25);
+  assert.equal(cidade.boss, "Maquinista Titã");
+  assert.equal(cidade.varianteAlternativa.boss, "Regente Ticktack");
+  assert.equal(cidade.lacaios.length, 8);
+
   // Demais zonas sem lacaios faltantes
   assert.ok(cripta.lacaios.some(({ nome, descricao }) => nome.includes("Lobo Gélido") || descricao.includes("Lobo Gélido")));
   assert.ok(recife.lacaios.some(({ nome, descricao }) => nome.includes("Homem-Peixe Arpoador") || descricao.includes("Homem-Peixe Arpoador")));
@@ -590,10 +615,10 @@ test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternati
   assert.ok(galaxia.lacaios.some(({ nome, descricao }) => nome.includes("Drone Escudeiro") || descricao.includes("Drone Escudeiro")));
 });
 
-test("combo Hit + DoT em ticks de 0,5s (ex.: Anel de Fogo no 16-10) modela queda quase instantânea e letalidade real", async () => {
+test("combo Hit + DoT em ticks de 0,5s (ex.: Anel de Fogo) modela queda quase instantânea e letalidade real", async () => {
   const { calcularImpactoComboSkillDot } = await importarModulo("src/combate.mjs");
 
-  // Z16-10 Mestre de Cerimônias: bossAtk ~146.909 -> bleed = 44.073/s (22.036 por tick de 0,5s, 8 ticks = 176.288)
+  // Exemplo com Mestre de Cerimônias: bossAtk ~146.909 -> bleed = 44.073/s (22.036 por tick de 0,5s, 8 ticks = 176.288)
   // Caso 1: Herói com 35.000 HP que leva 15.000 no hit inicial do Anel de Fogo (0,7×)
   // Sobra 20.000 HP -> 1º tick de 0,5s (22.036) já derruba -> 0,5s (quase instantâneo!)
   const quedaInstantanea = calcularImpactoComboSkillDot({

@@ -71,7 +71,21 @@ const catalogoConjuntos = {
   eclipsepriest: { nome: "Sacerdote do Eclipse", classe: "cleric", armaKind: "eclipsestaff", armaNome: "Cajado do Eclipse", elmoKind: "eclipsehood", elmoNome: "Capuz do Eclipse", armaduraKind: "eclipserobe", armaduraNome: "Túnica do Eclipse", raridadePadrao: 7, b2: { atk: 0.3, def: 0.2 }, b3: { atk: 0.55, hp: 0.3, spd: 0.2 } },
   auroraborealis: { nome: "Aurora Boreal", classe: "archer", armaKind: "aurorabow", armaNome: "Arco da Aurora Boreal", elmoKind: "aurorahood", elmoNome: "Capuz da Aurora Boreal", armaduraKind: "auroracloak", armaduraNome: "Manto da Aurora Boreal", raridadePadrao: 7, b2: { atk: 0.25, spd: 0.2 }, b3: { atk: 0.45, spd: 0.2, hp: 0.2 } },
   abysshunter: { nome: "Caçador Abissal", classe: "archer", armaKind: "abyssbow", armaNome: "Arco Abissal", elmoKind: "abyssmask", elmoNome: "Máscara Abissal", armaduraKind: "abyssvest", armaduraNome: "Colete Abissal", raridadePadrao: 7, b2: { atk: 0.35, crit: 12 }, b3: { atk: 0.6, crit: 18, hp: 0.1 } },
+  steamknight: { nome: "Cavaleiro a Vapor", classe: "warrior", armaKind: "steamhammer", armaNome: "Martelo de Pressão", elmoKind: "steamhelm", elmoNome: "Elmo de Caldeira", armaduraKind: "steamplate", armaduraNome: "Couraça de Pistões", raridadePadrao: 7, curvaReferencia: "obsidian", b2: { hp: 0.30, def: 0.20 }, b3: { atk: 0.45, hp: 0.45, spd: 0.10 } },
+  tesladuel: { nome: "Duelista Tesla", classe: "warrior", armaKind: "teslarapier", armaNome: "Florete de Tesla", elmoKind: "teslahelm", elmoNome: "Máscara do Duelista Tesla", armaduraKind: "teslacoat", armaduraNome: "Casaca Eletrificada", raridadePadrao: 7, curvaReferencia: "thunderlord", b2: { atk: 0.32, crit: 10 }, b3: { atk: 0.58, crit: 14, spd: 0.20 } },
+  royalclock: { nome: "Relojoeiro Real", classe: "cleric", armaKind: "clockscepter", armaNome: "Cetro do Relojoeiro Real", elmoKind: "clockcrown", elmoNome: "Coroa de Engrenagens", armaduraKind: "clockrobe", armaduraNome: "Manto de Mostrador", raridadePadrao: 7, curvaReferencia: "seraphgold", b2: { hp: 0.32, def: 0.20 }, b3: { hp: 0.50, atk: 0.35, spd: 0.10 } },
+  etheralch: { nome: "Alquimista do Éter", classe: "cleric", armaKind: "etherflask", armaNome: "Retorta de Éter", elmoKind: "etherhood", elmoNome: "Máscara de Gás do Alquimista", armaduraKind: "etherrobe", armaduraNome: "Avental do Alquimista", raridadePadrao: 7, curvaReferencia: "eclipsepriest", b2: { atk: 0.30, hp: 0.25 }, b3: { atk: 0.52, hp: 0.35, spd: 0.15 } },
+  aeronaut: { nome: "Aeronauta", classe: "archer", armaKind: "aerobow", armaNome: "Arco-Hélice do Aeronauta", elmoKind: "aerohelm", elmoNome: "Capacete de Aviador", armaduraKind: "aerojacket", armaduraNome: "Jaqueta do Aeronauta", raridadePadrao: 7, curvaReferencia: "trapeze", b2: { atk: 0.28, spd: 0.18 }, b3: { atk: 0.48, crit: 10, spd: 0.28 } },
+  madtinker: { nome: "Inventor Louco", classe: "archer", armaKind: "springbow", armaNome: "Arco de Molas do Inventor", elmoKind: "tinkerhat", elmoNome: "Cartola de Lentes do Inventor", armaduraKind: "tinkervest", armaduraNome: "Colete de Ferramentas", raridadePadrao: 7, curvaReferencia: "firework", b2: { atk: 0.32, crit: 10 }, b3: { atk: 0.58, crit: 16, hp: 0.12 } },
 };
+
+const curvasReferenciaPecas = new Map(
+  Object.values(catalogoConjuntos).flatMap((conjunto) => {
+    const referencia = catalogoConjuntos[conjunto.curvaReferencia];
+    if (!referencia) return [];
+    return ["armaKind", "elmoKind", "armaduraKind"].map((campo) => [conjunto[campo], referencia[campo]]);
+  }),
+);
 
 const catalogoArmas = {
   // Guerreiro
@@ -84,7 +98,7 @@ const catalogoArmas = {
   bloodaxe: { nome: "Machado Sanguinário", classe: "warrior", cdMult: 1.0, skillMult: 1.5, skillAlvos: 1, notaSkill: "Conjunto Fúria do Berserker." },
   plasmablade: { nome: "Sabre de Plasma", classe: "warrior", cdMult: 1.0, skillMult: 1.5, skillAlvos: 1, notaSkill: "Conjunto Vanguarda Cósmica." },
   magmablade: { nome: "Lâmina Vulcânica", classe: "warrior", cdMult: 1.2, skillMult: 1.5, skillAlvos: 5, notaSkill: "Onda de magma frontal (1,5×)." },
-  reaper: { nome: "Foice do Ceifador", classe: "warrior", cdMult: 1.0, skillMult: 1.305, skillAlvos: 2, notaSkill: "1,305× + executa monstros com <20% de vida." },
+  reaper: { nome: "Foice do Ceifador", classe: "warrior", cdMult: 1.0, skillMult: 1.305, skillAlvos: 2, notaSkill: "Ceifa de Almas causa 1,305× ATK à frente e executa inimigos comuns com até 20% de vida. Da vida retirada dos alvos, 40% cura o portador e 12% cura cada aliado vivo." },
   emberblade: {
     nome: "Lâmina da Brasa Eterna",
     classe: "warrior",
@@ -302,6 +316,48 @@ const catalogoArmas = {
     curaMult: 0.85,
     efeito: { tipo: "dano", cada: 15, mult: 1.4, texto: "A cada 15s: eclipse total em todos os inimigos (1,4×) + stun." },
   },
+  steamhammer: {
+    nome: "Martelo de Pressão",
+    classe: "warrior",
+    cdMult: 1,
+    skillMult: 1.5, skillAlvos: 1,
+    efeito: { tipo: "dano", cada: 12, mult: 4.2, semEco: true, texto: "A cada 12s: três golpes (1×, 1× e 2,2×) no alvo com mais vida atual. O último atordoa o alvo e causa 0,8× aos vizinhos. Escudo próprio de 6% da vida por 6s." },
+  },
+  teslarapier: {
+    nome: "Florete de Tesla",
+    classe: "warrior",
+    cdMult: 1,
+    skillMult: 1.5, skillAlvos: 1,
+    efeito: { tipo: "dano", cada: 10, mult: 3.6, texto: "A cada 10s: quatro golpes de 0,9× no alvo com mais vida atual, com saltos de 0,5× para outro inimigo. O último pulso atordoa os inimigos visíveis." },
+  },
+  clockscepter: {
+    nome: "Cetro do Relojoeiro Real",
+    classe: "cleric",
+    cdMult: 1,
+    skillTipo: "cura", curaMult: 0.85, revive: true,
+    efeito: { tipo: "revive", cada: 14, texto: "A cada 14s: revive um aliado com 45% de vida, cura o grupo em 14% da vida máxima de cada herói, incluindo quem acabou de reviver, e reduz a recarga restante das habilidades para até 0,5s." },
+  },
+  etherflask: {
+    nome: "Retorta de Éter",
+    classe: "cleric",
+    cdMult: 1,
+    skillTipo: "cura", curaMult: 0.85,
+    efeito: { tipo: "dano", cada: 13, mult: 1.2, texto: "A cada 13s: acerta os inimigos visíveis com 1,2×. Cada um dos cinco primeiros alvos rende uma cura de 4% da vida máxima do aliado mais ferido naquele momento." },
+  },
+  aerobow: {
+    nome: "Arco-Hélice do Aeronauta",
+    classe: "archer",
+    cdMult: 1,
+    skillMult: 1.1, skillAlvos: 3,
+    efeito: { tipo: "dano", cada: 10, mult: 7.5, texto: "A cada 10s: cinco bombas acertam alvos visíveis aleatórios (1,5×) e seus vizinhos (0,8×). Contra um chefe isolado, todas podem atingi-lo." },
+  },
+  springbow: {
+    nome: "Arco de Molas do Inventor",
+    classe: "archer",
+    cdMult: 1,
+    skillMult: 1.1, skillAlvos: 3,
+    efeito: { tipo: "dano", cada: 9, mult: 5.4, texto: "A cada 9s: seis disparos de 0,9× em inimigos visíveis aleatórios, cada um com 30% de chance de atordoar." },
+  },
 };
 
 const catalogoAneis = {
@@ -408,20 +464,23 @@ const catalogoAneis = {
   18: {
     nome: "Anel da Presa de Ixtharra",
     raridadeMin: 7,
-    foco: "Atributos Brutos: Ataque & Crítico Máximos",
+    foco: "Ataque, crítico e veneno",
     obtencao: "Drop exclusivo ao vencer a Raid Covil de Vexxaris (não sai na Forja Arcana comum).",
-    escalaPorNivel: { atk: 4.05, def: 1.35, hp: 6.50, crit: 0.64, spd: 16 },
-    estimado: true,
-    efeito: "Exclusivo da Raid do Covil de Vexxaris. Sem proc periódico: concentra o orçamento do item em muito Ataque e Crítico brutos (com Vida e Defesa de brinde), elevando diretamente o FC ofensivo, golpes e skills.",
+    // Calibrado com 4 amostras reais da API pública (Nv. 221, 264, 283 e 349; spd constante = 17)
+    escalaPorNivel: { atk: 3.972, def: 1.462, hp: 6.456, crit: 0.539, spd: 17 },
+    veneno: { danoPorSegundo: 0.5, bonusContraSangramento: 0.2 },
+    efeito: "Críticos envenenam por 4s (50% do ATK por segundo, ignora DEF e compartilha o sangramento). Os golpes causam +20% de dano contra alvos já sangrando ou envenenados.",
   },
   19: {
     nome: "Anel da Teia Escarlate",
     raridadeMin: 7,
-    foco: "Atributos Brutos: Vida, Defesa & Velocidade",
+    foco: "Vida, defesa, velocidade e escudo pessoal",
     obtencao: "Drop exclusivo ao vencer a Raid Covil de Vexxaris (não sai na Forja Arcana comum).",
-    escalaPorNivel: { atk: 2.65, def: 2.95, hp: 16.20, crit: 0.25, spd: 18 },
+    // Calibrado com 1 amostra real da API pública (Nv. 225: atk 547, def 551, hp 3278, crit 60, spd 15)
+    escalaPorNivel: { atk: 2.431, def: 2.449, hp: 14.569, crit: 0.267, spd: 15 },
     estimado: true,
-    efeito: "Exclusivo da Raid do Covil de Vexxaris. Sem proc periódico: concentra o orçamento do item em muita Vida e Defesa brutas, com Ataque e alta Velocidade de brinde, maximizando o EHP físico e o SpeedBonus.",
+    escudoVidaMaxima: 0.15,
+    efeito: "Após 3s em combate e depois a cada 8s, cria um escudo pessoal de 15% da vida máxima por 4s e desacelera os inimigos visíveis por 3s.",
   },
 };
 
@@ -660,7 +719,7 @@ const catalogoTemasZona = [
     cdSkillBoss: 6.5,
     temBleedBoss: false,
     fatorDotVerdadeiroPorSeg: 0,
-    notaVariante: "Nas Ruínas Esquecidas (Z1, Z9, Z17...), o chefe tem 50% de chance de ser Rei Esqueleto ou Colosso Rúnico.",
+    notaVariante: "Nas Ruínas Esquecidas (Z1, Z10, Z19...), o chefe tem 50% de chance de ser Rei Esqueleto ou Colosso Rúnico.",
     resumoSkillBoss: "50% de chance de aparecer. Pisão Sísmico a cada 6,5s: 1,25× ATK em todos os heróis num raio de 80px. Sem dano contínuo (DoT).",
     varianteAlternativa: {
       boss: "Colosso Rúnico",
@@ -723,7 +782,7 @@ const catalogoTemasZona = [
     skillDotNome: "Cutelada Giratória",
     skillDotMult: 1.1,
     duracaoDotSeg: 4,
-    notaVariante: "O tema se repete a cada 8 zonas, incluindo a 18-10. A comparação mostra os valores da fase escolhida; não simula a luta inteira. No Mímico, o dano contínuo só atinge o herói engolido e o escudo não entra no TTK.",
+    notaVariante: "O tema se repete a cada 9 zonas, incluindo a 20-10. A comparação mostra os valores da fase escolhida; não simula a luta inteira. No Mímico, o dano contínuo só atinge o herói engolido e o escudo não entra no TTK.",
     resumoSkillBoss: "50% de chance de aparecer. Alterna arremesso (0,85× ATK, até 2 vezes) com Cutelada Giratória (1,1× ATK + sangramento de 30% ATK/s por 4s, ignorando DEF). O arremesso afasta heróis próximos e faz Gruk perseguir a retaguarda por 7s. Ao chegar a 50% de vida, entra em frenesi: +25% ATK, +15% velocidade de ataque e de movimento. A fúria por tempo continua acumulando.",
     varianteAlternativa: {
       boss: "Mímico Voraz",
@@ -785,11 +844,24 @@ const catalogoTemasZona = [
     melee: "Cavaleiro Gélido / Lobo Gélido / Lobo Sombrio",
     ranged: "Mago do Gelo",
     boss: "Rei Gélido",
-    skillBossMult: 1.25,
+    skillBossNome: "Túmulo de Gelo",
+    skillBossMult: 0.8,
     cdSkillBoss: 6.5,
     temBleedBoss: false,
-    fatorDotVerdadeiroPorSeg: 0,
-    resumoSkillBoss: "Pisão Glacial a cada 6,5s: 1,25× ATK em todos os heróis num raio de 80px. Sem dano contínuo (DoT).",
+    notaVariante: "Rei Gélido e Mamute Sepulcral têm 50% de chance cada. A projeção estima o golpe indicado.",
+    resumoSkillBoss: "Alterna entre Túmulo de Gelo e Nevasca. O Túmulo marca até 3 heróis e, após 0,9 s, causa 0,8× ATK em área e pode congelar por 2 s. A Nevasca atinge o grupo com 0,55× ATK e lentidão por 4 s.",
+    notaComboDot: "Presença Gélida desacelera quem fica perto do Rei (até 30 px e uma pista de distância) e causa 15% do ATK a cada 0,6 s, ignorando DEF. O dano de proximidade fica fora da projeção de sobrevivência.",
+    varianteAlternativa: {
+      boss: "Mamute Sepulcral",
+      skillBossNome: "Investida",
+      skillBossMult: 1.25,
+      cdSkillBoss: 8,
+      multHp: 1.25,
+      multDef: 1.1,
+      multAtk: 0.95,
+      notaComboDot: "",
+      resumoSkillBoss: "O Mamute alterna entre Estalactites e Investida. As Estalactites caem 0,95 s após o aviso, causam 1,15× ATK e deixam lentidão por 2,5 s. A investida acerta após 0,75 s, causa 1,25× ATK e arremessa e atordoa brevemente quem estiver no caminho.",
+    },
     lacaios: [
       {
         nome: "Cavaleiro Gélido",
@@ -840,7 +912,7 @@ const catalogoTemasZona = [
     skillDotMult: 1.1,
     duracaoDotSeg: 4,
     notaComboDot: "Se ficar a ≤28px do chefe, a Aura Escaldante soma mais ~33,3% ATK/s de dano verdadeiro contínuo.",
-    notaVariante: "Na Fornalha Infernal (Z4, Z12, Z20...), o chefe tem 50% de chance de ser Senhor Demônio ou Forjador de Almas.",
+    notaVariante: "Na Fornalha Infernal (Z4, Z13, Z22...), o chefe tem 50% de chance de ser Senhor Demônio ou Forjador de Almas.",
     resumoSkillBoss: "50% de chance de aparecer. Aura Escaldante passiva queima heróis próximos (≤28px) em 20% ATK a cada 0,6s (~33,3% ATK/s de DANO VERDADEIRO, ignora DEF). Alterna Chuva de Brasas (5 marcas no chão, 0,9s depois 1,1× ATK + Queimadura de 30% ATK/s por 4s ignorando DEF) com Mergulho Infernal na retaguarda (1,3× ATK + Stun 0,6s).",
     varianteAlternativa: {
       boss: "Forjador de Almas",
@@ -906,7 +978,7 @@ const catalogoTemasZona = [
     cdSkillBoss: 6.5,
     temBleedBoss: false,
     fatorDotVerdadeiroPorSeg: 0,
-    notaVariante: "No Pântano Sombrio (Z5, Z13, Z21...), o chefe tem 50% de chance de ser Rei Lagarto (+10% HP) ou Bruxa do Brejo (+10% HP, +10% DEF, −5% ATK).",
+    notaVariante: "No Pântano Sombrio (Z5, Z14, Z23...), o chefe tem 50% de chance de ser Rei Lagarto (+10% HP) ou Bruxa do Brejo (+10% HP, +10% DEF, −5% ATK).",
     resumoSkillBoss: "50% de chance de aparecer (+10% HP, +5% vel.). Alterna Emboscada com Língua (fica invisível por 1,8s, puxa um alvo da retaguarda causando 1,5× ATK + Stun 1,3s) e Rabo Giratório (1,0× ATK em até 80px + empurrão + Stun 0,35s). Sem dano contínuo (DoT).",
     varianteAlternativa: {
       boss: "Bruxa do Brejo",
@@ -1177,12 +1249,47 @@ const catalogoTemasZona = [
     destaqueMelee: { rotulo: "Caixa Surpresa & Leão do Domador", texto: "Explosão 0,9× ATK · Leão imortal 3s (1,9× ATK)" },
     destaqueRanged: { rotulo: "Balão-Bomba / Pogo / Mágico", texto: "Balão 1,5× efetivo · Pogo 2×0,75 · Mágico troca pos." },
   },
+  {
+    nome: "Cidade Mecânica",
+    melee: "Autômato Relojoeiro / Caldeireiro / Autômato Bipartido / Gendarme Tesla",
+    ranged: "Atirador a Vapor / Zepelim Bombardeiro / Engenheiro Sucateiro / Lunetista",
+    boss: "Maquinista Titã",
+    skillBossNome: "Travessia",
+    skillBossMult: 1.8,
+    cdSkillBoss: 6.5,
+    multHp: 1.15,
+    multDef: 1.1,
+    notaVariante: "O Maquinista Titã e o Regente Ticktack têm 50% de chance cada. A projeção estima o golpe indicado.",
+    resumoSkillBoss: "O Maquinista alterna entre Travessia, Marcha Alta e Apito. A Travessia atinge a pista marcada após 1,1 s com 1,8× ATK, empurrão e possível atordoamento de 0,5 s. Marcha Alta aumenta o dano do ataque básico em 35% por 6 s e solta nuvens de vapor. O Apito chama dois autômatos se houver até dois reforços vivos.",
+    notaComboDot: "As nuvens da Marcha Alta desaceleram e causam 22% do ATK do chefe a cada 0,5 s, ignorando DEF. A projeção usa os golpes fora da Marcha Alta. O dano extra dos ataques básicos e do vapor fica fora da conta.",
+    varianteAlternativa: {
+      boss: "Regente Ticktack",
+      skillBossNome: "Pêndulo",
+      skillBossMult: 1.5,
+      cdSkillBoss: 6.5,
+      multHp: 1.05,
+      multDef: 1,
+      notaComboDot: "A projeção de tempo para derrotar o Regente não considera o Rebobinar.",
+      resumoSkillBoss: "O Regente alterna entre Pêndulo, Rebobinar e Campos Temporais. O Pêndulo pode acertar cada herói uma vez com 1,5× ATK e lentidão por 1,5 s. Após 3 s, Rebobinar recupera o HP perdido nesse intervalo, até 8% da vida máxima do chefe. Campos Temporais duram 6 s, desaceleram heróis e adiantam os próximos ataques básicos dos inimigos próximos.",
+    },
+    lacaios: [
+      { nome: "Autômato Relojoeiro", tipo: "Corpo a corpo", descricao: "O quarto golpe causa 2× ATK e pode atordoar. Depois o autômato fica parado por 1,3 s.", efeito: "Atordoamento", tipoEfeito: "controle" },
+      { nome: "Caldeireiro", tipo: "Corpo a corpo", descricao: "É resistente e solta uma nuvem de vapor por 4,5 s. Quem fica dentro sofre lentidão e 25% do ATK dele a cada 0,5 s, ignorando DEF.", efeito: "Vapor com dano contínuo", tipoEfeito: "perigo" },
+      { nome: "Autômato Bipartido", tipo: "Corpo a corpo", descricao: "Aparece a partir da onda 2. Dá dois golpes de 0,65× ATK se o alvo continuar ao alcance. Ao morrer, deixa duas metades mais frágeis que continuam lutando.", efeito: "Divide-se ao morrer", tipoEfeito: "perigo" },
+      { nome: "Gendarme Tesla", tipo: "Corpo a corpo", descricao: "Aparece a partir da onda 3. O raio do bastão pode saltar do alvo para outros dois heróis." },
+      { nome: "Atirador a Vapor", tipo: "À distância", descricao: "A cada quarto disparo, solta um tiro carregado de 2,2× ATK." },
+      { nome: "Zepelim Bombardeiro", tipo: "À distância", descricao: "Marca cinco pontos no chão. As bombas explodem 0,9 s após o aviso." },
+      { nome: "Engenheiro Sucateiro", tipo: "À distância", descricao: "A partir da onda 2, cura até dois lacaios feridos em 16% da vida máxima deles. Se estiverem sem escudo, dá um de 10% da vida máxima por 5 s. Chefes ficam fora do conserto.", efeito: "Cura e escudo inimigos", tipoEfeito: "suporte" },
+      { nome: "Lunetista", tipo: "À distância", descricao: "A partir da onda 3, mira no herói com menor porcentagem de vida por 1,6 s antes de atirar com 3,2× ATK. Atordoamento ou congelamento cancela o tiro.", efeito: "Mira no herói mais ferido", tipoEfeito: "perigo" },
+    ],
+  },
 ];
 
 export {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  curvasReferenciaPecas,
   catalogoEscalasPecas,
   catalogoGemas,
   catalogoTemasZona,

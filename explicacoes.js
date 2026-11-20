@@ -261,20 +261,20 @@
     },
     raid_vexxaris: {
       termo: "Raid: Covil de Vexxaris (Como abrir, entrar e funcionar)",
-      curto: "Raid cooperativa de 4 ondas contra a Rainha Ixtharra. Segundo a wiki do jogo, fica 2 zonas abaixo do recorde da live. Precisa de 1 Casulo de Vexxaris para abrir e de $raid CÓDIGO no chat para entrar.",
-      detalhes: "1) Abrir: só 1 pessoa usa o Casulo na mochila ('Meu personagem' -> 'Usar: romper o Casulo') em uma live aberta. 2) Entrar: aparece uma fogueira e um código na tela. Todo mundo (até quem já estava na live) precisa digitar $raid CÓDIGO no chat antes do tempo acabar; se faltar gente, a Raid cancela e o Casulo volta para quem usou. 3) Quem não digita o código fica oculto na tela só durante as 4 ondas, sem perder a vaga: quando acaba, a live volta na mesma Zona e Onda e todos reaparecem. 4) Lá dentro não tem revive por tempo (2/3 min): quem morre só volta com auto-revive (Brasa Eterna, Fênix Rubra, Coração do Vazio) ou revive de Clérigo (Cetro da Vida, Árvore-Mundo).",
+      curto: "Raid cooperativa de 4 ondas contra a Rainha Ixtharra. O patch de 20/11 aproximou a dificuldade entre lives de potenciais diferentes. Precisa de 1 Casulo de Vexxaris para abrir e de $raid CÓDIGO no chat para entrar.",
+      detalhes: "1) Abrir: só 1 pessoa usa o Casulo na mochila ('Meu personagem' -> 'Usar: romper o Casulo') em uma live aberta. 2) Entrar: aparece uma fogueira e um código na tela. Todo mundo (até quem já estava na live) precisa digitar $raid CÓDIGO no chat antes do tempo acabar; se faltar gente, a Raid cancela e o Casulo volta para quem usou. 3) Quem não digita o código fica oculto na tela só durante as 4 ondas, sem perder a vaga: quando acaba, a live volta na mesma Zona e Onda e todos reaparecem. 4) Lá dentro não tem revive por tempo (2/3 min): quem morre só volta com auto-revive (Brasa Eterna, Fênix Rubra, Coração do Vazio) ou revive de Clérigo (Cetro da Vida, Árvore-Mundo, Relojoeiro Real). A vitória também pode render a Aura da Rainha Ixtharra, um cosmético Arcano raríssimo.",
       categoria: "chefes"
     },
     casulo_vexxaris: {
       termo: "Casulo de Vexxaris (Chave da Raid)",
       curto: "Item Lendário raro que abre a Raid Covil de Vexxaris na live em que você está jogando.",
-      detalhes: "Como conseguir: cai raramente de chefes de zona nas lives (e também na própria Raid). Ter Sorte ajuda no drop até 100 pontos. Não pode ser comprado/vendido no Mercado nem feito na Forja ou Alquimia. Ao usar na mochila ('Meu personagem' -> 'Usar: romper o Casulo'), você já entra na Raid e aparece o código na tela para os outros digitarem $raid CÓDIGO.",
+      detalhes: "Como conseguir: cai raramente de chefes de zona nas lives (e também na própria Raid). Ter Sorte ajuda no drop até 100 pontos. Também pode ser negociado no Mercado a partir de 50 cristais. Ao usar na mochila ('Meu personagem' -> 'Usar: romper o Casulo'), você já entra na Raid e aparece o código na tela para os outros digitarem $raid CÓDIGO.",
       categoria: "chefes"
     },
     aneis_raid: {
       termo: "Anéis da Raid: Presa de Ixtharra (18) e Teia Escarlate (19)",
-      curto: "Anéis Arcanos que só caem no Covil de Vexxaris. Não têm poder extra na luta, mas entregam muito mais status puros.",
-      detalhes: "Diferente dos anéis Arcanos antigos (que têm efeito especial na luta e saem na Forja Arcana), os anéis 18 e 19 só caem na Raid e focam em atributos brutos. As curvas usadas no simulador são estimadas: • Presa de Ixtharra (18): o maior pacote de Ataque e Crítico brutos (~4,05 ATK e ~0,64 CRÍT por nível). • Teia Escarlate (19): muita Vida, Defesa e Velocidade (~16,20 HP e ~2,95 DEF por nível, com +18% VEL).",
+      curto: "Anéis Arcanos que só caem no Covil de Vexxaris. A Presa envenena e aumenta o dano contra alvos que sangram. A Teia oferece escudo pessoal e lentidão.",
+      detalhes: "Presa de Ixtharra: críticos aplicam veneno por 4s, de 50% do ATK por segundo, ignorando DEF. Contra alvos que já sofrem sangramento ou veneno, os golpes causam 20% a mais de dano. Teia Escarlate: após 3s em combate e depois a cada 8s, dá escudo pessoal de 15% da vida máxima por 4s e desacelera os inimigos visíveis por 3s. As curvas de atributos dos dois anéis no simulador são estimadas.",
       categoria: "equipamentos"
     },
     comparativo_aneis: {
@@ -286,19 +286,19 @@
     alquimia: {
       termo: "Alquimia (5 Fragmentos = 1 Item Novo)",
       curto: "Transforma equipamentos sobrando em fragmentos (1 por item) e junta 5 fragmentos iguais para criar 1 item novo da mesma raridade sem risco de falha.",
-      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos, com gemas, cosméticos/auras, consumíveis e itens Evento/Imortal/Arcano) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos iguais (conforme wiki, sujeito à configuração do servidor), você cria 1 peça nova sem roleta e sem custo em ouro, até Lendário. 3) Níveis: no patch de 14/11/2026 foram liberados Nv. 1 (0–24), Nv. 2 (25–49), Nv. 3 (50–79) e Nv. 4 (80–110); a wiki do cliente também documenta o Nv. 5 (111–150), sujeito à liberação no servidor.",
+      detalhes: "1) Reciclar: cada item destruído (menos equipados, favoritos, com gemas, cosméticos/auras, consumíveis e itens Evento/Imortal/Arcano) vira 1 fragmento daquele tipo e raridade + EXP de Alquimia. 2) Criar: com 5 fragmentos iguais (conforme wiki, sujeito à configuração do servidor), você cria 1 peça nova sem roleta e sem custo em ouro, até Lendário. 3) Níveis: Nv. 1 (0–24), Nv. 2 (25–49), Nv. 3 (50–79), Nv. 4 (80–110) e Nv. 5 (111–150, liberado em 20/11).",
       categoria: "forjas"
     },
     aprimorar: {
       termo: "Aprimorar Item (Gastar Itens para Subir Nível)",
       curto: "Usa até 30 itens sobrando do mesmo tipo para subir o nível e os atributos de um equipamento principal.",
-      detalhes: "Escolha o item que quer evoluir e selecione até 30 peças do mesmo tipo (arma, elmo, armadura ou anel) para usar como experiência. O custo em ouro depende da raridade e dos itens usados, e o jogo mostra antes quanto o nível e o FC vão subir.",
+      detalhes: "Escolha o item que quer evoluir e selecione até 30 peças do mesmo tipo (arma, elmo, armadura ou anel) para usar como experiência. O custo em ouro depende da raridade e dos itens usados, e o jogo mostra antes quanto o nível e o FC vão subir. O patch de 20/11 aumentou a EXP dos itens consumidos.",
       categoria: "forjas"
     },
     vender_atributos: {
       termo: "Vender atributos (Redistribuir pontos)",
       curto: "Permite desfazer níveis de atributos e recuperar parte do ouro para gastar em outros pontos.",
-      detalhes: "Na tela do personagem, alterne de Comprar para Vender. Os botões −1 e −10 removem níveis comprados e devolvem o ouro gasto, descontando uma taxa. Confira o valor mostrado pelo jogo antes de confirmar. O RiftInfos não calcula a taxa de devolução.",
+      detalhes: "Na tela do personagem, alterne de Comprar para Vender. Os botões −1 e −10 removem níveis comprados e devolvem o ouro gasto, descontando 10%. Confira o valor da devolução na confirmação do jogo.",
       categoria: "equipamentos"
     },
     contador_afk: {

@@ -131,7 +131,7 @@ test.describe("Site principal (index.html)", () => {
 
     await carregarPerfilHalscriolo(page);
     await page.click("#aba-monstros");
-    await page.fill("#input-monstro-zona", "28");
+    await page.fill("#input-monstro-zona", "18");
     await page.fill("#input-monstro-onda", "10");
     await page.fill("#input-monstro-jogadores", "25");
     await expect(page.locator("#resultado-monstros")).toBeVisible();

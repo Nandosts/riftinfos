@@ -2,12 +2,12 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Chefes, Radar e Comparação", () => {
-  test("Gruk e Mímico na zona 18, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
+  test("Gruk e Mímico na zona 20, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
     const { erros } = await prepararPagina(page, "/index.html");
     await page.fill("#input-nick", "halscriolo");
     await page.click('#formulario-busca button[type="submit"]');
     await page.click("#aba-monstros");
-    await page.fill("#input-monstro-zona", "18");
+    await page.fill("#input-monstro-zona", "20");
     await page.fill("#input-monstro-onda", "10");
     const chefe = page.locator(".card-monstro.boss");
     const ataque = () => chefe.locator(".card-info-linha").filter({ hasText: "ATK / DEF" }).innerText();
@@ -30,20 +30,20 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(page.locator("#input-frenesi-gruk")).toHaveCount(0);
     await page.selectOption("#select-variante-chefe", "principal");
     expect(await ataque()).toBe(ataqueBase);
-    await page.fill("#input-monstro-zona", "19");
+    await page.fill("#input-monstro-zona", "16");
     await expect(page.locator("#select-variante-chefe")).toHaveCount(0);
     expect(erros).toEqual([]);
   });
 
-  test("Zona 16-10 exibe Anel de Fogo no Mestre de Cerimônias e zonas com 2 chefes alternam sem frenesi do Gruk", async ({ page }, testInfo) => {
+  test("Zona 17-10 exibe Anel de Fogo no Mestre de Cerimônias e zonas com 2 chefes alternam sem frenesi do Gruk", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Testa variantes revisadas no desktop");
     const { erros } = await prepararPagina(page, "/index.html");
     await page.fill("#input-nick", "halscriolo");
     await page.click('#formulario-busca button[type="submit"]');
     await page.click("#aba-monstros");
 
-    // Zona 16-10: Circo dos Horrores (Mestre de Cerimônias com ANEL DE FOGO e os 6 efeitos da Roleta)
-    await page.fill("#input-monstro-zona", "16");
+    // Zona 17-10: Circo dos Horrores (Mestre de Cerimônias com ANEL DE FOGO e os 6 efeitos da Roleta)
+    await page.fill("#input-monstro-zona", "17");
     await page.fill("#input-monstro-onda", "10");
     await expect(page.locator(".card-monstro.boss")).toContainText("MESTRE DE CERIMÔNIAS");
     await expect(page.locator("#resultado-monstros")).toContainText("ANEL DE FOGO");
@@ -59,22 +59,48 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(page.locator("#resultado-monstros")).toContainText("Atributos base");
     await expect(page.locator("#select-variante-chefe")).toHaveCount(0);
 
-    // Zona 20-10: Fornalha Infernal (Senhor Demônio / Forjador de Almas, sem checkbox de frenesi do Gruk)
-    await page.fill("#input-monstro-zona", "20");
+    // Zona 22-10: Fornalha Infernal (Senhor Demônio / Forjador de Almas, sem checkbox de frenesi do Gruk)
+    await page.fill("#input-monstro-zona", "22");
     await expect(page.locator(".card-monstro.boss")).toContainText("SENHOR DEMÔNIO");
     await expect(page.locator("#input-frenesi-gruk")).toHaveCount(0);
     await page.selectOption("#select-variante-chefe", "alternativo");
     await expect(page.locator(".card-monstro.boss")).toContainText("FORJADOR DE ALMAS");
     await expect(page.locator("#resultado-monstros")).toContainText("CD Base: 8s");
 
-    // Zona 13-10: Pântano Sombrio (Rei Lagarto / Bruxa do Brejo)
-    await page.fill("#input-monstro-zona", "13");
+    // Zona 14-10: Pântano Sombrio (Rei Lagarto / Bruxa do Brejo)
+    await page.fill("#input-monstro-zona", "14");
     await page.selectOption("#select-variante-chefe", "principal");
     await expect(page.locator(".card-monstro.boss")).toContainText("REI LAGARTO");
     await expect(page.locator("#resultado-monstros")).toContainText("Poça Ácida do Sapo-Boi");
     await page.selectOption("#select-variante-chefe", "alternativo");
     await expect(page.locator(".card-monstro.boss")).toContainText("BRUXA DO BREJO");
 
+    expect(erros).toEqual([]);
+  });
+
+  test("Cidade Mecânica e Cripta Gélida exibem as variantes e os efeitos de posição", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/index.html");
+    await page.click("#aba-monstros");
+    const chefe = page.locator(".card-monstro.boss");
+    const zona = page.locator("#input-monstro-zona");
+    for (const numero of [9, 18, 27]) {
+      await zona.fill(String(numero));
+      await expect(chefe).toContainText("MAQUINISTA TITÃ");
+      await expect(chefe).toContainText("Marcha Alta");
+    }
+    await zona.fill("18.5");
+    await expect(chefe).toContainText("MAQUINISTA TITÃ (Z18)");
+    await expect(chefe).toContainText("O dano extra dos ataques básicos e do vapor fica fora da conta");
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(chefe).toContainText("REGENTE TICKTACK");
+    await expect(chefe).toContainText("Rebobinar");
+    await zona.fill("12");
+    await page.selectOption("#select-variante-chefe", "principal");
+    await expect(chefe).toContainText("REI GÉLIDO");
+    await expect(chefe).toContainText("Presença Gélida");
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(chefe).toContainText("MAMUTE SEPULCRAL");
+    await expect(page.locator("#resultado-monstros")).toContainText("Estalactites");
     expect(erros).toEqual([]);
   });
 
@@ -95,7 +121,8 @@ test.describe("Chefes, Radar e Comparação", () => {
       [5, 4, "Bruxa do Pântano"],
       [6, 4, "Água-viva Elétrica"],
       [7, 8, "Drone Escudeiro"],
-      [16, 8, "Leão do Domador"],
+      [9, 8, "Caldeireiro"],
+      [17, 8, "Leão do Domador"],
     ];
     for (const [numero, quantidade, nome] of exemplos) {
       await zona.fill(String(numero));
@@ -103,7 +130,7 @@ test.describe("Chefes, Radar e Comparação", () => {
       await expect(catalogo.locator("dt").filter({ hasText: nome })).toBeVisible();
     }
     await expect(catalogo).toContainText("As Facas aplicam sangramento");
-    await zona.fill("20");
+    await zona.fill("22");
     await expect(catalogo).toContainText("silencia um Clérigo por 5 s");
     await expect(catalogo).toContainText("Pode impedir a cura");
     await expect(catalogo).not.toContainText("Leão do Domador");

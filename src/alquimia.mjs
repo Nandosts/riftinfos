@@ -5,13 +5,13 @@ const doc = typeof document !== "undefined" ? document : null;
 const formatadorDecimal = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 
 export const CONFIG_ALQUIMIA_SERVIDOR = Object.freeze({
-  // Valores documentados na wiki oficial e no patch de 14/11/2026.
+  // Valores documentados na wiki oficial e no patch de 20/11/2026.
   // O servidor controla estes limites em GET /api/me/alchemy; podem mudar em atualizações.
   fragNeed: 5,
   maxRarityLiberada: 4, // 0=Comum .. 4=Lendário (Evento=5, Imortal=6 e Arcano=7 ficam fora)
-  maxLevelLiberado: 4, // Patch 14/11/2026: até nível 110 (faixa do Nv. 4)
-  maxLevelWiki: 5, // Wiki oficial do cliente já documenta Nv. 5 (111–150)
-  patchReferencia: "14/11",
+  maxLevelLiberado: 5,
+  maxLevelWiki: 5,
+  patchReferencia: "20/11",
   loteDestruirTodos: 100,
   // Parâmetros de EXP controlados pelo servidor em /api/me/alchemy (null quando não validados pela sessão).
   destroyXp: null,
@@ -113,14 +113,14 @@ export const FAIXAS_NIVEL_ALQUIMIA = Object.freeze([
     ilvlLo: 80,
     ilvlHi: 110,
     status: "liberado",
-    observacaoMarcos: "Maior faixa anunciada na fase experimental (patch de 14/11/2026: até nível 110).",
+    observacaoMarcos: "Gera itens de nível 80 a 110.",
   },
   {
     nivel: 5,
     ilvlLo: 111,
     ilvlHi: 150,
-    status: "wiki",
-    observacaoMarcos: "Documentado na wiki do cliente; a liberação depende do limite configurado no servidor. Confira na aba Alquimia do jogo.",
+    status: "liberado",
+    observacaoMarcos: "Nova faixa do patch de 20/11, com itens de nível 111 a 150.",
   },
 ]);
 
@@ -196,10 +196,10 @@ export function obterRaridadeAlquimia(idRaridade) {
 export function obterFaixaNivelAlquimia(nivelAlquimia, config = CONFIG_ALQUIMIA_SERVIDOR) {
   const nivelNormalizado = Math.max(1, Math.min(FAIXAS_NIVEL_ALQUIMIA.length, Math.trunc(Number(nivelAlquimia) || 1)));
   const faixaBase = FAIXAS_NIVEL_ALQUIMIA.find((f) => f.nivel === nivelNormalizado) || FAIXAS_NIVEL_ALQUIMIA[0];
-  const liberado = faixaBase.nivel <= (config.maxLevelLiberado ?? 4);
-  const patchRef = config.patchReferencia || "14/11";
+  const liberado = faixaBase.nivel <= (config.maxLevelLiberado ?? CONFIG_ALQUIMIA_SERVIDOR.maxLevelLiberado);
+  const patchRef = config.patchReferencia || CONFIG_ALQUIMIA_SERVIDOR.patchReferencia;
   const rotuloStatus = liberado
-    ? (config.sessaoValidadaEm ? `Confirmado em ${config.sessaoValidadaEm}` : `Liberado no patch de ${patchRef}`)
+    ? (config.sessaoValidadaEm ? `Confirmado em ${config.sessaoValidadaEm}` : `Disponível no patch de ${patchRef}`)
     : "Documentado na wiki";
   const seloCurto = liberado
     ? (config.sessaoValidadaEm ? "Confirmado" : `Patch ${patchRef}`)
@@ -746,7 +746,7 @@ function renderizarResultadosCalculadora() {
 
   const avisoNivelWiki = alquimia.faixa.liberado
     ? ""
-    : `<p class="aviso-inline-wiki"><strong>Nota sobre o Nível ${alquimia.faixa.nivel}:</strong> esta faixa (${alquimia.faixa.ilvlLo}–${alquimia.faixa.ilvlHi}) está documentada na wiki do cliente, mas o patch de 14/11/2026 liberou até o nível 110 (Nv. 4). A disponibilidade efetiva depende da configuração ativa no servidor.</p>`;
+    : `<p class="aviso-inline-wiki"><strong>Nota sobre o Nível ${alquimia.faixa.nivel}:</strong> esta faixa (${alquimia.faixa.ilvlLo}–${alquimia.faixa.ilvlHi}) está documentada na wiki. Confira a disponibilidade na aba Alquimia do jogo.</p>`;
 
   const textoExpEstimado = alquimia.estimativaExpCriacao
     ? `+≈${formatadorInteiro.format(alquimia.estimativaExpCriacao.xpEstimado)} EXP por criação (estimativa baseada na configuração observada do servidor; pode mudar em ajustes).`

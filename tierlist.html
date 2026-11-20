@@ -6,14 +6,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d0b19">
-  <meta name="description" content="Compare conjuntos e anéis Arcanos e Imortais do RiftStream por utilidade em chefes e raids ou por FC simulado em cada classe.">
+  <meta name="description" content="Compare armas, conjuntos e anéis do RiftStream por utilidade em chefes e Raids. Veja também o FC simulado por classe.">
   <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
   <link rel="canonical" href="https://riftinfo.netlify.app/tierlist.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="RiftInfos">
   <meta property="og:title" content="Tier List do Nando · RiftInfos">
-  <meta property="og:description" content="Compare conjuntos e anéis Arcanos e Imortais do RiftStream por utilidade em chefes e raids ou por FC simulado em cada classe.">
+  <meta property="og:description" content="Compare armas, conjuntos e anéis do RiftStream por utilidade em chefes e Raids. Veja também o FC simulado por classe.">
   <meta property="og:url" content="https://riftinfo.netlify.app/tierlist.html">
   <title>Tier List do Nando · RiftInfos</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,11 +22,11 @@
   <link rel="stylesheet" href="estilos/controles.css">
   <link rel="stylesheet" href="estilos/gemas.css">
   <link rel="stylesheet" href="estilos/ficha.css?v=20261115k">
-  <link rel="stylesheet" href="estilos/tierlist.css?v=20261115j">
+  <link rel="stylesheet" href="estilos/tierlist.css?v=20261120b">
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261117a" defer></script>
-  <script type="module" src="src/tierlist.mjs?v=20261118b"></script>
+  <script type="module" src="src/tierlist.mjs?v=20261120c"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -55,10 +55,10 @@
   <main id="conteudo-principal" class="wrap" tabindex="-1">
     <div class="tl-cabecalho">
       <div>
-        <p class="eyebrow">RANKING DE ARCANOS E IMORTAIS</p>
+        <p class="eyebrow">ARMAS, CONJUNTOS E ANÉIS</p>
         <h1>Tier List do Nando</h1>
         <p id="tierlist-descricao-modo" class="note" style="margin:6px 0 0;">
-          Este ranking avalia a utilidade prática em chefes e Raids: prioriza evitar mortes reais (escudos e purificação valem mais que sobrecura desperdiçada), reviver aliados, tempo de ação das passivas, impacto no grupo e dano que encurta a luta.
+          Tier List opinativa com foco em chefes e Raids. A ordem considera proteção, revive, controle e dano. No filtro Armas avulsas, a nota considera a habilidade da arma equipada.
         </p>
       </div>
     </div>
@@ -90,6 +90,7 @@
         <button type="button" class="tl-btn" data-tl-cat="archer">Arqueiro</button>
         <button type="button" class="tl-btn" data-tl-cat="cleric">Clérigo</button>
         <button type="button" class="tl-btn" data-tl-cat="ring">Anéis</button>
+        <button type="button" class="tl-btn" data-tl-cat="weapon">Armas avulsas</button>
       </div>
     </section>
 
@@ -106,7 +107,9 @@
     <div class="tl-legenda">
       <span><i class="tl-ponto" style="background:#eb34b1;"></i>Arcano</span>
       <span><i class="tl-ponto" style="background:#ff2d3d;"></i>Imortal</span>
-      <span>· Clique em um card para abrir os detalhes.</span>
+      <span><i class="tl-ponto" style="background:#ffb62e;"></i>Lendário</span>
+      <span><i class="tl-ponto" style="background:#c77dff;"></i>Épico</span>
+      <span>Clique em um card para abrir os detalhes.</span>
     </div>
 
     <p class="note">Acima de 4,6 ataques/s, a VEL extra vira bônus de dano e poder de cura (ASPD ÷ 4,6) e eleva o FC. A cadência e a recarga das habilidades ficam iguais. Passivas com cura ou escudo em % do HP seguem a própria regra.</p>

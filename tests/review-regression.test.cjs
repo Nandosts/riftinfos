@@ -137,7 +137,7 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   const primeirosSPlus = () => [...window.document.querySelectorAll('.tl-tier-splus [data-tl-card]')]
     .slice(0, 3)
     .map(card => card.dataset.tlCard);
-  assert.deepEqual(primeirosSPlus(), ['ring_17', 'set_singular', 'set_worldtree']);
+  assert.deepEqual(primeirosSPlus(), ['ring_17', 'set_singular', 'set_royalclock']);
   const painel = window.document.querySelector('#tierlist-detalhe');
   const rolagens = [];
   painel.scrollIntoView = ({ behavior }) => rolagens.push(behavior);
@@ -185,11 +185,11 @@ test('Tier List keeps the Eclipse interaction visible and uses class-specific FC
   click('[data-tl-card="ring_19"]');
   assert.deepEqual(slots(), ['ring']);
   assert.match(detalhe(), /Guerreiro\s+NÍVEL 750\s+Apenas o anel equipado/);
-  assert.match(detalhe(), /1\.257\.470 FC/);
+  assert.match(detalhe(), /1\.175\.487 FC/);
   click('[data-tl-cat="cleric"]');
   assert.deepEqual(slots(), ['ring']);
   assert.match(detalhe(), /Clérigo\s+NÍVEL 750\s+Apenas o anel equipado/);
-  assert.match(detalhe(), /1\.017\.893 FC/);
+  assert.match(detalhe(), /927\.813 FC/);
   const alterar = (selector, value) => {
     const select = window.document.querySelector(selector);
     select.value = value;

@@ -185,6 +185,18 @@
   --tl-rar-borda: #e04351;
 }
 
+.tl-card.lendario {
+  --tl-rar-cor: #ffcc73;
+  --tl-rar-fundo: #372b21;
+  --tl-rar-borda: #b58a47;
+}
+
+.tl-card.epico {
+  --tl-rar-cor: #dfb6ff;
+  --tl-rar-fundo: #2b2240;
+  --tl-rar-borda: #9064ba;
+}
+
 .tl-card.selecionado {
   box-shadow: 0 0 0 2px var(--cyan);
 }

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina, verificarCanvasComSprite } from "./helpers/ambiente.mjs";
 
 test.describe("Tier List (funcional completo)", () => {
-  test("matriz completa 2x5 (Por Utilidade e Por FC x Todos, classes e Anéis) e catálogo de 24 conjuntos + 10 anéis", async ({ page }, testInfo) => {
+  test("matriz completa 2x5 (Por Utilidade e Por FC x Todos, classes e Anéis) e catálogo por classe, conjuntos, armas e anéis", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Matriz completa roda no desktop");
     const { erros, controleApi } = await prepararPagina(page, "/tierlist.html");
 
@@ -22,31 +22,39 @@ test.describe("Tier List (funcional completo)", () => {
         const sets = ids.filter((id) => id.startsWith("set_"));
 
         if (filtro === "todos") {
-          expect(sets.length).toBe(24);
+          expect(sets.length).toBe(modo === "utilidade" ? 36 : 24);
           expect(rings.length).toBe(10);
         } else if (filtro === "ring") {
           expect(sets.length).toBe(0);
           expect(rings.length).toBe(10);
         } else {
-          expect(sets.length).toBe(8);
+          expect(sets.length).toBe(modo === "utilidade" ? 12 : 8);
           expect(rings.length).toBe(10);
         }
       }
     }
 
-    // Percorre os 24 conjuntos + 10 anéis na visão Todos e confirma sprite, tier, posição e detalhe
+    // Confere a seleção dos cards na visão Todos.
     await page.click('[data-tl-modo="utilidade"]');
     await page.click('[data-tl-cat="todos"]');
     const todosIds = await page.locator("#tierlist-tabela .tl-card").evaluateAll((els) =>
       els.map((e) => e.dataset.tlCard)
     );
-    expect(todosIds.length).toBe(34);
+    expect(todosIds.length).toBe(66);
 
     for (const id of todosIds) {
       const card = page.locator(`[data-tl-card="${id}"]`);
       await card.click();
       await expect(page.locator("#tierlist-detalhe")).not.toBeEmpty();
     }
+
+    await page.click('[data-tl-card="set_royalclock"]');
+    await expect(page.locator("#tierlist-detalhe")).toContainText("revive um aliado com 45% de vida");
+    await expect(page.locator("#tierlist-detalhe")).toContainText("Cidade Mecânica");
+    await page.click('[data-tl-modo="fc"]');
+    await expect(page.locator('[data-tl-card="set_royalclock"]')).toHaveCount(0);
+    await expect(page.locator("#tierlist-detalhe .tl-ficha-fc")).toBeVisible();
+    await page.click('[data-tl-modo="utilidade"]');
 
     // Avalia os 10 anéis nas 3 classes
     for (const cls of ["warrior", "archer", "cleric"]) {
@@ -62,6 +70,47 @@ test.describe("Tier List (funcional completo)", () => {
     }
 
     expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+  });
+
+  test("Relojoeiro acima da Árvore-Mundo e conjuntos Épicos e armas Lendárias", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/tierlist.html");
+    await page.click('[data-tl-cat="cleric"]');
+    const ids = await page.locator(".tl-tier-splus .tl-card").evaluateAll((cards) => cards.map((card) => card.dataset.tlCard));
+    expect(ids.indexOf("set_royalclock")).toBeLessThan(ids.indexOf("set_worldtree"));
+    await page.click('[data-tl-card="set_royalclock"]');
+    const detalhe = page.locator("#tierlist-detalhe");
+    await expect(detalhe).toContainText("recarga restante das habilidades de classe");
+    await expect(detalhe).toContainText("cerca de 59%");
+    await expect(page.locator('[data-tl-card="set_lunar"]')).toHaveClass(/epico/);
+
+    const filtroArmas = page.locator('[data-tl-cat="weapon"]');
+    await page.click('[data-tl-cat="todos"]');
+    await expect(page.locator(".tl-tier-s .tl-card").last()).toHaveAttribute("data-tl-card", "weapon_reaper");
+    await expect(page.locator('.tl-tier-c [data-tl-card="weapon_greatsword"]')).toBeVisible();
+    await expect(page.locator('.tl-tier-b [data-tl-card="weapon_chainblade"]')).toBeVisible();
+    const tierA = await page.locator(".tl-tier-a .tl-card").evaluateAll((cards) => cards.map((card) => card.dataset.tlCard));
+    expect(tierA.indexOf("weapon_dawnscepter")).toBeGreaterThan(tierA.indexOf("set_obsidian"));
+    expect(tierA.indexOf("weapon_dawnscepter")).toBeGreaterThan(tierA.indexOf("set_etheralch"));
+    await filtroArmas.click();
+    await expect(page.locator(".tl-card")).toHaveCount(20);
+    const foice = page.locator('[data-tl-card="weapon_reaper"]');
+    await expect(foice).toHaveClass(/lendario/);
+    await foice.click();
+    await expect(detalhe).toContainText("40%");
+    await expect(detalhe).toContainText("12%");
+    await expect(detalhe).toContainText("até 20% de vida");
+    await expect(detalhe).toContainText("Ceifador Espectral (Lendário)");
+    await expect(detalhe).toContainText("Esse eco no mesmo alvo entra na conta da cura.");
+    await expect(detalhe).toContainText("A execução não aciona o anel.");
+    await expect(detalhe).toContainText("4 engastes");
+    await expect(detalhe).toContainText("Bônus com 2 peças");
+    await expect(detalhe).toContainText("Bônus adicional com 3 peças");
+
+    await page.click('[data-tl-modo="fc"]');
+    await expect(filtroArmas).toBeHidden();
+    await expect(foice).toHaveCount(0);
+    await expect(page.locator("#tierlist-detalhe .tl-ficha-fc")).toBeVisible();
     expect(erros).toEqual([]);
   });
 

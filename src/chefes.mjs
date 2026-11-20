@@ -27,12 +27,11 @@ const containerResultadoMonstros = document.querySelector("#resultado-monstros")
 let ultimaLiveSincronizada = null;
 let varianteChefe = "principal";
 let simularFrenesiGruk = false;
-let catalogoLacaiosAberto = false;
 
 function calcularEscalaOnda(zona, onda, numJogadores) {
-  const z = Math.max(1, Math.min(100, Number(zona) || 1));
-  const w = Math.max(1, Math.min(10, Number(onda) || 1));
-  const party = Math.max(1, Math.min(500, Number(numJogadores) || 1));
+  const z = Math.max(1, Math.min(100, Math.trunc(Number(zona)) || 1));
+  const w = Math.max(1, Math.min(10, Math.trunc(Number(onda)) || 1));
+  const party = Math.max(1, Math.min(500, Math.trunc(Number(numJogadores)) || 1));
   const n = (z - 1) * 10 + w;
 
   const tp = (x) => Math.pow(1.105, x - 1);
@@ -113,7 +112,8 @@ function obterHeroiBaseParaDuelo() {
 
 function renderizarSimuladorMonstros() {
   if (!containerResultadoMonstros) return;
-  const zona = inputMonstroZona?.value || 16;
+  const catalogoLacaiosAberto = containerResultadoMonstros.querySelector(".catalogo-lacaios-detalhes")?.open;
+  const zona = inputMonstroZona?.value || 17;
   const onda = inputMonstroOnda?.value || 10;
   const jogadores = inputMonstroJogadores?.value || 25;
 
@@ -260,7 +260,7 @@ function renderizarSimuladorMonstros() {
         <td>${bossAspd.toFixed(2)}/s · Skill ${cdSkillRage.toFixed(1)}s</td>
         <td>${formatadorDecimal1.format(bossDef)}</td>
         <td>${formatarNumeroCompacto(danoHitBasico)} (${escaparHtml(tema.skillBossNome || "Skill")}: ${formatarNumeroCompacto(danoHitSkill)}${noTetoSkill ? " · teto" : ""})</td>
-        <td style="color:#ff9aa8;font-weight:700;">${comboRage ? `${formatarNumeroCompacto(comboRage.danoDotTotal)} (${formatarNumeroCompacto(comboRage.danoPorTick)}/0,5s)` : "Sem DoT no Boss"}</td>
+        <td style="color:#ff9aa8;font-weight:700;">${comboRage ? `${formatarNumeroCompacto(comboRage.danoDotTotal)} (${formatarNumeroCompacto(comboRage.danoPorTick)}/0,5s)` : "Sem DoT na projeção"}</td>
         <td style="color:${corSobrevive};">${sobreviveTxt}</td>
       </tr>
     `;
@@ -306,7 +306,7 @@ function renderizarSimuladorMonstros() {
     textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Você aguenta ${dBoss.golpesParaMorrer} golpes físicos do Chefe. Seu tempo para derrubá-lo solo é ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS real líquido).`;
   }
 
-  const zonasAtalho = [10, 13, 16, 18, 20, 22, 25];
+  const zonasAtalho = [9, 12, 16, 17, 18, 20, 22, 27];
   const outroChefeNome = temaBase.varianteAlternativa
     ? (varianteChefe === "alternativo" ? temaBase.boss : temaBase.varianteAlternativa.boss)
     : "";
@@ -360,7 +360,7 @@ function renderizarSimuladorMonstros() {
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">DPS estimado contra o chefe ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
         <strong class="valor-indicador">${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s</strong>
-        <span class="nota-indicador">Considerando defesa de ${formatadorDecimal1.format(esc.boss.def)}</span>
+        <span class="nota-indicador">Considerando defesa de ${formatadorDecimal1.format(esc.boss.def)}${heroi.metricas.presaIxtharra ? " e DPS base (sem o veneno e o bônus condicional da Presa)." : ""}</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Tempo estimado para derrotar (TTK) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
@@ -372,7 +372,7 @@ function renderizarSimuladorMonstros() {
         <strong class="valor-indicador" style="color:${bleedLetalNoBoss || dBoss.bateuTetoBasico ? '#ff8a9b' : dBoss.bateuTetoSkill ? 'var(--gold)' : 'var(--green)'};">
           ${bleedLetalNoBoss ? `${escaparHtml(nomeSkillDot)} (${tempoComboFmt}s)` : dBoss.bateuTetoBasico || dBoss.bateuTetoSkill ? "Teto físico (2 hits)" : `${dBoss.golpesParaMorrer} golpes físicos`}
         </strong>
-        <span class="nota-indicador">${bleedLetalNoBoss ? "Ignora DEF e o teto de 60% HP" : dBoss.bateuTetoBasico || dBoss.bateuTetoSkill ? "Jogo limita hit físico a 60% HP" : "Sobrevivência estável"}</span>
+        <span class="nota-indicador">${bleedLetalNoBoss ? "Ignora DEF e o teto de 60% HP" : dBoss.bateuTetoBasico || dBoss.bateuTetoSkill ? "Jogo limita hit físico a 60% HP" : "Estimativa contra golpes diretos"}</span>
       </div>
     </div>
 
@@ -501,7 +501,7 @@ function renderizarSimuladorMonstros() {
               ${comboDot.hitFimDot ? `<p>Golpe final: ${formatarNumeroCompacto(comboDot.hitFimDot)} com DEF.</p>` : ""}
               <p>Total da habilidade: ${formatarNumeroCompacto(comboDot.danoTotalCombo)} de dano (${comboDot.pctHpCombo.toFixed(0)}% do HP máximo).</p>
             </details>
-          </section>` : `<p class="small muted">Sem dano contínuo do chefe. Considere os golpes diretos, o controle e os lacaios.</p>`}
+          </section>` : `<p class="small muted">A projeção considera golpes diretos. Consulte as habilidades e os efeitos dos lacaios acima.</p>`}
         ${tema.notaComboDot ? `<p class="small muted" style="margin:6px 0 0;">${escaparHtml(tema.notaComboDot)}</p>` : ""}
       </article>
     </div>
@@ -540,9 +540,6 @@ function renderizarSimuladorMonstros() {
   containerResultadoMonstros.querySelector("#input-frenesi-gruk")?.addEventListener("change", (e) => {
     simularFrenesiGruk = e.target.checked;
     renderizarSimuladorMonstros();
-  });
-  containerResultadoMonstros.querySelector(".catalogo-lacaios-detalhes")?.addEventListener("toggle", (e) => {
-    catalogoLacaiosAberto = e.currentTarget.open;
   });
 
   containerResultadoMonstros.querySelectorAll("[data-atalho-zona]").forEach((btn) => {

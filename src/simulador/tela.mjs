@@ -9,6 +9,7 @@ import {
   catalogoAneis,
   catalogoArmas,
   catalogoConjuntos,
+  curvasReferenciaPecas,
   catalogoGemas,
   nomesClasses,
   nomesRaridade,
@@ -371,6 +372,13 @@ function renderizarSimulador() {
     const aviso = document.createElement("p");
     aviso.className = "note-compacto";
     aviso.textContent = `Build iniciada com os atributos e equipamentos de ${origem.nome} (${nomesClasses[origem.classe]}). Confira os atributos e os requisitos das peças da classe simulada antes de usar este FC como referência.`;
+    containerSimulador.prepend(aviso);
+  }
+
+  if (simulacao.estadoSimulador.itens.some(({ kind }) => curvasReferenciaPecas.has(kind))) {
+    const aviso = document.createElement("p");
+    aviso.className = "note-compacto";
+    aviso.textContent = "Os novos conjuntos da Cidade Mecânica têm bônus e passivas do jogo. Os atributos gerados automaticamente para essas peças usam outros Arcanos como referência. Para estimar o FC de uma peça real, importe o personagem ou informe os atributos da peça.";
     containerSimulador.prepend(aviso);
   }
 

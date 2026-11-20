@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261117a" defer></script>
-  <script src="explicacoes.js?v=20261118a" defer></script>
+  <script src="explicacoes.js?v=20261120a" defer></script>
   <script src="analise.js?v=20261118a" defer></script>
   <script src="historico.js?v=20261118a" defer></script>
   <script src="compartilhamento.js?v=4" defer></script>
@@ -75,7 +75,7 @@
       <details class="detalhes-recalibracao">
         <summary>Ver o que foi corrigido nos cálculos</summary>
         <ul class="detalhes-recalibracao-lista">
-          <li><strong>Atributos individuais por peça (Simulador e Tier List):</strong> cada arma, elmo e armadura agora usa sua curva real medida em 6.764 itens públicos (ex.: sets do Circo têm mais ATK/HP/VEL brutos nas peças que sets de Zona 13+), em vez de uma curva única por raridade.</li>
+          <li><strong>Atributos individuais por peça (Simulador e Tier List):</strong> as peças com dados disponíveis usam curvas medidas em 6.764 itens públicos (ex.: sets do Circo têm mais ATK/HP/VEL brutos nas peças que sets de Zona 13+), em vez de uma curva única por raridade.</li>
           <li><strong>Teto físico de 60% HP em Chefes (HitCap):</strong> golpes físicos e skills diretas contra heróis respeitam o limite oficial de 60% do HP máximo por acerto (mínimo de 2 hits para cair de vida cheia), enquanto sangramentos e dano contínuo ignoram tanto a DEF quanto esse teto.</li>
           <li><strong>Forjas, Auras, Nível e Ouro:</strong> a forja de 50% foi corrigida para <strong>Lendário (4 Épicos)</strong>, o Gelo de <strong>Auras</strong> entrou na matriz (até Imortal) e o planejador agora calcula a faixa de nível resultante (+15% a +30%, pisos Nv. 100/130) e o custo em ouro.</li>
           <li><strong>Sangramentos e decaimento multi-alvo:</strong> ajustados os valores exatos do <em>Anel da Sede Escarlate</em> (25% ATK/s por 2,5s), do <em>Chicote do Domador</em> (+50% ATK/s por 5,5s a cada 11s) e dos alvos secundários dos arcos <em>Estelar</em> e <em>Prismático</em>.</li>
@@ -281,7 +281,7 @@
           <summary class="sumario-glossario-global">💍 Comparativo Real dos Anéis Arcanos e Imortais (Quanto cada um dá por nível + onde conseguir)</summary>
           <div class="painel-glossario-interno" style="display:grid; gap:10px; font-size:0.86rem; line-height:1.45;">
             <p style="margin:0;">
-              Cada anel tem uma distribuição própria de atributos conforme o nível do item. Os 4 Anéis Arcanos que já existiam (Zona 13+ e Forja Arcana) têm um <strong>efeito especial na luta</strong> além dos status. Já os 2 novos Anéis Arcanos da Raid não têm efeito especial extra — em troca, eles entregam <strong>muito mais status puros</strong> (que aumentam direto seu FC, ataques, habilidades e resistência):
+              Compare a origem, os atributos por nível e a passiva de cada anel. As curvas da <strong>Presa de Ixtharra</strong> e da <strong>Teia Escarlate</strong> são estimadas. Os exemplos mostram o bônus bruto de crítico da peça. O jogo limita a chance efetiva e converte o excesso em dano crítico.
             </p>
             <div class="table-wrap" tabindex="0" role="region" aria-label="Comparativo de atributos e efeitos dos anéis">
               <table>
@@ -299,42 +299,42 @@
                     <td><strong style="color:#eb34b1;">Anel da Presa de Ixtharra</strong> <small>(Arcano · #18)</small></td>
                     <td>Só cai ao vencer a <strong>Raid Covil de Vexxaris</strong> (não sai na Forja Arcana)</td>
                     <td><code>~4,05 ATK</code> · <code>1,35 DEF</code> · <code>6,50 HP</code> · <code>0,64 CRÍT</code> · <code>16% VEL</code></td>
-                    <td><strong>~1.215 ATK</strong> · 405 DEF · 1.950 HP · <strong>+19,2% CRÍT</strong> · +16% VEL</td>
-                    <td>Sem efeito extra: entrega o <strong>maior Ataque e Crítico brutos</strong> do jogo para subir FC e bater mais forte em tudo.</td>
+                    <td><strong>~1.215 ATK</strong> · 405 DEF · 1.950 HP · <strong>+192% CRÍT</strong> · +16% VEL</td>
+                    <td>Críticos aplicam veneno por 4s (50% do ATK por segundo). Golpes contra alvos que já sangram ou estão envenenados causam <strong>20% a mais de dano</strong>.</td>
                   </tr>
                   <tr>
                     <td><strong style="color:#eb34b1;">Anel da Teia Escarlate</strong> <small>(Arcano · #19)</small></td>
                     <td>Só cai ao vencer a <strong>Raid Covil de Vexxaris</strong> (não sai na Forja Arcana)</td>
                     <td><code>~2,65 ATK</code> · <code>2,95 DEF</code> · <code>16,20 HP</code> · <code>0,25 CRÍT</code> · <code>18% VEL</code></td>
-                    <td>795 ATK · <strong>885 DEF</strong> · <strong>4.860 HP</strong> · +7,5% CRÍT · <strong>+18% VEL</strong></td>
-                    <td>Sem efeito extra: entrega <strong>muita Vida, Defesa e Velocidade</strong> para aguentar mais pancada e ganhar bônus de velocidade.</td>
+                    <td>795 ATK · <strong>885 DEF</strong> · <strong>4.860 HP</strong> · +75% CRÍT · <strong>+18% VEL</strong></td>
+                    <td>Após 3s em combate e depois a cada 8s, recebe um <strong>escudo pessoal de 15% da vida máxima</strong> por 4s e desacelera os inimigos visíveis por 3s.</td>
                   </tr>
                   <tr>
                     <td><strong style="color:#eb34b1;">Anel do Eclipse Arcano</strong> <small>(Arcano · #14)</small></td>
                     <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
                     <td><code>3,68 ATK</code> · <code>1,22 DEF</code> · <code>5,93 HP</code> · <code>0,57 CRÍT</code> · <code>16% VEL</code></td>
-                    <td><strong>1.105 ATK</strong> · 367 DEF · 1.779 HP · <strong>+17,0% CRÍT</strong> · +16% VEL</td>
+                    <td><strong>1.105 ATK</strong> · 367 DEF · 1.779 HP · <strong>+170% CRÍT</strong> · +16% VEL</td>
                     <td><strong>Eco do Eclipse:</strong> ricocheteia 60% do dano em até 2 inimigos próximos e 20% das vezes repete 100% do golpe no alvo principal (+20% DPS médio em alvo único).</td>
                   </tr>
                   <tr>
                     <td><strong style="color:#eb34b1;">Anel do Ceifador Cósmico</strong> <small>(Arcano · #16)</small></td>
                     <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
                     <td><code>3,42 ATK</code> · <code>1,46 DEF</code> · <code>6,85 HP</code> · <code>0,43 CRÍT</code> · <code>18% VEL</code></td>
-                    <td><strong>1.025 ATK</strong> · 438 DEF · 2.056 HP · +13,0% CRÍT · <strong>+18% VEL</strong></td>
+                    <td><strong>1.025 ATK</strong> · 438 DEF · 2.056 HP · +130% CRÍT · <strong>+18% VEL</strong></td>
                     <td><strong>Colheita de Almas:</strong> cada inimigo abatido por qualquer aliado dá +4% ATK (até 10 almas = +40% ATK). Na 10ª alma, causa 160% ATK em todos os inimigos e reinicia.</td>
                   </tr>
                   <tr>
                     <td><strong style="color:#eb34b1;">Anel do Coração do Vazio</strong> <small>(Arcano · #15)</small></td>
                     <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
                     <td><code>2,46 ATK</code> · <code>2,71 DEF</code> · <code>14,87 HP</code> · <code>0,28 CRÍT</code> · <code>12% VEL</code></td>
-                    <td>737 ATK · <strong>814 DEF</strong> · <strong>4.462 HP</strong> · +8,4% CRÍT · +12% VEL</td>
+                    <td>737 ATK · <strong>814 DEF</strong> · <strong>4.462 HP</strong> · +84% CRÍT · +12% VEL</td>
                     <td><strong>Renascer do Vazio:</strong> 1× por jornada (ou na Raid), ao morrer renasce na hora com 70% HP + escudo de 40% HP (5s) e explode 200% ATK em todos os inimigos.</td>
                   </tr>
                   <tr>
                     <td><strong style="color:#eb34b1;">Anel do Prisma Estelar</strong> <small>(Arcano · #17)</small></td>
                     <td>Chefes Zona 13+ (raríssimo) ou <strong>Forja Arcana</strong> (4 anéis Imortais, 25% base)</td>
                     <td><code>2,21 ATK</code> · <code>2,21 DEF</code> · <code>12,87 HP</code> · <code>0,22 CRÍT</code> · <code>14% VEL</code></td>
-                    <td>663 ATK · 663 DEF · <strong>3.861 HP</strong> · +6,7% CRÍT · +14% VEL</td>
+                    <td>663 ATK · 663 DEF · <strong>3.861 HP</strong> · +67% CRÍT · +14% VEL</td>
                     <td><strong>Pulso Cristalino:</strong> a cada 10s limpa stun/gelo/medo/silêncio/sangramento/lentidão do time, dá escudo de 12% HP (4s), cura 8% HP no mais ferido e dá 3s de imunidade.</td>
                   </tr>
                   <tr>
@@ -348,7 +348,7 @@
                     </td>
                     <td>
                       <strong>#10:</strong> 495 ATK · 798 HP<br>
-                      <strong>#12:</strong> 549 ATK · +9,6% CRÍT<br>
+                      <strong>#12:</strong> 549 ATK · +96% CRÍT<br>
                       <strong>#11:</strong> 399 ATK · 1.725 HP<br>
                       <strong>#13:</strong> 303 ATK · 2.085 HP
                     </td>
@@ -414,16 +414,16 @@
               <li>
                 <div class="raid-guia-casulo">
                   <img src="exports/itens/casulo-de-vexxaris.png" alt="Casulo de Vexxaris, em seda escarlate" width="64" height="64">
-                  <span><strong>Como conseguir o Casulo de Vexxaris:</strong> é um item Lendário bem raro que cai de <strong>chefes de zona</strong> nas lives (e também pode cair na própria Raid). Ter <strong>Sorte</strong> ajuda no drop até os 100 pontos. Ele não pode ser comprado/vendido no Mercado nem feito na Forja ou Alquimia.</span>
+                  <span><strong>Como conseguir o Casulo de Vexxaris:</strong> é um item Lendário bem raro que cai de <strong>chefes de zona</strong> nas lives (e também pode cair na própria Raid). Ter <strong>Sorte</strong> ajuda no drop até os 100 pontos. Também pode ser negociado no Mercado a partir de <strong>50 cristais</strong>.</span>
                 </div>
               </li>
               <li><strong>Como abrir a Raid:</strong> só <strong>1 pessoa</strong> precisa ter o Casulo. Ela entra no site do jogo (em uma live aberta), vai em <em>Meu personagem</em>, clica no Casulo e aperta <strong>"Usar: romper o Casulo"</strong>. Quem usou já entra na Raid automaticamente.</li>
               <li><strong>Como todo mundo entra (<code>$raid CÓDIGO</code>):</strong> quando o Casulo é usado, aparece uma fogueira e um <strong>código na tela da live</strong>. Todo mundo que quiser lutar — até quem já estava na live com <code>$jogar</code> — precisa digitar <code>$raid CÓDIGO</code> no chat antes do tempo acabar. Se não juntar o mínimo de jogadores, a Raid é cancelada e o Casulo volta para quem usou.</li>
               <li><strong>Quem não entra continua lutando? Por que parece que "desconectou todo mundo"?</strong> Ninguém é desconectado! Enquanto a Raid rola, <strong>a fase normal da live fica pausada</strong> e a tela mostra <strong>só quem digitou <code>$raid CÓDIGO</code></strong>. Quem estava ausente (AFK) fica escondido só durante as 4 ondas da Raid; assim que ela acaba, a live volta exatamente para a mesma Zona e Onda de antes e todo mundo reaparece.</li>
-              <li><strong>As 4 ondas e a regra de morte:</strong> a força da Raid equivale a <strong>2 zonas abaixo do recorde da live, segundo a wiki do jogo</strong>. São 4 etapas até a <em>Rainha Ixtharra</em> (que tem 3 fases). Lá dentro <strong>não existe renascer sozinho depois de 2 ou 3 minutos</strong>: quem morre só volta se tiver item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>As 4 ondas e a regra de morte:</strong> O patch de 20/11 aproximou a dificuldade entre lives de potenciais diferentes. O nível da Raid é definido pelo servidor. São 4 etapas até a <em>Rainha Ixtharra</em> (que tem 3 fases). Lá dentro <strong>não existe renascer sozinho depois de 2 ou 3 minutos</strong>: quem morre só volta se tiver item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>, <em>Relojoeiro Real</em>).</li>
               <li><strong>Dificuldade e participantes:</strong> o nível da Raid aumenta o ataque, a vida e a defesa dos inimigos. Mais participantes aumentam a vida e podem aumentar a quantidade de aranhas, até o limite da onda. O ataque base de cada inimigo do mesmo tipo e nível continua igual.</li>
               <li><strong>Rainha e resultado:</strong> durante a fuga pelo teto, a Rainha fica fora da seleção de alvos e não recebe dano. No fim, o resumo da Raid destaca dano causado, dano recebido, cura e DPS.</li>
-              <li><strong>Prêmios:</strong> vencer dá ouro, EXP e sorteio de itens com chance maior de <strong>Imortais</strong>, além da chance rara de <strong>Arcanos</strong> e dos 2 anéis exclusivos da Raid: <strong>Presa de Ixtharra</strong> (ataque e crítico) e <strong>Teia Escarlate</strong> (vida, defesa e velocidade).</li>
+              <li><strong>Prêmios:</strong> vencer dá ouro, EXP e sorteio de itens com chance maior de <strong>Imortais</strong>, além da chance rara de <strong>Arcanos</strong> e dos 2 anéis exclusivos da Raid: <strong>Presa de Ixtharra</strong> (veneno) e <strong>Teia Escarlate</strong> (escudo e lentidão). A vitória também pode render a <strong>Aura da Rainha Ixtharra</strong>, um cosmético Arcano raríssimo.</li>
             </ul>
           </div>
         </details>
@@ -431,7 +431,7 @@
         <form id="form-monstros" class="painel-controle-grid">
           <div class="campo">
             <label for="input-monstro-zona">Zona</label>
-            <input id="input-monstro-zona" type="number" min="1" max="100" value="16">
+            <input id="input-monstro-zona" type="number" min="1" max="100" value="17">
           </div>
           <div class="campo">
             <label for="input-monstro-onda">Onda (1 a 10)</label>
@@ -595,19 +595,18 @@
           <div>
             <strong style="color:var(--gold); font-size:0.94rem;">🕷️ 1. Raid Cooperativa: Covil de Vexxaris — Como funciona</strong>
             <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
-              <li><strong>Como conseguir o Casulo de Vexxaris:</strong> é um item Lendário bem raro que cai de <strong>chefes de zona</strong> nas lives (e também na própria Raid). Ter <strong>Sorte</strong> ajuda no drop até os 100 pontos. Não dá para comprar/vender no Mercado nem fazer na Forja ou Alquimia.</li>
+              <li><strong>Como conseguir o Casulo de Vexxaris:</strong> é um item Lendário bem raro que cai de <strong>chefes de zona</strong> nas lives (e também na própria Raid). Ter <strong>Sorte</strong> ajuda no drop até os 100 pontos. Também pode ser negociado no Mercado a partir de <strong>50 cristais</strong>.</li>
               <li><strong>Como abrir e como entrar:</strong> só <strong>1 pessoa</strong> usa o Casulo em <em>Meu personagem → Usar: romper o Casulo</em> numa live aberta. Na hora aparece uma fogueira e um <strong>código na tela</strong>. Todo mundo que quiser participar (até quem já estava na live com <code>$jogar</code>) precisa digitar <code>$raid CÓDIGO</code> no chat antes do tempo acabar. Se faltar gente, a Raid cancela e o Casulo volta para quem usou.</li>
               <li><strong>Quem não digita o código cai da live?</strong> Não! Durante a Raid, a fase normal da live fica <strong>pausada</strong> e a tela mostra <strong>só quem entrou com <code>$raid CÓDIGO</code></strong>. Quem estava ausente (AFK) fica oculto só enquanto a Raid dura e volta automaticamente na mesma Zona e Onda assim que a Raid termina.</li>
-              <li><strong>Luta em 4 ondas e morte:</strong> a dificuldade é <strong>2 zonas abaixo do recorde da live, segundo a wiki do jogo</strong>. Lá dentro <strong>não existe renascer pelo tempo (2 ou 3 min)</strong>: quem morre só volta com item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>).</li>
+              <li><strong>Luta em 4 ondas e morte:</strong> O patch de 20/11 aproximou a dificuldade entre lives de potenciais diferentes. Lá dentro <strong>não existe renascer pelo tempo (2 ou 3 min)</strong>: quem morre só volta com item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>, <em>Relojoeiro Real</em>).</li>
             </ul>
           </div>
 
           <div style="border-top:1px solid var(--line); padding-top:10px;">
             <strong style="color:#eb34b1; font-size:0.94rem;">💍 2. O que os Novos Anéis fazem? (Presa de Ixtharra vs Teia Escarlate)</strong>
             <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
-              <li><strong>Qual é a diferença para os anéis antigos?</strong> Os 4 Anéis Arcanos antigos (<em>Eclipse Arcano</em>, <em>Coração do Vazio</em>, <em>Ceifador Cósmico</em> e <em>Prisma Estelar</em>) têm um <strong>poder extra na luta</strong> além dos status. Já os 2 anéis novos da Raid não têm poder extra — em compensação, eles vêm com <strong>muito mais status puros</strong> (que aumentam direto seu FC, dano e resistência):</li>
-              <li><strong>Anel da Presa de Ixtharra (só cai na Raid):</strong> é o anel de <strong>maior Ataque e Crítico brutos</strong> do jogo (no Nv. 300 sem gemas dá cerca de <strong>1.215 ATK e +19,2% CRÍT</strong>, contra 1.105 ATK e +17% CRÍT do <em>Eclipse Arcano</em>, além de +16% VEL).</li>
-              <li><strong>Anel da Teia Escarlate (só cai na Raid):</strong> focado em <strong>muita Vida, Defesa e Velocidade</strong> (no Nv. 300 sem gemas dá cerca de <strong>4.860 HP, 885 DEF e +18% VEL</strong>, contra 4.462 HP, 814 DEF e +12% VEL do <em>Coração do Vazio</em>).</li>
+              <li><strong>Anel da Presa de Ixtharra (só cai na Raid):</strong> críticos envenenam por 4s e o dano direto aumenta 20% se o alvo já estiver sangrando ou envenenado. O veneno ignora DEF e compartilha o efeito de sangramento.</li>
+              <li><strong>Anel da Teia Escarlate (só cai na Raid):</strong> a primeira ativação vem aos 3s de combate, com novas ativações a cada 8s. Cada uma cria um escudo de 15% da própria vida máxima por 4s e desacelera os inimigos visíveis por 3s.</li>
               <li><em>Dica:</em> Na aba <strong>Equipamentos</strong> tem uma tabela comparando todos os anéis, e no <strong>Simulador</strong> basta clicar em qualquer anel para ver na hora quanto ele muda seu FC, DPS e vida.</li>
             </ul>
           </div>
@@ -615,8 +614,8 @@
           <div style="border-top:1px solid var(--line); padding-top:10px;">
             <strong style="color:var(--cyan); font-size:0.94rem;">⚗️ 3. Alquimia, Aprimorar, Auras e Mudanças nos Cálculos</strong>
             <ul style="margin:6px 0 0 18px; padding:0; display:grid; gap:5px;">
-              <li><strong>Alquimia (5 fragmentos = 1 item garantido):</strong> reciclando um item que você não usa, você ganha <strong>1 fragmento</strong> daquele tipo e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong> (conforme wiki), você cria 1 item novo da mesma raridade sem risco de falha (até Lendário). Faixas liberadas no patch de 14/11/2026: <strong>Nv. 1 (0–24)</strong>, <strong>Nv. 2 (25–49)</strong>, <strong>Nv. 3 (50–79)</strong> e <strong>Nv. 4 (80–110)</strong>; a wiki do cliente também documenta <strong>Nv. 5 (111–150)</strong>, sujeito à liberação no servidor. <a href="alquimia.html">Abrir página completa da Alquimia ↗</a>.</li>
-              <li><strong>Vender atributos:</strong> a tela do personagem agora tem os modos Comprar e Vender. Use −1 ou −10 para desfazer níveis e recuperar o ouro gasto, descontando uma taxa. Confira o valor de devolução no jogo antes de confirmar.</li>
+              <li><strong>Alquimia (5 fragmentos = 1 item garantido):</strong> reciclando um item que você não usa, você ganha <strong>1 fragmento</strong> daquele tipo e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong> (conforme wiki), você cria 1 item novo da mesma raridade sem risco de falha (até Lendário). O patch de 20/11 liberou o <strong>Nv. 5</strong>, com geração de itens na faixa de <strong>111 a 150</strong>. <a href="alquimia.html">Abrir página completa da Alquimia ↗</a>.</li>
+              <li><strong>Vender atributos:</strong> a tela do personagem agora tem os modos Comprar e Vender. Use −1 ou −10 para desfazer níveis e recuperar 90% do ouro gasto. A taxa é de 10%. Confira o valor de devolução no jogo antes de confirmar.</li>
               <li><strong>Contador de AFK:</strong> clique no relógio na tela do personagem para ver quanto falta para ficar AFK. Qualquer comando no chat reinicia a contagem.</li>
               <li><strong>Aprimorar Equipamento:</strong> você escolhe 1 item bom e gasta até 30 itens sobrando do mesmo tipo (mais ouro) para subir o nível e o FC daquele item.</li>
               <li><strong>Bônus por falha na Forja ("Gelo"):</strong> cada vez que você falha uma forja na mesma peça e raridade, ganha <strong>+2% de chance</strong> na próxima tentativa (até +10% com 5 falhas seguidas). Quando acerta, o bônus zera.</li>

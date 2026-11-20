@@ -17,8 +17,45 @@ test.describe("Panorama, rankings, modal de live e consulta de perfil", () => {
     await expect(page.locator('[data-panorama-acao="live-mais-nova"]')).toContainText("CanalNovo");
     await expect(page.locator('[data-panorama-acao="consultar-top1"]')).toContainText("Halscriolo");
 
+    expect(controleApi.chamadasApi.some((c) => c.path === "/api/ranking/potential")).toBe(true);
     expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
+  });
+
+  test("panorama usa /api/ranking/potential oficial e cai para fallback de runs quando potential falha", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "chromium-mobile", "Testa rota oficial de potencial no desktop");
+
+    // 1. Rota oficial de potencial prevalece sobre runs
+    const { erros, controleApi } = await prepararPagina(page, "/index.html", {
+      api: {
+        cenarios: {
+          potential: (route) =>
+            route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              body: JSON.stringify({
+                items: [
+                  { rank: 1, login: "xxmarciano", name: "XXMARCIANO", bestZone: 21, bestWave: 3, potential: 192, playersNow: 129, online: true },
+                ],
+              }),
+            }),
+        },
+      },
+    });
+    await expect(page.locator("#panorama-atualizacao")).toContainText("Maior potencial online: XXMARCIANO (Z20-W2)");
+    expect(controleApi.rotasInesperadas).toEqual([]);
+    expect(erros).toEqual([]);
+
+    // 2. Fallback para runs quando /api/ranking/potential retorna 503
+    await prepararPagina(page, "/index.html", {
+      permitirErrosConsole: true,
+      api: {
+        cenarios: {
+          potential: { tipo: "httpError", status: 503 },
+        },
+      },
+    });
+    await expect(page.locator("#panorama-atualizacao")).toContainText("Maior potencial online: Nando (Z29-W5)");
   });
 
   test("descobre o canal mais novo na segunda página e reaproveita datas conhecidas", async ({ page }) => {

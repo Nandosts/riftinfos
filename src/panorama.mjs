@@ -476,6 +476,21 @@ async function consultarLivesOnline(sinal) {
   return { livesOnline: [...porLogin.values()], completa: completa && porLogin.size >= total };
 }
 
+async function consultarMaiorPotencialOnline(sinal) {
+  const dados = await buscarJsonApi("/api/ranking/potential?page=1&size=5&online=true", sinal);
+  if (!Array.isArray(dados?.items)) return null;
+  const lider = dados.items.find(
+    (item) => typeof item?.login === "string" && item.login && typeof item.name === "string" && item.online !== false && Number(item.potential) > 0
+  );
+  if (!lider) return null;
+  return {
+    name: lider.name,
+    login: lider.login,
+    potential: Number(lider.potential),
+    origem: "oficial",
+  };
+}
+
 async function carregarPanoramaGlobal() {
   if (!gradeRecordesGlobais) return;
   consultaPanoramaAtiva?.abort();
@@ -485,9 +500,10 @@ async function carregarPanoramaGlobal() {
   if (panoramaAtualizacao) panoramaAtualizacao.textContent = "Sincronizando dados globais…";
 
   try {
-    const [changelog, consulta] = await Promise.all([
+    const [changelog, consulta, maiorPotencialOficial] = await Promise.all([
       buscarJsonApi("/api/changelog", sinal).catch(() => null),
       consultarLivesOnline(sinal).catch(() => null),
+      consultarMaiorPotencialOnline(sinal).catch(() => null),
     ]);
     if (sinal.aborted) return;
 
@@ -497,7 +513,7 @@ async function carregarPanoramaGlobal() {
     ultimosDadosPanorama.melhorZonaLive = null;
     ultimosDadosPanorama.estadoMaiorZona = livesOnline.length ? "carregando" : consulta && !consulta.completa ? "parcial" : "completo";
     ultimosDadosPanorama.maiorLive = null;
-    ultimosDadosPanorama.maiorPotencialOnline = null;
+    ultimosDadosPanorama.maiorPotencialOnline = maiorPotencialOficial;
     ultimosDadosPanorama.liveMaisNova = null;
     ultimosDadosPanorama.estadoCanalNovo = livesOnline.length ? "carregando" : consulta && !consulta.completa ? "parcial" : "completo";
     livesOnline.sort((a, b) => (b.playersNow || 0) - (a.playersNow || 0));
@@ -518,11 +534,13 @@ async function carregarPanoramaGlobal() {
         playersNow: topLive.playersNow || 0,
         totalLives: livesOnline.length,
       };
-      const comPotencial = livesOnline.filter((l) => Number(l.potential) > 0);
-      comPotencial.sort((a, b) => Number(b.potential) - Number(a.potential));
-      ultimosDadosPanorama.maiorPotencialOnline = comPotencial[0]
-        ? { name: comPotencial[0].name, login: comPotencial[0].login, potential: Number(comPotencial[0].potential) }
-        : null;
+      if (!ultimosDadosPanorama.maiorPotencialOnline) {
+        const comPotencial = livesOnline.filter((l) => Number(l.potential) > 0);
+        comPotencial.sort((a, b) => Number(b.potential) - Number(a.potential));
+        ultimosDadosPanorama.maiorPotencialOnline = comPotencial[0]
+          ? { name: comPotencial[0].name, login: comPotencial[0].login, potential: Number(comPotencial[0].potential), origem: "runs" }
+          : null;
+      }
     }
 
     renderizarGradePanorama();

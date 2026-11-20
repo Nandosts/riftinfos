@@ -303,7 +303,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   }
 
   dpsBasico *= fatorEco;
-  dpsEfeitoArma *= fatorEco;
+  if (!infoArma?.efeito?.semEco) dpsEfeitoArma *= fatorEco;
   const dpsSkillPorAlvo = cdSkillReal > 0 ? (skillDanoPorAlvo / cdSkillReal) * fatorEco : 0;
 
   const coberturaAnelBleed =
@@ -326,6 +326,12 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
 
   const dpsFisicoMedio = dpsBasico + dpsSkillPorAlvo + dpsEfeitoArma;
   const dpsCombateMedio = dpsFisicoMedio + dpsBleedVerdadeiro;
+  const veneno = anelAtivo?.veneno;
+  const presaIxtharra = veneno ? {
+    dpsDiretoContraAlvoAfetado: dpsFisicoMedio * (1 + veneno.bonusContraSangramento),
+    danoVenenoPorSegundo: status.atk * veneno.danoPorSegundo,
+  } : null;
+  const escudoTeiaEscarlate = Math.round(status.maxHp * (anelAtivo?.escudoVidaMaxima ?? 0));
   const reducaoDefesa = (status.def * 4) / (100 + status.def * 4);
   const ehp = status.maxHp * (1 + status.def * 0.04);
 
@@ -333,6 +339,7 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   if (arma?.kind === "emberblade") revives.push("Arma Brasa Eterna (60% HP + 30% escudo)");
   if (arma?.kind === "ankh") revives.push("Cetro da Vida (skill revive 55% HP)");
   if (arma?.kind === "worldstaff") revives.push("Árvore-Mundo (revive 50% a cada 15s)");
+  if (arma?.kind === "clockscepter") revives.push("Relojoeiro Real (revive 45% a cada 14s)");
   if (anelAtivo && anel.look === 13) revives.push("Anel Fênix Rubra (40% HP + 20% escudo)");
   if (anelAtivo && anel.look === 15) revives.push("Anel Coração do Vazio (70% HP + 40% escudo)");
 
@@ -366,6 +373,8 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     ehp,
     revives,
     analiseEfeitoArma,
+    presaIxtharra,
+    escudoTeiaEscarlate,
   };
 }
 

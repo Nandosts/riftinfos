@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Página de Alquimia (alquimia.html)", () => {
-  test("carrega atalho Simular meus itens no topo, guia, 5 fragmentos e faixas datadas no patch de 14/11", async ({ page }) => {
+  test("carrega atalho Simular meus itens no topo, guia, 5 fragmentos e faixas datadas no patch de 20/11", async ({ page }) => {
     const { erros, controleApi } = await prepararPagina(page, "/alquimia.html");
 
     await expect(page.locator("h1")).toContainText("Alquimia");
@@ -32,15 +32,15 @@ test.describe("Página de Alquimia (alquimia.html)", () => {
     await expect(page.locator(".bloco-regra-protecao")).toContainText("gemas engastadas");
     await expect(page.locator(".bloco-regra-protecao")).toContainText("Evento");
 
-    // Faixas: selo datado "Liberado no patch de 14/11" para Nv. 1–4 e "Documentado na wiki" para Nv. 5
+    // As cinco faixas estão disponíveis.
     const linhasFaixas = page.locator("#corpo-tabela-faixas tr");
     await expect(linhasFaixas).toHaveCount(5);
     await expect(linhasFaixas.nth(0)).toContainText("Nv. 0–24");
-    await expect(linhasFaixas.nth(0)).toContainText("Liberado no patch de 14/11");
+    await expect(linhasFaixas.nth(0)).toContainText("Disponível no patch de 20/11");
     await expect(linhasFaixas.nth(3)).toContainText("Nv. 80–110");
-    await expect(linhasFaixas.nth(3)).toContainText("Liberado no patch de 14/11");
+    await expect(linhasFaixas.nth(3)).toContainText("Disponível no patch de 20/11");
     await expect(linhasFaixas.nth(4)).toContainText("Nv. 111–150");
-    await expect(linhasFaixas.nth(4)).toContainText("Documentado na wiki");
+    await expect(linhasFaixas.nth(4)).toContainText("Disponível no patch de 20/11");
 
     expect(controleApi.rotasInesperadas).toEqual([]);
     expect(erros).toEqual([]);
@@ -86,11 +86,10 @@ test.describe("Página de Alquimia (alquimia.html)", () => {
     await expect(page.locator("#input-alquimia-nivel-medio")).not.toHaveAttribute("aria-invalid", "true");
     await expect(page.locator('[data-valor="nivel-entrada"]')).toContainText("Média Nv. 150");
 
-    // Selecionar Nv. 5 (wiki) exibe aviso explícito e faixa 111–150
+    // Selecionar Nv. 5 exibe a faixa 111–150.
     await page.click('label[for="radio-nivel-5"]');
     await expect(page.locator('[data-valor="faixa-gerada"]')).toHaveText("Nv. 111–150");
-    await expect(page.locator(".aviso-inline-wiki")).toBeVisible();
-    await expect(page.locator(".aviso-inline-wiki")).toContainText("wiki");
+    await expect(page.locator(".aviso-inline-wiki")).toHaveCount(0);
 
     // EXP de criação marcado como estimativa
     await expect(page.locator(".faixa-gerada-bloco")).toContainText("EXP de criação (estimativa)");
