@@ -22,6 +22,25 @@ function aplicarTetoGolpeHeroi(danoMitigado, maxHp, ehBleedOuDot = false) {
   return Math.min(danoBase, tetoGolpe);
 }
 
+function calcularDanoDiretoInimigo(danoBruto, { def, hp }, teto = 1) {
+  const danoMitigado = Math.max(1, Math.round(danoBruto * 100 / (100 + def * 4)));
+  const limite = teto < 1 ? Math.max(1, Math.ceil(hp * teto)) : null;
+  const dano = limite === null ? danoMitigado : Math.min(danoMitigado, limite);
+  return { dano, limite };
+}
+
+function calcularFaixaGolpeInimigo(danoBruto, inimigo, teto) {
+  const min = calcularDanoDiretoInimigo(danoBruto * 0.9, inimigo, teto);
+  const max = calcularDanoDiretoInimigo(danoBruto * 1.1, inimigo, teto);
+  return {
+    minimo: min.dano,
+    maximo: max.dano,
+    creditoMinimo: Math.min(min.dano, inimigo.hp),
+    creditoMaximo: Math.min(max.dano, inimigo.hp),
+    limite: max.limite,
+  };
+}
+
 function agregarItens(listaItens) {
   const fixos = { atk: 0, def: 0, hp: 0, crit: 0, spd: 0 };
   const gemasFixas = { atk: 0, def: 0, hp: 0, crit: 0, spd: 0 };
@@ -296,7 +315,9 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
         nome: infoArma.nome,
         cada: ef.cada,
         texto: ef.texto,
+        pctMobBase: ef.pctMob,
         pctBossBase: ef.pctBoss,
+        chanceEco: fatorEco > 1 ? 0.2 : 0,
         pctBossEfetivo: ef.pctBoss * fatorEco,
       };
     }
@@ -478,6 +499,8 @@ function calcularImpactoComboSkillDot({
 export {
   agregarItens,
   aplicarTetoGolpeHeroi,
+  calcularDanoDiretoInimigo,
+  calcularFaixaGolpeInimigo,
   calcularFc,
   calcularImpactoComboSkillDot,
   calcularMetricasCombate,

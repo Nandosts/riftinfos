@@ -2,6 +2,8 @@ import { buscarJsonApi } from "./api.mjs";
 import { Explicacoes } from "./bibliotecas.mjs";
 import {
   aplicarTetoGolpeHeroi,
+  calcularDanoDiretoInimigo,
+  calcularFaixaGolpeInimigo,
   calcularImpactoComboSkillDot,
   calcularMetricasCombate,
   calcularStatusSimulados,
@@ -21,6 +23,9 @@ const formMonstros = document.querySelector("#form-monstros");
 const inputMonstroZona = document.querySelector("#input-monstro-zona");
 const inputMonstroOnda = document.querySelector("#input-monstro-onda");
 const inputMonstroJogadores = document.querySelector("#input-monstro-jogadores");
+const inputMonstroHp = document.querySelector("#input-monstro-hp");
+const inputMonstroDanoHeroi = document.querySelector("#input-monstro-dano-heroi");
+const inputTetoDanoInimigos = document.querySelector("#input-teto-dano-inimigos");
 const selectMonstroOrigem = document.querySelector("#select-monstro-origem");
 const selectMonstroLiveSync = document.querySelector("#select-monstro-live-sync");
 const containerResultadoMonstros = document.querySelector("#resultado-monstros");
@@ -28,7 +33,7 @@ let ultimaLiveSincronizada = null;
 let varianteChefe = "principal";
 let simularFrenesiGruk = false;
 
-function calcularEscalaOnda(zona, onda, numJogadores) {
+function calcularEscalaOnda(zona, onda, numJogadores, multHpInimigos) {
   const z = Math.max(1, Math.min(100, Math.trunc(Number(zona)) || 1));
   const w = Math.max(1, Math.min(10, Math.trunc(Number(onda)) || 1));
   const party = Math.max(1, Math.min(500, Math.trunc(Number(numJogadores)) || 1));
@@ -56,7 +61,7 @@ function calcularEscalaOnda(zona, onda, numJogadores) {
     const gold = Math.round((2 + n) * xpGoldMult * (1 + Math.min(Math.max(0, n - 1), 99) / 99));
 
     return {
-      hp: Math.round(base.hp * o),
+      hp: base.hp * o * multHpInimigos,
       atk: base.atk * l,
       def: base.def * defMult,
       aspd: base.aspd,
@@ -117,28 +122,45 @@ function renderizarSimuladorMonstros() {
   const onda = inputMonstroOnda?.value || 10;
   const jogadores = inputMonstroJogadores?.value || 25;
 
-  const esc = calcularEscalaOnda(zona, onda, jogadores);
+  const tetoDanoInimigos = Math.min(100, Math.max(5, Number(inputTetoDanoInimigos?.value || 100))) / 100;
+  const temTetoDanoInimigos = tetoDanoInimigos < 1;
+  const multHpInimigos = Math.max(1, Number(inputMonstroHp?.value || 100)) / 100;
+  const multDanoHeroi = Math.min(1000, Math.max(10, Number(inputMonstroDanoHeroi?.value || 100))) / 100;
+  const estimarDps = !temTetoDanoInimigos && multDanoHeroi === 1;
+  const esc = calcularEscalaOnda(zona, onda, jogadores, multHpInimigos);
   const heroi = obterHeroiBaseParaDuelo();
   const temaBase = esc.infoTema;
   const tema = temaBase.varianteAlternativa && varianteChefe === "alternativo"
     ? { ...temaBase, ...temaBase.varianteAlternativa, temFrenesiGruk: false }
     : temaBase;
   const frenesiGruk = Boolean(tema.temFrenesiGruk && simularFrenesiGruk);
-  esc.boss.hp = Math.round(esc.boss.hp * (tema.multHp || 1));
+  esc.boss.hp = Math.max(1, Math.round(esc.boss.hp * (tema.multHp || 1)));
+  esc.skeleton.hp = Math.max(1, Math.round(esc.skeleton.hp));
+  esc.goblin.hp = Math.max(1, Math.round(esc.goblin.hp));
   esc.boss.def *= tema.multDef || 1;
   esc.boss.atk *= (tema.multAtk || 1) * (frenesiGruk ? 1.25 : 1);
   esc.boss.aspd *= frenesiGruk ? 1.15 : 1;
   const fatorDefHeroi = 100 / (100 + heroi.status.def * 4);
   const tetoGolpeHeroi = Math.max(1, Math.ceil(heroi.status.maxHp * 0.6));
 
-  function calcularDueloInimigo(inimigo, multSkill = 1.25) {
+  const efeitoArma = heroi.metricas.analiseEfeitoArma;
+  const singularidade = efeitoArma?.tipo === "singularity" ? efeitoArma : null;
+
+  function calcularDueloInimigo(inimigo, multSkill = 1.25, chefe = false) {
     const fatorDefInimigo = 100 / (100 + inimigo.def * 4);
-    const hitNormal = Math.max(1, Math.round(heroi.metricas.golpeNormalBruto * fatorDefInimigo));
-    const hitCrit = Math.max(1, Math.round(heroi.metricas.golpeCritBruto * fatorDefInimigo));
+    const hitNormal = calcularFaixaGolpeInimigo(heroi.metricas.golpeNormalBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
+    const hitCrit = calcularFaixaGolpeInimigo(heroi.metricas.golpeCritBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
     const dpsFisico = heroi.metricas.dpsFisicoMedio ?? heroi.metricas.dpsCombateMedio;
     const dpsBleed = heroi.metricas.dpsBleedVerdadeiro || 0;
-    const dpsRealContraAlvo = Math.max(1, dpsFisico * fatorDefInimigo + dpsBleed);
-    const ttk = inimigo.hp / dpsRealContraAlvo;
+    const danoBrutoSingularidade = singularidade ? inimigo.hp * (chefe ? singularidade.pctBossBase : singularidade.pctMobBase) : 0;
+    const danoSingularidade = singularidade
+      ? calcularDanoDiretoInimigo(danoBrutoSingularidade, { ...inimigo, def: 0 }, tetoDanoInimigos).dano
+      : 0;
+    const dpsSingularidade = singularidade
+      ? danoSingularidade * (1 + singularidade.chanceEco) / singularidade.cada
+      : 0;
+    const dpsEstimado = Math.max(1, dpsFisico * fatorDefInimigo + dpsBleed + dpsSingularidade);
+    const ttk = inimigo.hp / dpsEstimado;
 
     // No código oficial: golpes físicos/skills diretas em heróis têm teto de 60% do HP máximo por acerto (hitCap = 0.6)
     const danoRecebidoSemTeto = Math.max(1, Math.round(inimigo.atk * fatorDefHeroi));
@@ -155,9 +177,11 @@ function renderizarSimuladorMonstros() {
     const bleedTotal4s = Math.max(1, Math.round(inimigo.atk * 1.2));
 
     return {
+      hp: inimigo.hp,
       hitNormal,
       hitCrit,
-      dpsRealContraAlvo,
+      danoSingularidade,
+      dpsEstimado,
       ttk,
       danoRecebido,
       danoRecebidoSemTeto,
@@ -172,13 +196,29 @@ function renderizarSimuladorMonstros() {
     };
   }
 
-  const dBoss = calcularDueloInimigo(esc.boss, tema.skillBossMult);
+  const dBoss = calcularDueloInimigo(esc.boss, tema.skillBossMult, true);
   const dSkel = calcularDueloInimigo(esc.skeleton, 3.2);
   const dGob = calcularDueloInimigo(esc.goblin, 1.25);
 
-  const danoSingBoss = heroi.metricas.arma?.kind === "singblade"
-    ? Math.round(esc.boss.hp * (heroi.metricas.analiseEfeitoArma?.pctBossEfetivo || 0.04))
-    : 0;
+  function formatarFaixa(min, max) {
+    const primeiro = formatadorInteiro.format(min);
+    return min === max ? primeiro : `${primeiro}–${formatadorInteiro.format(max)}`;
+  }
+
+  function renderizarDanoPorAcerto(duelo) {
+    const { hp, hitNormal, hitCrit, danoSingularidade } = duelo;
+    const acertosParaDerrotar = ({ minimo, maximo }) => formatarFaixa(Math.ceil(hp / maximo), Math.ceil(hp / minimo));
+    const mostrarCredito = hitNormal.creditoMaximo < hitNormal.maximo || hitCrit.creditoMaximo < hitCrit.maximo;
+    return `
+        <div class="card-info-linha"><span>Seu ataque básico (com DEF)</span><strong style="color:var(--gold);">Normal: ${formatarFaixa(hitNormal.minimo, hitNormal.maximo)} · Crítico: ${formatarFaixa(hitCrit.minimo, hitCrit.maximo)} <small class="muted">(${heroi.status.crit.toFixed(0)}%)</small></strong></div>
+        <div class="card-info-linha"><span>Ataques básicos para derrotar</span><strong>Normais: ${acertosParaDerrotar(hitNormal)} · Críticos: ${acertosParaDerrotar(hitCrit)}</strong></div>
+        ${mostrarCredito ? `<div class="card-info-linha"><span>Placar (alvo com vida cheia)</span><strong>Normal: ${formatarFaixa(hitNormal.creditoMinimo, hitNormal.creditoMaximo)} · Crítico: ${formatarFaixa(hitCrit.creditoMinimo, hitCrit.creditoMaximo)}</strong></div>` : ""}
+        ${temTetoDanoInimigos ? `<div class="card-info-linha"><span>Teto de dano por acerto</span><strong>${formatadorInteiro.format(hitNormal.limite)}</strong></div>` : ""}
+        ${singularidade ? `<div class="card-info-linha"><span>Singularidade (sem DEF)</span><strong style="color:var(--cyan);">${formatadorInteiro.format(danoSingularidade)} por implosão · ${singularidade.cada}s de recarga${singularidade.chanceEco ? " · 20% de chance de eco" : ""}</strong></div>` : ""}
+    `;
+  }
+
+  const formatarTtk = (duelo) => duelo.ttk < 1 ? "< 1s" : `${formatadorDecimal1.format(duelo.ttk)}s`;
 
   // Cálculo do combo real (Hit físico da skill + golpes em sequência + DoT verdadeiro em ticks de 0,5s)
   const nomeSkillDot = tema.skillDotNome || "Skill c/ DoT";
@@ -304,7 +344,7 @@ function renderizarSimuladorMonstros() {
   } else if (comboDot) {
     textoVeredito = `⚠️ Atenção ao ${nomeSkillDot} (${tema.boss}): Hit inicial (${formatarNumeroCompacto(comboDot.hitInicial)}) + DoT verdadeiro (${formatarNumeroCompacto(comboDot.danoDotTotal)} em ${duracaoDotSeg}s, ignorando DEF) tiram ${comboDot.pctHpCombo.toFixed(0)}% do seu HP (${formatarNumeroCompacto(comboDot.danoTotalCombo)} no total). Você sobrevive se tiver cura ou escudo!`;
   } else {
-    textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Você aguenta ${dBoss.golpesParaMorrer} golpes físicos do Chefe. Seu tempo para derrubá-lo solo é ~${dBoss.ttk < 1 ? "<1" : dBoss.ttk.toFixed(1)}s (${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)} DPS real líquido).`;
+    textoVeredito = `✅ Duelo na Zona ${esc.zona} (${tema.boss}): Você aguenta ${dBoss.golpesParaMorrer} golpes físicos do Chefe.`;
   }
 
   const zonasAtalho = [9, 12, 16, 17, 18, 20, 22, 27];
@@ -360,13 +400,13 @@ function renderizarSimuladorMonstros() {
     <div class="grade-tres-indicadores-boss">
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">DPS estimado contra o chefe ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
-        <strong class="valor-indicador">${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s</strong>
-        <span class="nota-indicador">Considerando defesa de ${formatadorDecimal1.format(esc.boss.def)}${heroi.metricas.presaIxtharra ? " e DPS base (sem o veneno e o bônus condicional da Presa)." : ""}</span>
+        <strong class="valor-indicador">${!estimarDps ? "—" : `${formatarNumeroCompacto(dBoss.dpsEstimado)}/s`}</strong>
+        <span class="nota-indicador">${!estimarDps ? "Com teto ou dano da classe personalizado, consulte o dano por acerto." : `Considera 1 alvo, com DEF de ${formatadorDecimal1.format(esc.boss.def)}.`}${estimarDps && singularidade ? " Inclui Singularidade." : ""}${estimarDps && heroi.metricas.presaIxtharra ? " Usa DPS base (sem o veneno e o bônus condicional da Presa)." : ""}</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Tempo estimado para derrotar (TTK) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
-        <strong class="valor-indicador" style="color:var(--gold);">${dBoss.ttk < 1 ? "< 1s" : `${dBoss.ttk.toFixed(1)}s`}</strong>
-        <span class="nota-indicador">Em combate individual contínuo</span>
+        <strong class="valor-indicador" style="color:var(--gold);">${!estimarDps ? "—" : formatarTtk(dBoss)}</strong>
+        <span class="nota-indicador">Em combate individual contínuo, com todos os ataques acertando</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
@@ -425,7 +465,7 @@ function renderizarSimuladorMonstros() {
     <div class="aviso-vazio-perfil" style="border-left-color: var(--gold);">
       <span>
         <strong>Zona ${esc.zona} · Onda ${esc.onda}</strong> (Onda global #${esc.waveAbsoluta} · ${escaparHtml(esc.temaNome)}) ·
-        <strong>${esc.party} jogadores</strong> na live = <strong>+${((esc.multParty - 1) * 100).toFixed(1).replace(".", ",")}% HP</strong> nos monstros (${esc.temBoss ? `1 Chefe + ${esc.qtdMinions} lacaios` : `${esc.qtdMinions} inimigos`}).
+        <strong>${esc.party} heróis</strong> no início da onda = <strong>+${((esc.multParty - 1) * 100).toFixed(1).replace(".", ",")}% HP</strong> nos monstros (${esc.temBoss ? `1 Chefe + ${esc.qtdMinions} lacaios` : `${esc.qtdMinions} inimigos`}).
       </span>
     </div>
 
@@ -437,8 +477,8 @@ function renderizarSimuladorMonstros() {
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}/s</strong></div>
-        <div class="card-info-linha"><span>Seu Golpe no Lacaio</span><strong>Normal: ${formatarNumeroCompacto(dSkel.hitNormal)} · Crítico: ${formatarNumeroCompacto(dSkel.hitCrit)}</strong></div>
-        <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dSkel.ttk < 1 ? "<1s" : `${dSkel.ttk.toFixed(1)}s`}</strong></div>
+        ${renderizarDanoPorAcerto(dSkel)}
+        ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dSkel)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits para morrer)</strong></div>
         ${temaBase.mostrarBleedLadino ? `
         <div class="card-info-linha"><span>Sangramento do Ladino (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(bleedLadinoNormalPorSeg)}/s (${formatarNumeroCompacto(bleedLadinoNormalPorSeg * 4)} em 4s)</strong></div>
@@ -455,8 +495,8 @@ function renderizarSimuladorMonstros() {
         </div>
         <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}/s</strong></div>
-        <div class="card-info-linha"><span>Seu Golpe no Lacaio</span><strong>Normal: ${formatarNumeroCompacto(dGob.hitNormal)} · Crítico: ${formatarNumeroCompacto(dGob.hitCrit)}</strong></div>
-        <div class="card-info-linha"><span>Tempo para Matar (Solo)</span><strong style="color:var(--gold);">${dGob.ttk < 1 ? "<1s" : `${dGob.ttk.toFixed(1)}s`}</strong></div>
+        ${renderizarDanoPorAcerto(dGob)}
+        ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dGob)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits para morrer)</strong></div>
         ${temaBase.mostrarPocaAcida ? `
         <div class="card-info-linha"><span>Poça Ácida do Sapo-Boi (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(pocaSapoBoiPorSeg)}/s por 5s (se pisar)</strong></div>` : temaBase.destaqueRanged ? `
@@ -477,9 +517,7 @@ function renderizarSimuladorMonstros() {
           </div>` : ""}
         <div class="card-info-linha"><span>HP Total (+${((esc.multParty - 1) * 100).toFixed(0)}% Party)</span><strong>${formatarNumeroCompacto(esc.boss.hp)}</strong></div>
         <div class="card-info-linha"><span>ATK / DEF (Mitigação)</span><strong>${formatarNumeroCompacto(esc.boss.atk)} / ${formatadorDecimal1.format(esc.boss.def)} (-${((1 - dBoss.fatorDefInimigo) * 100).toFixed(1)}%)</strong></div>
-        <div class="card-info-linha"><span>Seu Golpe no Chefe</span><strong style="color:var(--gold);">Normal: ${formatarNumeroCompacto(dBoss.hitNormal)} · Crítico: ${formatarNumeroCompacto(dBoss.hitCrit)} <small class="muted" style="font-weight:400;">(${heroi.status.crit.toFixed(0)}% chance)</small></strong></div>
-        <div class="card-info-linha"><span>DPS Real / TTK Solo</span><strong>${formatarNumeroCompacto(dBoss.dpsRealContraAlvo)}/s · ${dBoss.ttk.toFixed(1)}s</strong></div>
-        ${danoSingBoss > 0 ? `<div class="card-info-linha"><span>Dano médio da Singularidade</span><strong style="color:var(--cyan);">-${formatarNumeroCompacto(danoSingBoss)} HP / 13s</strong></div>` : ""}
+        ${renderizarDanoPorAcerto(dBoss)}
         <div class="card-info-linha"><span>Golpes diretos (com DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)}${dBoss.bateuTetoBasico ? " (teto 60%)" : ""} · ${skillDireta}: ${formatarNumeroCompacto(dBoss.danoSkillFisica)}${dBoss.bateuTetoSkill ? " (teto 60%)" : ""}</strong></div>
         ${comboDot ? `
           <section class="resumo-sobrevivencia-chefe" aria-label="Risco da habilidade">
@@ -562,7 +600,7 @@ function renderizarSimuladorMonstros() {
 
 export function configurarChefes() {
   // Eventos da aba Monstros & Boss
-  [inputMonstroZona, inputMonstroOnda, inputMonstroJogadores, selectMonstroOrigem].forEach((el) => {
+  [inputMonstroZona, inputMonstroOnda, inputMonstroJogadores, inputTetoDanoInimigos, inputMonstroHp, inputMonstroDanoHeroi, selectMonstroOrigem].forEach((el) => {
     el?.addEventListener("input", renderizarSimuladorMonstros);
     el?.addEventListener("change", renderizarSimuladorMonstros);
   });

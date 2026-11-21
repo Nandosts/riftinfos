@@ -4,6 +4,13 @@ Registro das atualizações de regras do jogo (RiftStream) incorporadas ao motor
 
 ---
 
+## v2026.11.20 — Cidade Mecânica e rebalanceamento da Raid
+
+- O nível 5 de Alquimia cria itens de nível 111 a 150. A wiki mantém a referência de cinco fragmentos por peça. Os parâmetros de EXP vêm do servidor na aba Alquimia do jogo.
+- O rebalanceamento aproximou a dificuldade da Raid entre lives de potenciais diferentes. O servidor fornece o nível. O grupo afeta a vida e a quantidade de inimigos.
+- A Presa de Ixtharra ganhou veneno e dano adicional contra inimigos afetados. A Teia Escarlate ganhou escudo pessoal e lentidão. A Aura da Rainha Ixtharra pode cair após uma vitória.
+- O Casulo de Vexxaris passou a ser negociável no Mercado a partir de 50 cristais. Itens doados em Aprimorar passaram a render mais EXP.
+
 ## v2026.11.14 — Patch "Covil de Vexxaris, nova Alquimia e auras cosméticas"
 **Bundle de referência do jogo:** `index-XMmLTBXc.js` (e `index-CXlW0_-D.js`)
 

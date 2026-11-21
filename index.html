@@ -33,11 +33,11 @@
   <link rel="stylesheet" href="aparencia.css">
   <script src="aparencia.js"></script>
   <script src="sprites.js?v=20261117a" defer></script>
-  <script src="explicacoes.js?v=20261120a" defer></script>
+  <script src="explicacoes.js?v=20261121a" defer></script>
   <script src="analise.js?v=20261118a" defer></script>
   <script src="historico.js?v=20261118a" defer></script>
   <script src="compartilhamento.js?v=4" defer></script>
-  <script type="module" src="app.mjs?v=20261120b"></script>
+  <script type="module" src="app.mjs?v=20261121b"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -420,8 +420,9 @@
               <li><strong>Como abrir a Raid:</strong> só <strong>1 pessoa</strong> precisa ter o Casulo. Ela entra no site do jogo (em uma live aberta), vai em <em>Meu personagem</em>, clica no Casulo e aperta <strong>"Usar: romper o Casulo"</strong>. Quem usou já entra na Raid automaticamente.</li>
               <li><strong>Como todo mundo entra (<code>$raid CÓDIGO</code>):</strong> quando o Casulo é usado, aparece uma fogueira e um <strong>código na tela da live</strong>. Todo mundo que quiser lutar — até quem já estava na live com <code>$jogar</code> — precisa digitar <code>$raid CÓDIGO</code> no chat antes do tempo acabar. Se não juntar o mínimo de jogadores, a Raid é cancelada e o Casulo volta para quem usou.</li>
               <li><strong>Quem não entra continua lutando? Por que parece que "desconectou todo mundo"?</strong> Ninguém é desconectado! Enquanto a Raid rola, <strong>a fase normal da live fica pausada</strong> e a tela mostra <strong>só quem digitou <code>$raid CÓDIGO</code></strong>. Quem estava ausente (AFK) fica escondido só durante as 4 ondas da Raid; assim que ela acaba, a live volta exatamente para a mesma Zona e Onda de antes e todo mundo reaparece.</li>
-              <li><strong>As 4 ondas e a regra de morte:</strong> O patch de 20/11 aproximou a dificuldade entre lives de potenciais diferentes. O nível da Raid é definido pelo servidor. São 4 etapas até a <em>Rainha Ixtharra</em> (que tem 3 fases). Lá dentro <strong>não existe renascer sozinho depois de 2 ou 3 minutos</strong>: quem morre só volta se tiver item de auto-revive (<em>Brasa Eterna</em>, <em>Fênix Rubra</em>, <em>Coração do Vazio</em>) ou se um Clérigo reviver (<em>Cetro da Vida</em>, <em>Árvore-Mundo</em>, <em>Relojoeiro Real</em>).</li>
-              <li><strong>Dificuldade e participantes:</strong> o nível da Raid aumenta o ataque, a vida e a defesa dos inimigos. Mais participantes aumentam a vida e podem aumentar a quantidade de aranhas, até o limite da onda. O ataque base de cada inimigo do mesmo tipo e nível continua igual.</li>
+              <li><strong>Ondas e revives:</strong> são 4 ondas, com a Rainha Ixtharra na última. Entre ondas, os vivos recuperam até 30% da vida máxima. Quem cai precisa de uma habilidade ou item de revive.</li>
+              <li><strong>Dificuldade e participantes:</strong> o patch de 20/11 aproximou a dificuldade entre lives de potenciais diferentes. O servidor envia o nível da Raid ao overlay. Esse nível afeta HP, ATK e DEF dos inimigos.</li>
+              <li><strong>Efeito do tamanho do grupo:</strong> a contagem é fixada no início da primeira onda. No padrão do cliente, a vida usa a escala normal de grupo e um multiplicador extra de 8% por participante além do primeiro. Mais gente também pode trazer mais aranhas. Para o mesmo inimigo no mesmo nível, a quantidade de participantes só muda o HP, não o ATK ou a DEF. O servidor pode ajustar os multiplicadores.</li>
               <li><strong>Rainha e resultado:</strong> durante a fuga pelo teto, a Rainha fica fora da seleção de alvos e não recebe dano. No fim, o resumo da Raid destaca dano causado, dano recebido, cura e DPS.</li>
               <li><strong>Prêmios:</strong> vencer dá ouro, EXP e sorteio de itens com chance maior de <strong>Imortais</strong>, além da chance rara de <strong>Arcanos</strong> e dos 2 anéis exclusivos da Raid: <strong>Presa de Ixtharra</strong> (veneno) e <strong>Teia Escarlate</strong> (escudo e lentidão). A vitória também pode render a <strong>Aura da Rainha Ixtharra</strong>, um cosmético Arcano raríssimo.</li>
             </ul>
@@ -438,7 +439,7 @@
             <input id="input-monstro-onda" type="number" min="1" max="10" value="10">
           </div>
           <div class="campo">
-            <label for="input-monstro-jogadores">Jogadores na Live</label>
+            <label for="input-monstro-jogadores">Heróis no início da onda</label>
             <input id="input-monstro-jogadores" type="number" min="1" max="500" value="25">
           </div>
           <div class="campo">
@@ -454,7 +455,32 @@
               <option value="">Selecionar live online…</option>
             </select>
           </div>
+          <div class="campo">
+            <label for="input-teto-dano-inimigos">Teto contra inimigos (%)</label>
+            <input id="input-teto-dano-inimigos" type="number" min="5" max="100" step="any" value="100" aria-describedby="nota-teto-dano-inimigos">
+            <small class="muted" id="nota-teto-dano-inimigos">100% simula sem teto, o padrão do motor.</small>
+          </div>
+          <div class="campo">
+            <label for="input-monstro-hp">Vida dos inimigos (%)</label>
+            <input id="input-monstro-hp" type="number" min="1" step="any" value="100">
+            <small class="muted">100% usa a vida padrão da onda.</small>
+          </div>
+          <div class="campo">
+            <label for="input-monstro-dano-heroi">Dano da classe (%)</label>
+            <input id="input-monstro-dano-heroi" type="number" min="10" max="1000" step="any" value="100">
+            <small class="muted">100% usa o dano padrão da classe.</small>
+          </div>
         </form>
+
+        <details class="bloco-subsecao">
+          <summary>Como ler o dano por acerto e o DPS</summary>
+          <ul>
+            <li>O ataque básico tem variação de ±10%. A faixa usa seu equipamento, a defesa do alvo, o teto e os multiplicadores informados. A contagem de acertos parte do alvo com vida cheia, sem cura, escudo ou procs.</li>
+            <li>O placar credita até a vida restante do alvo após o escudo. Um crítico de 2 milhões em um alvo com 8 mil HP pode render só 8 mil. Dano periódico, como sangramento, fica fora do placar.</li>
+            <li>O teto padrão de 60% limita cada golpe direto recebido pelo herói. O teto contra monstros é um parâmetro que o overlay recebe do servidor. O motor começa com ele desativado. O campo acima permite simular o efeito de um teto por acerto.</li>
+            <li>O DPS estima dano contínuo em um único alvo. Flechas podem errar, curas podem ocupar ataques e habilidades em área podem acertar vários alvos. A consulta da live só traz zona, onda e uma contagem atual de jogadores. O HP usa os heróis presentes no início da onda, mesmo que alguns estejam mortos.</li>
+          </ul>
+        </details>
 
         <div id="resultado-monstros" class="bloco-subsecao"></div>
       </div>
@@ -617,7 +643,7 @@
               <li><strong>Alquimia (5 fragmentos = 1 item garantido):</strong> reciclando um item que você não usa, você ganha <strong>1 fragmento</strong> daquele tipo e raridade + EXP de Alquimia. Juntando <strong>5 fragmentos iguais</strong> (conforme wiki), você cria 1 item novo da mesma raridade sem risco de falha (até Lendário). O patch de 20/11 liberou o <strong>Nv. 5</strong>, com geração de itens na faixa de <strong>111 a 150</strong>. <a href="alquimia.html">Abrir página completa da Alquimia ↗</a>.</li>
               <li><strong>Vender atributos:</strong> a tela do personagem agora tem os modos Comprar e Vender. Use −1 ou −10 para desfazer níveis e recuperar 90% do ouro gasto. A taxa é de 10%. Confira o valor de devolução no jogo antes de confirmar.</li>
               <li><strong>Contador de AFK:</strong> clique no relógio na tela do personagem para ver quanto falta para ficar AFK. Qualquer comando no chat reinicia a contagem.</li>
-              <li><strong>Aprimorar Equipamento:</strong> você escolhe 1 item bom e gasta até 30 itens sobrando do mesmo tipo (mais ouro) para subir o nível e o FC daquele item.</li>
+              <li><strong>Aprimorar Equipamento:</strong> use até 30 itens do mesmo tipo e ouro para subir o nível de uma peça. Desde 20/11, os itens usados dão mais EXP. Confira o ganho exato na prévia do jogo.</li>
               <li><strong>Bônus por falha na Forja ("Gelo"):</strong> cada vez que você falha uma forja na mesma peça e raridade, ganha <strong>+2% de chance</strong> na próxima tentativa (até +10% com 5 falhas seguidas). Quando acerta, o bônus zera.</li>
               <li><strong>Transmog, Auras e Mercado:</strong> o Transmog copia o visual de um item para outro (o item usado como visual é consumido); os brilhos/auras dos itens Arcanos agora são itens cosméticos separados; e itens <strong>Imortais</strong> agora podem ser vendidos no Mercado.</li>
               <li><strong>O que mudou no FC em 14/11/2026?</strong> Com os mesmos atributos, o FC caiu cerca de <strong>33,3% para Guerreiro e Clérigo</strong> e <strong>25,3% para Arqueiro</strong>. A queda veio de uma mudança no cálculo do FC. No combate, o dano extra de algumas armas Imortais e Arcanas passou a poder causar crítico e receber o bônus de velocidade.</li>

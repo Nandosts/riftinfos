@@ -38,6 +38,20 @@ test("redução física independente: DEF=100 resulta em 80% ((100*4)/(100+100*4
   assert.ok(Math.abs(m.reducaoDefesa - 0.8) < 1e-9, `Esperado 0.80, obtido ${m.reducaoDefesa}`);
 });
 
+test("dano por acerto distingue defesa, teto opcional e vida creditada no placar", async () => {
+  const { calcularDanoDiretoInimigo, calcularFaixaGolpeInimigo } = await importarModulo("src/combate.mjs");
+  const inimigo = { def: 25, hp: 401 };
+  assert.deepEqual(calcularFaixaGolpeInimigo(1000, inimigo, 1), {
+    minimo: 450, maximo: 550, creditoMinimo: 401, creditoMaximo: 401, limite: null,
+  });
+  assert.deepEqual(calcularFaixaGolpeInimigo(1000, inimigo, 0.2), {
+    minimo: 81, maximo: 81, creditoMinimo: 81, creditoMaximo: 81, limite: 81,
+  });
+  assert.deepEqual(calcularDanoDiretoInimigo(inimigo.hp * 0.25, { ...inimigo, def: 0 }, 0.2), {
+    dano: 81, limite: 81,
+  });
+});
+
 test("chance acumulada de forja com Gelo calculada de forma independente", () => {
   // Exemplo independente calculado à mão:
   // Arcano base = 25%, Gelo inicial = 0 (+0 p.p.), Pergaminho = +10 p.p., Evento = 0

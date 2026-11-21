@@ -2,6 +2,36 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Chefes, Radar e Comparação", () => {
+  test("mostra quantos ataques derrotam o alvo e aplica os ajustes da live", async ({ page }) => {
+    await prepararPagina(page, "/index.html");
+    await page.click("#aba-monstros");
+    await page.fill("#input-monstro-zona", "1");
+    await page.fill("#input-monstro-onda", "1");
+    await page.fill("#input-monstro-jogadores", "1");
+    const lacaio = page.locator(".grade-monstros .card-monstro").first();
+    const indicadores = page.locator(".grade-tres-indicadores-boss");
+    const teto = page.locator("#input-teto-dano-inimigos");
+    await expect(lacaio).toContainText("Placar (alvo com vida cheia)");
+    await expect(indicadores.locator(".valor-indicador").first()).toContainText("/s");
+    await expect(lacaio).toContainText("Normais: 1 · Críticos: 1");
+    await teto.fill("20");
+    await expect(lacaio.locator(".card-info-linha").filter({ hasText: "Teto de dano por acerto" })).toContainText("7");
+    await expect(lacaio).toContainText("Normal: 7 · Crítico: 7");
+    await expect(lacaio).toContainText("Normais: 5 · Críticos: 5");
+    await page.fill("#input-monstro-hp", "200");
+    await expect(lacaio).toContainText("Normal: 13 · Crítico: 13");
+    await expect(indicadores.locator(".valor-indicador").first()).toHaveText("—");
+    await verificarSemOverflowHorizontal(page, "monstros-teto-de-dano");
+    await teto.fill("100");
+    await expect(lacaio).not.toContainText("Teto de dano por acerto");
+    await expect(indicadores.locator(".valor-indicador").first()).toContainText("/s");
+    const ataque = lacaio.locator(".card-info-linha").filter({ hasText: "Seu ataque básico" });
+    const ataquePadrao = await ataque.innerText();
+    await page.fill("#input-monstro-dano-heroi", "50");
+    await expect(ataque).not.toHaveText(ataquePadrao);
+    await expect(indicadores.locator(".valor-indicador").first()).toHaveText("—");
+  });
+
   test("Gruk e Mímico na zona 20, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
     const { erros } = await prepararPagina(page, "/index.html");
     await page.fill("#input-nick", "halscriolo");

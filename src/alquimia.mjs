@@ -750,7 +750,7 @@ function renderizarResultadosCalculadora() {
 
   const textoExpEstimado = alquimia.estimativaExpCriacao
     ? `+≈${formatadorInteiro.format(alquimia.estimativaExpCriacao.xpEstimado)} EXP por criação (estimativa baseada na configuração observada do servidor; pode mudar em ajustes).`
-    : "Estimativa exibida na aba Alquimia do jogo (+≈EXP por criação), calculada pelo servidor a partir da raridade e do nível médio da faixa atual.";
+    : "A aba Alquimia do jogo mostra a estimativa conforme a raridade e a faixa de nível. Os valores de EXP dependem da configuração do servidor.";
 
   const resumoEntrada = alquimia.fragmentosGuardados > 0
     ? `${formatadorInteiro.format(alquimia.itensReciclados)} equipamento(s) para reciclar + ${formatadorInteiro.format(alquimia.fragmentosGuardados)} fragmento(s) guardado(s) = <strong>${formatadorInteiro.format(alquimia.fragmentosTotais)} fragmentos de ${escaparHtml(alquimia.raridade.metal)}</strong> (${escaparHtml(alquimia.peca.rotulo)} ${escaparHtml(alquimia.raridade.rotulo)})`
@@ -955,7 +955,7 @@ function renderizarResultadosCalculadora() {
           </div>
           <div>
             <dt>Nível gerado</dt>
-            <dd>Conforme EXP dos doadores (prévia no jogo)</dd>
+            <dd>A prévia do jogo usa a EXP atual dos itens doados</dd>
           </div>
           <div>
             <dt>Risco e ouro</dt>
