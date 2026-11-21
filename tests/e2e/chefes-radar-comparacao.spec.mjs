@@ -11,6 +11,8 @@ test.describe("Chefes, Radar e Comparação", () => {
     const lacaio = page.locator(".grade-monstros .card-monstro").first();
     const indicadores = page.locator(".grade-tres-indicadores-boss");
     const teto = page.locator("#input-teto-dano-inimigos");
+    await expect(teto).toHaveValue("66");
+    await teto.fill("100");
     await expect(lacaio).toContainText("Placar (alvo com vida cheia)");
     await expect(indicadores.locator(".valor-indicador").first()).toContainText("/s");
     await expect(lacaio).toContainText("Normais: 1 · Críticos: 1");
@@ -30,6 +32,43 @@ test.describe("Chefes, Radar e Comparação", () => {
     await page.fill("#input-monstro-dano-heroi", "50");
     await expect(ataque).not.toHaveText(ataquePadrao);
     await expect(indicadores.locator(".valor-indicador").first()).toHaveText("—");
+  });
+
+  test("compartilha a onda e a build dos chefes, com cópia manual se o navegador bloquear", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          async writeText(texto) {
+            if (window.bloquearCopia) throw new Error("Cópia bloqueada");
+            window.linkCopiado = texto;
+          },
+        },
+      });
+    });
+    await prepararPagina(page, "/index.html?aba=monstros");
+    await page.fill("#input-monstro-zona", "5");
+    await page.fill("#input-monstro-onda", "9");
+    await page.fill("#input-monstro-jogadores", "1");
+    await page.selectOption("#select-monstro-origem", "simulador");
+    const botao = page.locator("#btn-copiar-cenario-monstros");
+    const status = page.locator("#status-copiar-cenario-monstros");
+    await botao.click();
+    await expect(status).toHaveText("Link copiado.");
+    const link = await page.evaluate(() => window.linkCopiado);
+    expect(new URL(link).hash).toMatch(/^#build=/);
+
+    await page.evaluate(() => { window.bloquearCopia = true; });
+    await botao.click();
+    await expect(page.locator("#link-cenario-monstros")).toBeVisible();
+    await expect(page.locator("#link-cenario-monstros")).toBeFocused();
+    await page.goto(await page.locator("#link-cenario-monstros").inputValue());
+    await expect(page.locator("#secao-monstros")).toBeVisible();
+    await expect(page.locator("#input-monstro-zona")).toHaveValue("5");
+    await expect(page.locator("#input-monstro-onda")).toHaveValue("9");
+    await expect(page.locator("#input-monstro-jogadores")).toHaveValue("1");
+    await expect(page.locator("#input-teto-dano-inimigos")).toHaveValue("66");
+    await expect(page.locator("#select-monstro-origem")).toHaveValue("simulador");
   });
 
   test("Gruk e Mímico na zona 20, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {

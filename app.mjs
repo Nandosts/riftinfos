@@ -30,7 +30,7 @@ configurarAbas();
 configurarConsultaPerfil();
 configurarAtalhosRanking();
 configurarSimulador();
-configurarChefes();
+configurarChefes(parametrosIniciais);
 configurarRadar();
 configurarComparacao();
 alternarVisibilidadeAba(parametrosIniciais.get("aba"), false);
@@ -52,7 +52,11 @@ if (typeof window !== "undefined" && window.location?.hash && Compartilhamento?.
       simulacao.estadoSimulador = buildDecodificada.buildA;
       simulacao.simuladorEditadoManual = true;
       renderizarSimulador();
-      alternarVisibilidadeAba("simulador");
+      if (parametrosIniciais.get("aba") === "monstros") {
+        renderizarSimuladorMonstros();
+      } else {
+        alternarVisibilidadeAba("simulador");
+      }
     }
   } catch {}
 }

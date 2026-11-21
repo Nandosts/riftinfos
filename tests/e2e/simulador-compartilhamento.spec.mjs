@@ -67,6 +67,7 @@ test.describe("Simulador e Compartilhamento", () => {
     await expect(sim.locator(".rs-attrs")).toContainText("dano direto antes da DEF contra alvo já sangrando ou envenenado");
     await page.click("#aba-monstros");
     await page.selectOption("#select-monstro-origem", "simulador");
+    await page.fill("#input-teto-dano-inimigos", "100");
     await expect(page.locator(".grade-tres-indicadores-boss")).toContainText("sem o veneno e o bônus condicional da Presa");
     await page.click("#aba-simulador");
     await sim.locator('[data-sim-equipar-anel="19"]').click();

@@ -37,7 +37,7 @@
   <script src="analise.js?v=20261118a" defer></script>
   <script src="historico.js?v=20261118a" defer></script>
   <script src="compartilhamento.js?v=4" defer></script>
-  <script type="module" src="app.mjs?v=20261121b"></script>
+  <script type="module" src="app.mjs?v=20261121c"></script>
 </head>
 <body>
   <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -457,8 +457,8 @@
           </div>
           <div class="campo">
             <label for="input-teto-dano-inimigos">Teto contra inimigos (%)</label>
-            <input id="input-teto-dano-inimigos" type="number" min="5" max="100" step="any" value="100" aria-describedby="nota-teto-dano-inimigos">
-            <small class="muted" id="nota-teto-dano-inimigos">100% simula sem teto, o padrão do motor.</small>
+            <input id="input-teto-dano-inimigos" type="number" min="5" max="100" step="any" value="66" aria-describedby="nota-teto-dano-inimigos">
+            <small class="muted" id="nota-teto-dano-inimigos">66% · cap conhecido até agora. Use 100% para simular sem teto.</small>
           </div>
           <div class="campo">
             <label for="input-monstro-hp">Vida dos inimigos (%)</label>
@@ -471,6 +471,15 @@
             <small class="muted">100% usa o dano padrão da classe.</small>
           </div>
         </form>
+
+        <div class="bloco-subsecao">
+          <button type="button" id="btn-copiar-cenario-monstros" class="btn-secundario btn-compacto">Copiar link da simulação</button>
+          <span id="status-copiar-cenario-monstros" class="small muted" role="status"></span>
+          <div class="campo" id="campo-link-cenario-monstros" hidden>
+            <label for="link-cenario-monstros">Link da simulação</label>
+            <input id="link-cenario-monstros" type="url" readonly>
+          </div>
+        </div>
 
         <details class="bloco-subsecao">
           <summary>Como ler o dano por acerto e o DPS</summary>

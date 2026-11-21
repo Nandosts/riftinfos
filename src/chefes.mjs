@@ -1,5 +1,5 @@
 import { buscarJsonApi } from "./api.mjs";
-import { Explicacoes } from "./bibliotecas.mjs";
+import { Compartilhamento, Explicacoes } from "./bibliotecas.mjs";
 import {
   aplicarTetoGolpeHeroi,
   calcularDanoDiretoInimigo,
@@ -122,7 +122,7 @@ function renderizarSimuladorMonstros() {
   const onda = inputMonstroOnda?.value || 10;
   const jogadores = inputMonstroJogadores?.value || 25;
 
-  const tetoDanoInimigos = Math.min(100, Math.max(5, Number(inputTetoDanoInimigos?.value || 100))) / 100;
+  const tetoDanoInimigos = Math.min(100, Math.max(5, Number(inputTetoDanoInimigos?.value || inputTetoDanoInimigos?.defaultValue || 66))) / 100;
   const temTetoDanoInimigos = tetoDanoInimigos < 1;
   const multHpInimigos = Math.max(1, Number(inputMonstroHp?.value || 100)) / 100;
   const multDanoHeroi = Math.min(1000, Math.max(10, Number(inputMonstroDanoHeroi?.value || 100))) / 100;
@@ -598,9 +598,66 @@ function renderizarSimuladorMonstros() {
   });
 }
 
-export function configurarChefes() {
-  // Eventos da aba Monstros & Boss
-  [inputMonstroZona, inputMonstroOnda, inputMonstroJogadores, inputTetoDanoInimigos, inputMonstroHp, inputMonstroDanoHeroi, selectMonstroOrigem].forEach((el) => {
+export function configurarChefes(parametros = new URLSearchParams(window.location.search)) {
+  const camposCenario = {
+    zona: inputMonstroZona,
+    onda: inputMonstroOnda,
+    herois: inputMonstroJogadores,
+    cap: inputTetoDanoInimigos,
+    hpInimigos: inputMonstroHp,
+    danoHeroi: inputMonstroDanoHeroi,
+    origem: selectMonstroOrigem,
+  };
+  if (parametros.get("aba") === "monstros") {
+    for (const [chave, campo] of Object.entries(camposCenario)) {
+      const valor = parametros.get(chave);
+      if (!campo || !valor) continue;
+      const anterior = campo.value;
+      campo.value = valor;
+      if (!campo.value || !campo.validity.valid) campo.value = anterior;
+    }
+    varianteChefe = parametros.get("chefe") === "alternativo" ? "alternativo" : "principal";
+    simularFrenesiGruk = parametros.get("frenesi") === "1";
+  }
+
+  const botaoCopiar = document.querySelector("#btn-copiar-cenario-monstros");
+  const statusCopia = document.querySelector("#status-copiar-cenario-monstros");
+  const campoLink = document.querySelector("#campo-link-cenario-monstros");
+  const inputLink = document.querySelector("#link-cenario-monstros");
+  botaoCopiar?.addEventListener("click", async () => {
+    if (!formMonstros.reportValidity()) return;
+    botaoCopiar.disabled = true;
+    campoLink.hidden = true;
+    statusCopia.textContent = "";
+    try {
+      const url = new URL(window.location.href);
+      url.hash = "";
+      url.searchParams.set("aba", "monstros");
+      for (const [chave, campo] of Object.entries(camposCenario)) {
+        url.searchParams.set(chave, campo.value || campo.defaultValue);
+      }
+      url.searchParams.set("chefe", varianteChefe);
+      url.searchParams.set("frenesi", simularFrenesiGruk ? "1" : "0");
+      if (!perfilCarregadoP1 || selectMonstroOrigem.value === "simulador") {
+        url.searchParams.set("origem", "simulador");
+        url.hash = await Compartilhamento.serializarBuildParaHash(simulacao.estadoSimulador, null, "Build Compartilhada");
+      }
+      const copia = await Compartilhamento.copiarTextoComFallback(url.href);
+      statusCopia.textContent = copia.sucesso ? "Link copiado." : "Selecione e copie o link abaixo.";
+      if (!copia.sucesso) {
+        inputLink.value = url.href;
+        campoLink.hidden = false;
+        inputLink.focus();
+        inputLink.select();
+      }
+    } catch {
+      statusCopia.textContent = "Não foi possível gerar o link da simulação.";
+    } finally {
+      botaoCopiar.disabled = false;
+    }
+  });
+
+  Object.values(camposCenario).forEach((el) => {
     el?.addEventListener("input", renderizarSimuladorMonstros);
     el?.addEventListener("change", renderizarSimuladorMonstros);
   });
