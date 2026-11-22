@@ -2,6 +2,33 @@ import { test, expect } from "@playwright/test";
 import { prepararPagina, verificarCanvasComSprite, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Tier List (funcional completo)", () => {
+  test("encontra uma peça pelo nome e preserva o tier do conjunto", async ({ page }) => {
+    await prepararPagina(page, "/tierlist.html");
+    const busca = page.getByRole("searchbox", { name: "Buscar item" });
+    const cavaleiro = page.locator('[data-tl-card="set_steamknight"]');
+    const cards = page.locator("#tierlist-tabela .tl-card");
+    const detalhe = page.locator("#tierlist-detalhe");
+
+    await busca.fill("martelo de pressao");
+    await expect(cards).toHaveCount(1);
+    await expect(cavaleiro).toContainText("Martelo de Pressão");
+    await expect(detalhe).toContainText("Cavaleiro a Vapor");
+
+    await busca.clear();
+    await page.click('[data-tl-modo="fc"]');
+    const tierAnterior = await cavaleiro.locator("xpath=../..").getAttribute("class");
+    await busca.fill("couraca de pistoes");
+    await expect(cards).toHaveCount(1);
+    await expect(cavaleiro).toContainText("Couraça de Pistões");
+    await expect(cavaleiro.locator("xpath=../..")).toHaveAttribute("class", tierAnterior);
+    await expect(detalhe).toContainText("Martelo de Pressão");
+    await verificarSemOverflowHorizontal(page, "busca da Tier List");
+
+    await busca.fill("item inexistente");
+    await expect(page.getByRole("status")).toContainText("Nenhum item");
+    await expect(detalhe).toBeHidden();
+  });
+
   test("matriz completa 2x5 (Por Utilidade e Por FC x Todos, classes e Anéis) e catálogo por classe, conjuntos, armas e anéis", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium-mobile", "Matriz completa roda no desktop");
     const { erros, controleApi } = await prepararPagina(page, "/tierlist.html");
@@ -164,7 +191,13 @@ test.describe("Tier List (funcional completo)", () => {
       for (const id of ids) {
         await page.click(`[data-tl-card="${id}"]`);
         await expect(detalhe.locator("[data-tl-selecionar-engaste]")).toHaveCount(engastes);
-        await verificarCanvasComSprite(page, "canvas[data-tl-heroi]");
+        if (["set_berserker", "set_lunar", "set_wind"].includes(id)) {
+          const retrato = detalhe.locator("img[data-tl-heroi]");
+          await expect(retrato).toBeVisible();
+          await expect.poll(() => retrato.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+        } else {
+          await verificarCanvasComSprite(page, "canvas[data-tl-heroi]");
+        }
       }
     }
 

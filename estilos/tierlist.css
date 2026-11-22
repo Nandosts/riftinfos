@@ -32,8 +32,10 @@
   letter-spacing: 0.06em;
 }
 
-#tierlist-raridade {
+#tierlist-raridade,
+#tierlist-busca {
   width: auto;
+  max-width: 100%;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 0.82rem;
@@ -322,6 +324,15 @@
 .tl-ficha-visual {
   margin-top: 12px;
   align-items: start;
+}
+
+.tl-retrato-exportado {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .tl-ficha-visual .rs-slots4 {

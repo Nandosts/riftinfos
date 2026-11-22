@@ -2,6 +2,12 @@ import { dadosClasses, nomesClasses, nomesSlots } from "./dados.mjs";
 import { escaparHtml, formatadorDecimal1, formatadorDecimal2, formatadorInteiro } from "./formato.mjs";
 import { construirEditorEngastes } from "./simulador/engastes.mjs";
 
+const retratosExportados = {
+  set_berserker: "warrior/berserker_furia_do_berserker.png",
+  set_lunar: "cleric/lunar_ordem_lunar.png",
+  set_wind: "archer/wind_arqueiro_do_vento.png",
+};
+
 function listaAtributos(atributos) {
   return `<dl class="tl-ficha-atributos">${atributos.map(([rotulo, valor]) => `
     <div><dt>${rotulo}</dt><dd>${valor}</dd></div>
@@ -17,13 +23,16 @@ export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtiv
     : anelEquipado ? "Conjunto 3/3 equipado · Com anel" : "Conjunto 3/3 equipado · Sem anel";
   const slots = ["weapon", "helmet", "armor", "ring"];
   const pecaAtiva = itens.find((peca) => peca.slot === slotAtivo);
+  const retrato = retratosExportados[item.id];
   return `
     <div class="tl-ficha-fc">
       <h3 class="tl-detalhe-titulo">${escaparHtml(item.nome)}</h3>
       <div class="rs-sheet tl-ficha-visual">
         <section class="rs-panel rs-hero" aria-label="Personagem e equipamento">
           <div class="rs-stage-box big">
-            <canvas data-tl-sprite="${item.id}" data-tl-heroi width="192" height="192" aria-hidden="true"></canvas>
+            ${retrato
+              ? `<img class="tl-retrato-exportado" data-tl-heroi src="exports/herois/${retrato}" alt="Visual do conjunto ${escaparHtml(item.nome)}" width="192" height="192">`
+              : `<canvas data-tl-sprite="${item.id}" data-tl-heroi width="192" height="192" aria-hidden="true"></canvas>`}
           </div>
           ${item.visualGenerico ? '<p class="note small">Prévia genérica. O visual deste conjunto ainda não está disponível no RiftInfos.</p>' : ""}
           <div class="rs-hero-head">

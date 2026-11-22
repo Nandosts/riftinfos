@@ -17,6 +17,7 @@ const containerDetalhe = document.querySelector("#tierlist-detalhe");
 const descricaoModo = document.querySelector("#tierlist-descricao-modo");
 const controlesFc = document.querySelector("#tierlist-controles-fc");
 const filtroRaridade = document.querySelector("#tierlist-raridade");
+const buscaItem = document.querySelector("#tierlist-busca");
 const filtroArmas = document.querySelector('[data-tl-cat="weapon"]');
 const selectAnelReferencia = document.querySelector("#tierlist-anel-referencia");
 
@@ -216,6 +217,7 @@ function construirCatalogoItens() {
       nome: setInfo.nome,
       novo: util?.novo,
       subnome: setInfo.armaNome,
+      nomesPecas: [setInfo.armaNome, setInfo.elmoNome, setInfo.armaduraNome],
       raridade: setInfo.raridadePadrao,
       raridadeNome: nomesRaridade[rarity],
       slotSprite: "weapon",
@@ -445,6 +447,10 @@ function renderizarDetalhe() {
   `;
 }
 
+function normalizarBusca(texto) {
+  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+}
+
 function renderizarTabela() {
   if (!containerTabela) return;
   const raridade = filtroRaridade?.value || "";
@@ -465,9 +471,16 @@ function renderizarTabela() {
     ? atribuirTiersPorFc(filtrados)
     : atribuirTiersPorUtilidade(filtrados);
 
-  if (!itemSelecionadoId || !filtrados.some((x) => x.id === itemSelecionadoId)) {
-    const primeiro = Object.values(grupos).flat()[0];
-    itemSelecionadoId = primeiro ? primeiro.id : null;
+  const termo = normalizarBusca(buscaItem?.value || "");
+  if (termo) {
+    for (const tier of Object.keys(grupos)) {
+      grupos[tier] = grupos[tier].filter((item) =>
+        [item.nome, ...(item.nomesPecas ?? [])].some((nome) => normalizarBusca(nome).includes(termo)));
+    }
+  }
+  const visiveis = Object.values(grupos).flat();
+  if (!visiveis.some((x) => x.id === itemSelecionadoId)) {
+    itemSelecionadoId = visiveis[0]?.id ?? null;
   }
 
   if (descricaoModo) {
@@ -478,7 +491,7 @@ function renderizarTabela() {
   if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
   if (filtroArmas) filtroArmas.hidden = modoAtual === "fc";
 
-  if (!filtrados.length) {
+  if (!visiveis.length) {
     containerTabela.innerHTML = `<p class="note" role="status">Nenhum item para esta combinação de filtros.</p>`;
     renderizarDetalhe();
     return;
@@ -495,6 +508,7 @@ function renderizarTabela() {
   containerTabela.innerHTML = linhasMeta
     .map((meta) => {
       const itens = grupos[meta.key] || [];
+      if (termo && !itens.length) return "";
       const cardsHtml = itens.length
         ? itens
             .map((item) => {
@@ -504,12 +518,14 @@ function renderizarTabela() {
                 ? `${item.conjuntoReferencia || item.curvaEstimada ? "≈ " : ""}${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
                 : item.tagUtilidade;
               const seloNovo = item.novo ? "Novo" : "";
-              const rotulo = [item.nome, item.categoriaLabel, item.raridadeNome, seloNovo, badgeTag].filter(Boolean).join(" · ");
+              const pecaEncontrada = termo && item.nomesPecas?.find((nome) => normalizarBusca(nome).includes(termo));
+              const rotulo = [item.nome, pecaEncontrada, item.categoriaLabel, item.raridadeNome, seloNovo, badgeTag].filter(Boolean).join(" · ");
               return `
                 <button type="button" class="tl-card ${clsRar} ${clsSel}" data-tl-card="${escaparHtml(item.id)}" aria-pressed="${item.id === itemSelecionadoId}" aria-label="${escaparHtml(rotulo)}">
                   ${seloNovo ? `<span class="tl-card-novo" aria-hidden="true">${seloNovo}</span>` : ""}
                   <canvas data-tl-sprite="${escaparHtml(item.id)}" data-tl-escala="3"></canvas>
                   <span class="tl-card-nome">${escaparHtml(item.nome)}</span>
+                  ${pecaEncontrada ? `<span class="tl-card-classe">${escaparHtml(pecaEncontrada)}</span>` : ""}
                   <span class="tl-card-classe">${escaparHtml(item.categoriaLabel)}</span>
                   <span class="tl-card-tag">${escaparHtml(badgeTag)}</span>
                 </button>
@@ -545,6 +561,7 @@ function renderizarTabela() {
 }
 
 filtroRaridade?.addEventListener("change", renderizarTabela);
+buscaItem?.addEventListener("input", renderizarTabela);
 
 document.querySelectorAll("[data-tl-modo]").forEach((btn) => {
   btn.addEventListener("click", () => {
