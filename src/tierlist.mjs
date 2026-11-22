@@ -186,6 +186,7 @@ function formatarBonusCurto(b) {
 
 function construirCatalogoItens() {
   const lista = [];
+  const catalogoSprites = window.RiftSprites?.catalogoKindsOficial;
   const anel = catalogoAneis[anelReferencia];
   const anelDoConjunto = anel ? [{
     slot: "ring", kind: "ring", name: anel.nome, rarity: anel.raridadeMin, look: anelReferencia,
@@ -195,6 +196,9 @@ function construirCatalogoItens() {
     const arma = catalogoArmas[setInfo.armaKind];
     const rarity = setInfo.raridadePadrao;
     const conjuntoReferencia = catalogoConjuntos[setInfo.curvaReferencia]?.nome;
+    const visualGenerico = Boolean(catalogoSprites) &&
+      [setInfo.armaKind, setInfo.elmoKind, setInfo.armaduraKind].some((kind) =>
+        !Object.hasOwn(catalogoSprites, kind));
     const referenciaFc = calcularFcReferencia(setInfo.classe, [
       { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
       { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
@@ -226,6 +230,7 @@ function construirCatalogoItens() {
       referenciaFc,
       bonusConjunto,
       conjuntoReferencia,
+      visualGenerico,
       curvaEstimada: anel?.estimado,
       detalhes: [
         ...bonusConjunto,
@@ -430,6 +435,7 @@ function renderizarDetalhe() {
         <span class="tl-card-tag">${escaparHtml(item.categoriaLabel)}</span>
         <span class="tl-card-tag">${escaparHtml(tierAtual)}</span>
       </div>
+      ${item.visualGenerico ? '<p class="note small">O ícone é genérico. O visual deste conjunto ainda não está disponível no RiftInfos.</p>' : ""}
       <p class="small"><strong>Ponto forte.</strong> ${escaparHtml(item.motivoUtilidade)}</p>
       ${item.limiteUtilidade ? `<p class="small"><strong>Limitação.</strong> ${escaparHtml(item.limiteUtilidade)}</p>` : ""}
       ${item.detalhes.length ? `<ul class="tl-detalhe-lista">

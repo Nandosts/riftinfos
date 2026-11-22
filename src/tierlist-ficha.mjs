@@ -25,6 +25,7 @@ export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtiv
           <div class="rs-stage-box big">
             <canvas data-tl-sprite="${item.id}" data-tl-heroi width="192" height="192" aria-hidden="true"></canvas>
           </div>
+          ${item.visualGenerico ? '<p class="note small">Prévia genérica. O visual deste conjunto ainda não está disponível no RiftInfos.</p>' : ""}
           <div class="rs-hero-head">
             <h2 style="color:${dadosClasses[classe].cor}">${nomesClasses[classe]}</h2>
             <span class="rs-lvl">NÍVEL <strong>${nivel}</strong></span>

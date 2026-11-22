@@ -61,6 +61,11 @@ test.describe("Tier List (funcional completo)", () => {
     await expect(ficha).toContainText("Atributos das peças estimados pela curva do conjunto Serafim Dourado");
     await expect(ficha.locator("[data-tl-slot]")).toHaveCount(3);
     await expect(ficha.locator('[data-tl-slot="weapon"]')).toContainText("Cetro do Relojoeiro Real");
+    for (const id of ["aeronaut", "madtinker"]) {
+      await page.click(`[data-tl-card="set_${id}"]`);
+      await expect(ficha).toContainText("Prévia genérica");
+      await expect(ficha.locator("[data-tl-slot]")).toHaveCount(3);
+    }
     await page.click('[data-tl-modo="utilidade"]');
 
     // Avalia os 10 anéis nas 3 classes
