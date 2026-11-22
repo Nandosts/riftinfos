@@ -33,14 +33,14 @@
     },
     dps: {
       termo: "DPS Estimado",
-      curto: "Dano médio por segundo contra alvo de teste (0 DEF, sem redução). Considera cadência real com cap, chance de crítico e skills.",
-      detalhes: "Calcula cadência de ataque com cap de 4,60 golpes/s, chance e dano crítico, bônus de armas arcanas/imortais e dano por segundo das habilidades.",
+      curto: "Dano médio por segundo contra um alvo sem defesa e sem teto por acerto. Pressupõe condições para usar as habilidades.",
+      detalhes: "Combina ataques básicos, habilidades, passivas e sangramento modelados. Habilidades ocupam parte do tempo dos ataques básicos. No placar da run, o dano creditado depende da vida restante do alvo e os ticks de sangramento ficam de fora.",
       categoria: "combate"
     },
     dps_estimado: {
       termo: "DPS estimado",
       curto: "Dano médio por segundo no cenário selecionado. Depende do alvo e das condições consideradas.",
-      detalhes: "Calcula a cadência de ataque (com cap de 4,6 golpes/s), chance de crítico, dano crítico, bônus de armas arcanas/imortais e dano da habilidade especial contra um alvo de teste (por padrão 0 DEF).",
+      detalhes: "Em Monstros & Chefes, aplica a defesa e o teto de dano a cada acerto modelado. O cenário solo pressupõe um herói e um inimigo. Movimento, interrupções e efeitos de grupo dependem da luta.",
       categoria: "combate"
     },
     sobrevivencia: {

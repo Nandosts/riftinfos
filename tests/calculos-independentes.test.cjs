@@ -7,6 +7,49 @@ async function importarModulo(relativo) {
   return import(pathToFileURL(path.resolve(__dirname, "..", relativo)).href);
 }
 
+test("DPS no alvo aplica defesa, ajuste da live e teto a cada golpe", async () => {
+  const { calcularMetricasCombate } = await importarModulo("src/combate.mjs");
+  const stats = { atk: 1_000, aspd: 2, crit: 0, def: 0, maxHp: 1_000 };
+  const inimigo = { hp: 1_000, def: 25 };
+  const arma = [{ slot: "weapon", kind: "steamhammer" }];
+  const normal = calcularMetricasCombate("warrior", 1, stats, arma, { inimigo });
+  const reduzido = calcularMetricasCombate("warrior", 1, stats, arma, { inimigo, multDanoHeroi: 0.5 });
+  const limitado = calcularMetricasCombate("warrior", 1, stats, arma, { inimigo, teto: 0.2, multDanoHeroi: 0.5 });
+  assert.equal(normal.dpsBasico, 1_000);
+  assert.ok(Math.abs(reduzido.dpsBasico - 500) <= 1);
+  assert.equal(limitado.dpsBasico, 400);
+  assert.equal(limitado.dpsEfeitoArma, 3 * 200 / 12);
+  assert.equal(limitado.dpsSkillPorAlvo, 0);
+  assert.equal(limitado.dpsFisicoMedio, 400 + 3 * 200 / 12);
+});
+
+test("cada pulso de uma habilidade recebe o teto quando há alvos para lançá-la", async () => {
+  const { calcularMetricasCombate } = await importarModulo("src/combate.mjs");
+  const stats = { atk: 2_000, aspd: 2, crit: 0, def: 0, maxHp: 1_000 };
+  const inimigo = { hp: 1_000, def: 0 };
+  for (const kind of ["voidstaff", "lantern"]) {
+    const arma = [{ slot: "weapon", kind }];
+    const solo = calcularMetricasCombate("cleric", 1, stats, arma, { inimigo, teto: 0.2 });
+    const comAlvos = calcularMetricasCombate("cleric", 1, stats, arma, { inimigo, teto: 0.2, alvosAoAlcance: 2 });
+    assert.equal(solo.dpsSkillPorAlvo, 0);
+    assert.equal(comAlvos.dpsSkillPorAlvo, 1_600 * comAlvos.cadenciaSkill);
+    assert.ok(comAlvos.dpsBasico < solo.dpsBasico);
+  }
+});
+
+test("slot vazio de anel de uma build antiga não dá o eco do Eclipse Arcano", async () => {
+  const { calcularMetricasCombate } = await importarModulo("src/combate.mjs");
+  const { adequarEngastesSimulados } = await importarModulo("src/simulador/estado.mjs");
+  const stats = { atk: 1_000, aspd: 2, crit: 0, def: 0, maxHp: 1_000 };
+  const vazio = { slot: "ring", kind: "", name: "Peça (Anel)", look: 14, rarity: 6, itemLevel: 100 };
+  const eclipse = { ...vazio, name: "Anel do Eclipse Arcano", rarity: 7 };
+  const dps = (itens) => calcularMetricasCombate("archer", 1, stats, itens).dpsCombateMedio;
+  assert.equal(dps([vazio]), dps([]));
+  assert.ok(Math.abs(dps([eclipse]) - dps([]) * 1.2) < 1e-9);
+  assert.equal(adequarEngastesSimulados(vazio).look, 0);
+  assert.equal(adequarEngastesSimulados(eclipse).look, 14);
+});
+
 test("teto de VEL em 4,6/s: abaixo (4.5), no teto (4.6) e acima (4.61 e 6.0) não altera cadência nem recarga", async () => {
   const { calcularMetricasCombate } = await importarModulo("src/combate.mjs");
 
@@ -100,17 +143,17 @@ test("FC, DPS e Cura calculados à mão de forma independente", async () => {
   // 2. DPS básico e de skill independente (Guerreiro Nv.100 sem arma especial):
   // atk=1000, aspd=2.0, crit=40, critDmg=0 -> fatorCritEsperado = 0.60 + 0.40 * 1.75 = 1.30
   // golpeNormalBruto = 1000, golpeCritBruto = 1750, golpeMedioBruto = 1300
-  // cadenciaReal = 2.0 -> dpsBasico = 2600
+  // Ciclo: 0,61s da habilidade (animação + pausa) e 20 ataques básicos de 0,5s.
   // cdSkillReal = 7 * 1.5 = 10.5s, skillDanoPorAlvo = 1000 * 1.5 * 1.30 = 1950
-  // dpsSkillPorAlvo = 1950 / 10.5 = 185.71428571428572 -> dpsCombateMedio = 2785.714285714286
+  // DPS = (20 × 1.300 + 1.950) / 10,61.
   const metW = calcularMetricasCombate("warrior", 100, { maxHp: 10000, atk: 1000, def: 100, aspd: 2.0, crit: 40, critDmg: 0 }, []);
   assert.equal(metW.golpeNormalBruto, 1000);
   assert.equal(metW.golpeCritBruto, 1750);
   assert.equal(metW.golpeMedioBruto, 1300);
-  assert.equal(metW.dpsBasico, 2600);
+  assert.ok(Math.abs(metW.dpsBasico - 26000 / 10.61) < 1e-9);
   assert.equal(metW.cdSkillReal, 10.5);
   assert.equal(metW.skillDanoPorAlvo, 1950);
-  assert.ok(Math.abs(metW.dpsCombateMedio - (2600 + 1950 / 10.5)) < 1e-9);
+  assert.ok(Math.abs(metW.dpsCombateMedio - 27950 / 10.61) < 1e-9);
 
   // 3. Cura independente (Clérigo Nv.100, atk=1000):
   // aspd=2.3 (speedBonus=1.0) -> healPower = (1000 * 2.4 + 100 * 1.5 + 6) * 1.0 = 2556

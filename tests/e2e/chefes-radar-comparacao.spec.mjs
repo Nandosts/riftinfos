@@ -10,8 +10,12 @@ test.describe("Chefes, Radar e Comparação", () => {
     await page.fill("#input-monstro-jogadores", "1");
     const lacaio = page.locator(".grade-monstros .card-monstro").first();
     const indicadores = page.locator(".grade-tres-indicadores-boss");
+    const dps = indicadores.locator(".valor-indicador").nth(0);
+    const ttk = indicadores.locator(".valor-indicador").nth(1);
     const teto = page.locator("#input-teto-dano-inimigos");
     await expect(teto).toHaveValue("66");
+    await expect(dps).toContainText("/s");
+    await expect(ttk).toHaveText(/s$/);
     await teto.fill("100");
     await expect(lacaio).toContainText("Placar (alvo com vida cheia)");
     await expect(indicadores.locator(".valor-indicador").first()).toContainText("/s");
@@ -22,16 +26,22 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(lacaio).toContainText("Normais: 5 · Críticos: 5");
     await page.fill("#input-monstro-hp", "200");
     await expect(lacaio).toContainText("Normal: 13 · Crítico: 13");
-    await expect(indicadores.locator(".valor-indicador").first()).toHaveText("—");
+    await expect(dps).toContainText("/s");
+    await expect(ttk).toHaveText(/s$/);
+    await expect(indicadores).toContainText("teto de 20% do HP por acerto");
+    const dpsComTeto = await dps.innerText();
     await verificarSemOverflowHorizontal(page, "monstros-teto-de-dano");
     await teto.fill("100");
     await expect(lacaio).not.toContainText("Teto de dano por acerto");
-    await expect(indicadores.locator(".valor-indicador").first()).toContainText("/s");
+    await expect(dps).not.toHaveText(dpsComTeto);
+    const dpsPadrao = await dps.innerText();
     const ataque = lacaio.locator(".card-info-linha").filter({ hasText: "Seu ataque básico" });
     const ataquePadrao = await ataque.innerText();
     await page.fill("#input-monstro-dano-heroi", "50");
     await expect(ataque).not.toHaveText(ataquePadrao);
-    await expect(indicadores.locator(".valor-indicador").first()).toHaveText("—");
+    await expect(dps).toContainText("/s");
+    await expect(dps).not.toHaveText(dpsPadrao);
+    await expect(ttk).toHaveText(/s$/);
   });
 
   test("compartilha a onda e a build dos chefes, com cópia manual se o navegador bloquear", async ({ page }) => {

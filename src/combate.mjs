@@ -228,13 +228,20 @@ function calcularStatusSimulados(classe, nivel, atributos, listaItens) {
   return { atk, maxHp, def, aspd, crit, critDmg };
 }
 
-function calcularMetricasCombate(classe, nivel, status, listaItens) {
+function calcularMetricasCombate(classe, nivel, status, listaItens, {
+  inimigo,
+  teto = 1,
+  multDanoHeroi = 1,
+  alvosAoAlcance = inimigo ? 1 : 2,
+} = {}) {
   const itens = listaItens || [];
   const arma = itens.find((i) => i.slot === "weapon");
   const anel = itens.find((i) => i.slot === "ring");
   const infoClasse = dadosClasses[classe] || dadosClasses.warrior;
   const infoArma = (arma?.kind && catalogoArmas[arma.kind]) || null;
-  const anelAtivo = anel && (anel.rarity ?? 0) >= 6 ? catalogoAneis[anel.look] || null : null;
+  const anelAtivo = anel && (anel.rarity ?? 0) >= 6 && anel.name !== "Peça (Anel)"
+    ? catalogoAneis[anel.look] || null
+    : null;
 
   const capAspd = 4.6;
   const speedBonus = status.aspd > capAspd ? status.aspd / capAspd : 1.0;
@@ -250,15 +257,58 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
   const golpeCritBruto = golpeNormalBruto * multCrit;
   const golpeMedioBruto = golpeNormalBruto * fatorCritEsperado;
 
+  function danoMedioAcerto(bruto, chanceCrit = taxaCrit) {
+    if (!inimigo) return bruto * ((1 - chanceCrit) + chanceCrit * multCrit);
+    function danoMedioGolpe(multiplicador) {
+      let total = 0;
+      for (let amostra = 0; amostra < 10; amostra++) {
+        const variacao = 0.91 + amostra * 0.02;
+        total += calcularDanoDiretoInimigo(bruto * multiplicador * variacao * multDanoHeroi, inimigo, teto).dano;
+      }
+      return total / 10;
+    }
+    return (1 - chanceCrit) * danoMedioGolpe(1) + chanceCrit * danoMedioGolpe(multCrit);
+  }
+
+  const ef = infoArma?.efeito;
+  const uptime = ef?.dur > 0 && ef.cada > 0 ? ef.dur / ef.cada : 0;
+  function danoMedioComBuff(bruto) {
+    if (ef?.tipo === "buff_atk") {
+      return (1 - uptime) * danoMedioAcerto(bruto) + uptime * danoMedioAcerto(bruto * ef.atkMult);
+    }
+    if (ef?.tipo === "buff_crit") return danoMedioAcerto(bruto, (1 - uptime) * taxaCrit + uptime);
+    return danoMedioAcerto(bruto);
+  }
+
   const cdSkillReal = infoClasse.cdBaseSkill * 1.5 * (infoArma?.cdMult || 1.0);
   const skillAlvos = infoArma?.skillAlvos || (classe === "archer" ? 3 : 1);
   const skillMult = infoArma?.skillMult ?? infoClasse.multBaseSkill;
-  const skillFatorCrit = infoArma?.skillSemCrit ? 1.0 : fatorCritEsperado;
+  const skillDeDano = classe !== "cleric" || infoArma?.skillTipo === "dano" || infoArma?.skillTipo === "misto";
+  const skillExigeGrupo = classe === "warrior" || arma?.kind === "voidstaff" || arma?.kind === "lantern";
+  const usaSkill = skillDeDano && (!skillExigeGrupo || alvosAoAlcance >= 2);
+  function cadenciasDeAtaque(fatorVelocidade) {
+    const taxaBasica = cadenciaReal * fatorVelocidade;
+    if (!usaSkill || taxaBasica <= 0) return { basica: taxaBasica, skill: 0 };
+    const intervaloBasico = 1 / taxaBasica;
+    const intervaloAto = intervaloBasico / cdBasicoMult;
+    const animacaoSkill = Math.max(0.2, Math.min(infoClasse.animacaoAtaque * 1.15, intervaloAto * 0.92));
+    const pausaSkill = Math.max(intervaloAto, animacaoSkill + 0.15);
+    // A habilidade pronta ainda espera terminar o intervalo do último ataque.
+    const ataquesBasicos = Math.max(0, Math.ceil((cdSkillReal - pausaSkill) / intervaloBasico - 1e-9));
+    const duracaoCiclo = pausaSkill + ataquesBasicos * intervaloBasico;
+    return { basica: ataquesBasicos / duracaoCiclo, skill: 1 / duracaoCiclo };
+  }
+  const cadencias = cadenciasDeAtaque(1);
+  const buffVelocidadeAtivo = ef?.tipo === "buff_aspd" ? uptime : 0;
+  const cadenciasComBuff = buffVelocidadeAtivo > 0 ? cadenciasDeAtaque(2) : cadencias;
+  const cadenciaBasica = cadencias.basica * (1 - buffVelocidadeAtivo) + cadenciasComBuff.basica * buffVelocidadeAtivo;
+  const cadenciaSkill = cadencias.skill * (1 - buffVelocidadeAtivo) + cadenciasComBuff.skill * buffVelocidadeAtivo;
+  const acertosSkill = infoArma?.skillMultiplicadoresPorAcerto ?? [skillMult];
 
   let skillDanoPorAlvo = 0;
   let skillDanoTotal = 0;
-  if (classe !== "cleric" || infoArma?.skillTipo === "dano" || infoArma?.skillTipo === "misto") {
-    skillDanoPorAlvo = status.atk * speedBonus * skillMult * skillFatorCrit;
+  if (skillDeDano) {
+    skillDanoPorAlvo = status.atk * speedBonus * acertosSkill.reduce((soma, mult) => soma + mult, 0) * fatorCritEsperado;
     if (infoArma?.skillDecaimento && skillAlvos > 1) {
       skillDanoTotal =
         skillDanoPorAlvo *
@@ -277,30 +327,22 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     : 0;
   const escudoAurora = infoArma?.escudoMult ? healPower * infoArma.escudoMult : 0;
 
-  let dpsBasico = golpeMedioBruto * cadenciaReal;
   const fatorEco = anelAtivo && anel.look === 14 ? 1.2 : 1;
-  const dpsSkill = cdSkillReal > 0 ? (skillDanoTotal / cdSkillReal) * fatorEco : 0;
+  const dpsBasico = danoMedioComBuff(golpeNormalBruto) * cadenciaBasica * fatorEco;
 
   let analiseEfeitoArma = null;
   let dpsEfeitoArma = 0;
 
-  if (infoArma?.efeito) {
-    const ef = infoArma.efeito;
-    if (ef.tipo === "buff_atk") {
-      // Ceifa-Reis: uptime 4/12 com +60% ATK
-      dpsBasico *= 1 + (ef.dur / ef.cada) * (ef.atkMult - 1);
-    } else if (ef.tipo === "buff_aspd") {
-      // Tempestade Escarlate: dobra cadência por 4s a cada 12s
-      dpsBasico *= 1 + ef.dur / ef.cada;
-    } else if (ef.tipo === "buff_crit") {
-      // Predador Carmesim: 100% crit por 3.5s a cada 9s
-      const fatorUptime = ef.dur / ef.cada;
-      const fatorCritMedioEfetivo = (1 - fatorUptime) * fatorCritEsperado + fatorUptime * multCrit;
-      dpsBasico = golpeNormalBruto * fatorCritMedioEfetivo * cadenciaReal;
-    } else if (ef.tipo === "dano" || ef.tipo === "dano_carta") {
+  if (ef) {
+    if (ef.tipo === "dano" || ef.tipo === "dano_carta") {
       const pesoCarta = ef.tipo === "dano_carta" ? 1 / 3 : 1;
       const danoMedioSemDefesa = status.atk * speedBonus * ef.mult * fatorCritEsperado;
-      dpsEfeitoArma = danoMedioSemDefesa / ef.cada * pesoCarta;
+      const danoMedio = inimigo
+        ? (ef.multiplicadoresPorAcerto ?? [ef.mult]).reduce(
+          (total, mult) => total + danoMedioAcerto(status.atk * speedBonus * mult), 0
+        )
+        : danoMedioSemDefesa;
+      dpsEfeitoArma = danoMedio / ef.cada * pesoCarta;
       analiseEfeitoArma = {
         tipo: ef.tipo,
         nome: infoArma.nome,
@@ -323,13 +365,14 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     }
   }
 
-  dpsBasico *= fatorEco;
   if (!infoArma?.efeito?.semEco) dpsEfeitoArma *= fatorEco;
-  const dpsSkillPorAlvo = cdSkillReal > 0 ? (skillDanoPorAlvo / cdSkillReal) * fatorEco : 0;
+  const dpsSkillPorAlvo = cadenciaSkill > 0
+    ? acertosSkill.reduce((total, mult) => total + danoMedioComBuff(status.atk * speedBonus * mult), 0) * cadenciaSkill * fatorEco
+    : 0;
 
   const coberturaAnelBleed =
     anelAtivo && anel.look === 10
-      ? Math.min(1, cadenciaReal * (anelAtivo.bleedDur || 2.5))
+      ? Math.min(1, cadenciaBasica * (anelAtivo.bleedDur || 2.5))
       : 0;
   const dpsAnelBleed =
     coberturaAnelBleed > 0
@@ -371,13 +414,16 @@ function calcularMetricasCombate(classe, nivel, status, listaItens) {
     anelAtivo,
     speedBonus,
     cadenciaReal,
+    cadenciaBasica,
     fatorCritEsperado,
     multCrit,
     golpeNormalBruto,
     golpeCritBruto,
     golpeMedioBruto,
     dpsBasico,
-    dpsSkill,
+    dpsSkill: skillDanoPorAlvo > 0 ? dpsSkillPorAlvo * (skillDanoTotal / skillDanoPorAlvo) : 0,
+    dpsSkillPorAlvo,
+    cadenciaSkill,
     dpsFisicoMedio,
     dpsBleedVerdadeiro,
     dpsCombateMedio,

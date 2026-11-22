@@ -101,6 +101,7 @@ function obterHeroiBaseParaDuelo() {
       cls: simulacao.estadoSimulador.cls,
       level: simulacao.estadoSimulador.level,
       status: st,
+      itens: simulacao.estadoSimulador.itens,
       metricas: met,
     };
   }
@@ -111,6 +112,7 @@ function obterHeroiBaseParaDuelo() {
     cls: perfilCarregadoP1.cls,
     level: perfilCarregadoP1.level,
     status: st,
+    itens: perfilCarregadoP1.equipped,
     metricas: met,
   };
 }
@@ -126,7 +128,6 @@ function renderizarSimuladorMonstros() {
   const temTetoDanoInimigos = tetoDanoInimigos < 1;
   const multHpInimigos = Math.max(1, Number(inputMonstroHp?.value || 100)) / 100;
   const multDanoHeroi = Math.min(1000, Math.max(10, Number(inputMonstroDanoHeroi?.value || 100))) / 100;
-  const estimarDps = !temTetoDanoInimigos && multDanoHeroi === 1;
   const esc = calcularEscalaOnda(zona, onda, jogadores, multHpInimigos);
   const heroi = obterHeroiBaseParaDuelo();
   const temaBase = esc.infoTema;
@@ -169,13 +170,16 @@ function renderizarSimuladorMonstros() {
     const fatorDefInimigo = 100 / (100 + inimigo.def * 4);
     const hitNormal = calcularFaixaGolpeInimigo(heroi.metricas.golpeNormalBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
     const hitCrit = calcularFaixaGolpeInimigo(heroi.metricas.golpeCritBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
-    const dpsFisico = heroi.metricas.dpsFisicoMedio ?? heroi.metricas.dpsCombateMedio;
-    const dpsBleed = heroi.metricas.dpsBleedVerdadeiro || 0;
+    const { dpsCombateMedio } = calcularMetricasCombate(heroi.cls, heroi.level, heroi.status, heroi.itens, {
+      inimigo,
+      teto: tetoDanoInimigos,
+      multDanoHeroi,
+    });
     const danoSingularidade = calcularDanoSingularidade(inimigo.hp, chefe);
     const dpsSingularidade = singularidade
       ? danoSingularidade * (1 + singularidade.chanceEco) / singularidade.cada
       : 0;
-    const dpsEstimado = Math.max(1, dpsFisico * fatorDefInimigo + dpsBleed + dpsSingularidade);
+    const dpsEstimado = dpsCombateMedio + dpsSingularidade;
     const ttk = inimigo.hp / dpsEstimado;
 
     // No código oficial: golpes físicos/skills diretas em heróis têm teto de 60% do HP máximo por acerto (hitCap = 0.6)
@@ -234,7 +238,10 @@ function renderizarSimuladorMonstros() {
     `;
   }
 
-  const formatarTtk = (duelo) => duelo.ttk < 1 ? "< 1s" : `${formatadorDecimal1.format(duelo.ttk)}s`;
+  const formatarTtk = (duelo) => {
+    if (!Number.isFinite(duelo.ttk)) return "—";
+    return duelo.ttk < 1 ? "&lt; 1s" : `${formatadorDecimal1.format(duelo.ttk)}s`;
+  };
 
   // Cálculo do combo real (Hit físico da skill + golpes em sequência + DoT verdadeiro em ticks de 0,5s)
   const nomeSkillDot = tema.skillDotNome || "Skill c/ DoT";
@@ -416,13 +423,13 @@ function renderizarSimuladorMonstros() {
     <div class="grade-tres-indicadores-boss">
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">DPS estimado contra o chefe ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
-        <strong class="valor-indicador">${!estimarDps ? "—" : `${formatarNumeroCompacto(dBoss.dpsEstimado)}/s`}</strong>
-        <span class="nota-indicador">${!estimarDps ? "Com teto ou dano da classe personalizado, consulte o dano por acerto." : `Considera 1 alvo, com DEF de ${formatadorDecimal1.format(esc.boss.def)}.`}${estimarDps && singularidade ? " Inclui Singularidade." : ""}${estimarDps && heroi.metricas.presaIxtharra ? " Usa DPS base (sem o veneno e o bônus condicional da Presa)." : ""}</span>
+        <strong class="valor-indicador">${formatarNumeroCompacto(dBoss.dpsEstimado)}/s</strong>
+        <span class="nota-indicador">Considera 1 alvo, com DEF de ${formatadorDecimal1.format(esc.boss.def)}${temTetoDanoInimigos ? ` e teto de ${Math.round(tetoDanoInimigos * 100)}% do HP por acerto` : ""}.${singularidade ? " Inclui Singularidade." : ""}${heroi.metricas.presaIxtharra ? " Usa DPS base (sem o veneno e o bônus condicional da Presa)." : ""}</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Tempo estimado para derrotar (TTK) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
-        <strong class="valor-indicador" style="color:var(--gold);">${!estimarDps ? "—" : formatarTtk(dBoss)}</strong>
-        <span class="nota-indicador">Em combate individual contínuo, com todos os ataques acertando.${estimarDps && tema.notaDpsBoss ? ` ${escaparHtml(tema.notaDpsBoss)}` : ""}</span>
+        <strong class="valor-indicador" style="color:var(--gold);">${formatarTtk(dBoss)}</strong>
+        <span class="nota-indicador">Em combate individual contínuo, com todos os ataques acertando.${heroi.cls === "warrior" ? " O Golpe Giratório exige dois inimigos próximos." : ""}${tema.notaDpsBoss ? ` ${escaparHtml(tema.notaDpsBoss)}` : ""}</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
@@ -508,7 +515,7 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>HP / DEF base do grupo</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}/s</strong></div>
         ${renderizarDanoPorAcerto(dSkel)}
-        ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dSkel)}</strong></div>` : ""}
+        <div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dSkel)}</strong></div>
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits para morrer)</strong></div>
         ${temaBase.mostrarBleedLadino && esc.onda >= 2 ? `
         <div class="card-info-linha"><span>Sangramento do Ladino (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(bleedLadinoNormalPorSeg)}/s (${formatarNumeroCompacto(bleedLadinoNormalPorSeg * 4)} em 4s)</strong></div>
@@ -526,7 +533,7 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>HP / DEF base do grupo</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}/s</strong></div>
         ${renderizarDanoPorAcerto(dGob)}
-        ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dGob)}</strong></div>` : ""}
+        <div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dGob)}</strong></div>
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits para morrer)</strong></div>
         ${temaBase.mostrarPocaAcida && esc.onda >= 2 ? `
         <div class="card-info-linha"><span>Poça Ácida do Sapo-Boi (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(pocaSapoBoiPorSeg)}/s por 5s (se pisar)</strong></div>` : temaBase.destaqueRanged ? `

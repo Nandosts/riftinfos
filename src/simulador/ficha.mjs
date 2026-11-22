@@ -25,6 +25,8 @@ import {
 import { containerSimulador } from "./tela.mjs";
 import { construirEditorEngastes } from "./engastes.mjs";
 
+const notaDpsFicha = "Estimativa em um alvo sem defesa e sem teto por acerto. Inclui sangramento e pressupõe condições para usar a habilidade. Abra Monstros &amp; Chefes para testar um alvo específico.";
+
 function construirOpcoesAvancadasSimuladorHtml(conjuntosDaClasse = [], setAtivo3Pecas = "") {
   const modRollTexto = {
     max: "Cenário de teto (115%)",
@@ -187,7 +189,7 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
         <div class="card-info-linha"><span>ASPD (Cadência Real)</span><strong>${stSim.aspd.toFixed(2)} (${metSim.cadenciaReal.toFixed(2)}/s)</strong></div>
         <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
         <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
-        <div class="card-info-linha"><span>DPS Real em Combate</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s ${metOrig ? `(${metSim.dpsCombateMedio >= metOrig.dpsCombateMedio ? "+" : ""}${formatarNumeroCompacto(metSim.dpsCombateMedio - metOrig.dpsCombateMedio)})` : ""}</strong></div>
+        <div class="card-info-linha"><span>DPS estimado</span><strong style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s ${metOrig ? `(${metSim.dpsCombateMedio >= metOrig.dpsCombateMedio ? "+" : ""}${formatarNumeroCompacto(metSim.dpsCombateMedio - metOrig.dpsCombateMedio)})` : ""}</strong></div>
         ${temCuraEmGrupo ? `<div class="card-info-linha"><span>Cura em grupo</span><strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></div>` : ""}
         ${ehClerigo ? `<div class="card-info-linha"><span>Poder de cura base</span><strong>${formatarNumeroCompacto(metSim.healPower)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Mitigação de Defesa</span><strong>${(metSim.reducaoDefesa * 100).toFixed(1)}%</strong></div>
@@ -621,7 +623,7 @@ function construirModoFichaVisualHtml(
             ${deltaFc !== null ? `<small class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)} vs atual</small>` : ""}
           </div>
           <div class="rs-htile">
-            <span>${temCuraEmGrupo ? "CURA EM GRUPO" : "DPS EM COMBATE"}</span>
+            <span${temCuraEmGrupo ? "" : ` title="${notaDpsFicha}"`}>${temCuraEmGrupo ? "CURA EM GRUPO" : "DPS ESTIMADO"}</span>
             <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(temCuraEmGrupo ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio))}</b>
             ${ehClerigo ? `
               <small class="muted" title="Valor antes do multiplicador da habilidade">
@@ -670,7 +672,7 @@ function construirModoFichaVisualHtml(
             ${danoCritExtraPct > 0 ? `<small>(+${danoCritExtraPct}%)</small>` : ""}
           </div>
           <div class="rs-tile">
-            <span>DPS ESTIMADO</span>
+            <span title="${notaDpsFicha}">DPS SEM DEFESA</span>
             <b style="color:var(--gold);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s</b>
             <small>Cadência ${metSim.cadenciaReal.toFixed(2)}/s</small>
           </div>

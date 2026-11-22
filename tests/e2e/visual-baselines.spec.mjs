@@ -41,6 +41,12 @@ test.describe("Site principal (index.html)", () => {
     await verificarSemOverflowHorizontal(page, "home-aba-resumo");
     await expect(page).toHaveScreenshot("home-aba-resumo.png", { fullPage: true });
 
+    const dps = page.locator('[data-indicador-id="dps"]');
+    await dps.getByText("Ver detalhes", { exact: true }).click();
+    await expect(dps.locator("details p")).toContainText(/Ataques básicos [\d.]+\/s/);
+    await expect(dps.locator("details p")).toContainText(/Habilidade [\d.]+\/s/);
+    await expect(dps.locator("details p")).toContainText("por lançamento no alvo principal");
+
     await page.selectOption("#select-personagem", "cleric");
     await expect(page.locator("#conteudo-resumo-perfil")).toBeVisible();
     await expect(page.locator("#cabecalho-perfil")).toContainText("Clérigo");

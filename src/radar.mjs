@@ -422,7 +422,7 @@ function renderizarResultadoRadar() {
 
     const desempenhoTxt = p.cls === "cleric"
       ? `${formatarNumeroCompacto(met.curaSkillLuzDivina)} cura`
-      : `${formatarNumeroCompacto(met.dpsCombateMedio)} DPS`;
+      : `${formatarNumeroCompacto(met.dpsCombateMedio)} DPS est.`;
 
     return `
       <tr>

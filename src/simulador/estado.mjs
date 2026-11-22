@@ -142,6 +142,7 @@ function recalcularGemasBuildComModo(rollForcado = undefined) {
 }
 
 function adequarEngastesSimulados(item) {
+  if (item.slot === "ring" && item.name === "Peça (Anel)" && Number(item.look) === 14) item.look = 0;
   item.sockets = Number(item.itemLevel) >= 20 ? engastesPorRaridade[item.rarity] ?? 0 : 0;
   if (item.gems?.length !== item.sockets) {
     const gemas = item.gems;
@@ -318,7 +319,7 @@ function importarPerfilParaSimulador(perfil) {
         slot,
         name: `Peça (${nomesSlots[slot]})`,
         kind: "",
-        look: slot === "ring" ? 14 : 0,
+        look: 0,
         set: "",
         rarity: 6,
         itemLevel: 100,

@@ -103,10 +103,27 @@
 
     // 2. DPS estimado
     const dpsValor = normalizarNumero(metricasCombate?.dpsCombateMedio ?? metricasCombate?.dpsTotal, null, 0);
-    const aspdReal = normalizarNumero(metricasCombate?.cadenciaReal ?? metricasCombate?.aspdReal, 1, 0);
-    const critChance = normalizarNumero(statusCalculados?.crit ?? statusCalculados?.critChance, 0, 0, 100);
+    const cadenciaBasica = normalizarNumero(metricasCombate?.cadenciaBasica, null, 0);
+    const cadenciaSkill = normalizarNumero(metricasCombate?.cadenciaSkill, 0, 0);
     const danoSkill = normalizarNumero(metricasCombate?.skillDanoPorAlvo ?? metricasCombate?.danoPorSkill, 0, 0);
-    const cdSkill = normalizarNumero(metricasCombate?.cdSkillReal ?? metricasCombate?.cdRealSkill, 10, 0);
+    const inteiro = (valor) => Math.round(valor).toLocaleString("pt-BR");
+    const partesDps = [
+      ["Ataques básicos", metricasCombate?.dpsBasico],
+      ["Habilidade", metricasCombate?.dpsSkillPorAlvo],
+      ["Passiva da arma", metricasCombate?.dpsEfeitoArma],
+      ["Sangramento", metricasCombate?.dpsBleedVerdadeiro],
+    ].filter(([, valor]) => Number.isFinite(valor) && valor > 0);
+    const detalhesDps = [];
+    if (partesDps.length > 0) {
+      detalhesDps.push(partesDps.map(([nome, valor]) => `${nome} ${inteiro(valor)}/s`).join(" · ") + ".");
+    }
+    if (cadenciaBasica !== null) {
+      detalhesDps.push(`Média de ${cadenciaBasica.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ataques básicos por segundo.`);
+    }
+    if (danoSkill > 0 && cadenciaSkill > 0) {
+      const intervalo = (1 / cadenciaSkill).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+      detalhesDps.push(`A habilidade causa em média ${inteiro(danoSkill)} por lançamento no alvo principal, antes de bônus temporários e eco. No ciclo simulado, ela é usada a cada ${intervalo} s em média.`);
+    }
 
     indicadores.push({
       id: "dps",
@@ -115,8 +132,8 @@
       valor: dpsValor,
       unidade: "/s",
       origem: "estimado",
-      resumo: "Dano médio por segundo contra alvo de teste (0 DEF, sem redução).",
-      detalhes: `Considera cadência real de ${aspdReal.toFixed(2)} golpes/s, crítico de ${critChance.toFixed(1)}% e dano de skill de ${Math.round(danoSkill).toLocaleString("pt-BR")} a cada ${cdSkill.toFixed(1)}s.`
+      resumo: "Dano médio por segundo em um alvo sem defesa e sem teto por acerto.",
+      detalhes: detalhesDps.join(" ")
     });
 
     // 3. Vida e Sobrevivência

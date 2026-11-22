@@ -299,7 +299,7 @@ function renderizarPainelComparacao(p1, plat1, p2, plat2) {
           </thead>
           <tbody>
             ${gerarLinhaStat("Força de Combate (FC)", fc1, fc2, fmtInt)}
-            ${gerarLinhaStat("DPS Real em Combate", met1.dpsCombateMedio, met2.dpsCombateMedio, fmtInt)}
+            ${gerarLinhaStat("DPS estimado", met1.dpsCombateMedio, met2.dpsCombateMedio, fmtInt)}
             ${gerarLinhaStat("Golpe Normal Médio (Alvo 0 DEF)", met1.golpeNormalBruto, met2.golpeNormalBruto, fmtInt)}
             ${gerarLinhaStat("Golpe Crítico Médio (Alvo 0 DEF)", met1.golpeCritBruto, met2.golpeCritBruto, fmtInt)}
             ${p1.cls === "cleric" || p2.cls === "cleric" ? gerarLinhaStat("Cura da Luz Divina (Clérigo)", met1.curaSkillLuzDivina, met2.curaSkillLuzDivina, fmtInt) : ""}
