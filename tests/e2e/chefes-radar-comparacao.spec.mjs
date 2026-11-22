@@ -71,6 +71,28 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(page.locator("#select-monstro-origem")).toHaveValue("simulador");
   });
 
+  test("mostra auras dos chefes e a redução da Singularidade na Têmpera", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/index.html?aba=monstros&zona=4&onda=10&herois=1&origem=simulador");
+    const chefe = page.locator(".card-monstro.boss");
+    await expect(chefe).toContainText("Aura Escaldante (ao se aproximar)");
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(chefe).toContainText("2.175 antes da redução");
+    await expect(chefe).toContainText("261 de dano · conta 870 para quebrar");
+    await expect(chefe).not.toContainText("Aura Escaldante");
+    await page.fill("#input-teto-dano-inimigos", "100");
+    await expect(page.locator(".grade-tres-indicadores-boss")).toContainText("O tempo estimado deixa de fora a redução durante a Têmpera.");
+
+    await page.fill("#input-monstro-zona", "3");
+    await page.fill("#input-monstro-onda", "1");
+    await page.selectOption("#select-variante-chefe", "principal");
+    await expect(chefe).toContainText("Presença Gélida (ao se aproximar)");
+    await expect(chefe).toContainText("O chefe aparece na onda 10.");
+    await page.selectOption("#select-variante-chefe", "alternativo");
+    await expect(chefe).not.toContainText("Presença Gélida");
+    await verificarSemOverflowHorizontal(page, "defesas e auras dos chefes");
+    expect(erros).toEqual([]);
+  });
+
   test("Gruk e Mímico na zona 20, frenesi e seleção em telas pequenas", async ({ page }, testInfo) => {
     const { erros } = await prepararPagina(page, "/index.html");
     await page.fill("#input-nick", "halscriolo");
@@ -157,12 +179,32 @@ test.describe("Chefes, Radar e Comparação", () => {
       await expect(chefe).toContainText("MAQUINISTA TITÃ");
       await expect(chefe).toContainText("Marcha Alta");
     }
+    await zona.fill("18");
+    await page.fill("#input-monstro-onda", "1");
+    await page.fill("#input-monstro-jogadores", "67");
+    const variantes = page.getByRole("region", { name: "Vida dos lacaios nesta onda" });
+    const linhas = variantes.locator(".card-info-linha");
+    await expect(linhas).toHaveCount(4);
+    await expect(linhas.first()).toContainText("Zepelim Bombardeiro");
+    await expect(linhas.first()).toContainText("944.065.896 HP");
+    await expect(linhas.first()).toContainText("236.016.474 por implosão da Singularidade");
+    await expect(linhas.first()).toContainText("472.032.948 com eco");
+    await expect(variantes).not.toContainText("Lunetista");
+    await verificarSemOverflowHorizontal(page, "vida-e-singularidade-por-lacaio");
+
+    await page.fill("#input-monstro-onda", "2");
+    await expect(linhas.first()).toContainText("Metade do Autômato Bipartido");
+    await expect(variantes).not.toContainText("Lunetista");
+    await page.fill("#input-monstro-onda", "10");
     await zona.fill("18.5");
     await expect(chefe).toContainText("MAQUINISTA TITÃ (Z18)");
+    await expect(variantes).toContainText("Autômato do Apito");
     await expect(chefe).toContainText("O dano extra dos ataques básicos e do vapor fica fora da conta");
     await page.selectOption("#select-variante-chefe", "alternativo");
     await expect(chefe).toContainText("REGENTE TICKTACK");
+    await expect(variantes).not.toContainText("Autômato do Apito");
     await expect(chefe).toContainText("Rebobinar");
+    await expect(chefe).not.toContainText("As nuvens da Marcha Alta");
     await zona.fill("12");
     await page.selectOption("#select-variante-chefe", "principal");
     await expect(chefe).toContainText("REI GÉLIDO");
@@ -182,27 +224,50 @@ test.describe("Chefes, Radar e Comparação", () => {
     await detalhes.locator("summary").click();
     await expect(detalhes).toHaveAttribute("open", "");
     const zona = page.locator("#input-monstro-zona");
+    const onda = page.locator("#input-monstro-onda");
+    const variantes = page.getByRole("region", { name: "Vida dos lacaios nesta onda" });
     const exemplos = [
-      [1, 4, "Espectro das Ruínas"],
-      [2, 4, "Goblin Ladino"],
-      [3, 4, "Lobo Sombrio"],
-      [4, 4, "Inquisidora das Cinzas"],
-      [5, 4, "Bruxa do Pântano"],
-      [6, 4, "Água-viva Elétrica"],
-      [7, 8, "Drone Escudeiro"],
-      [9, 8, "Caldeireiro"],
-      [17, 8, "Leão do Domador"],
+      [1, 4, 4, "Espectro das Ruínas"],
+      [2, 4, 2, "Goblin Ladino"],
+      [3, 4, 3, "Lobo Sombrio"],
+      [4, 4, 2, "Inquisidora das Cinzas"],
+      [5, 4, 2, "Bruxa do Pântano"],
+      [6, 4, 4, "Água-viva Elétrica"],
+      [7, 8, 4, "Drone Escudeiro"],
+      [9, 8, 4, "Caldeireiro"],
+      [17, 8, 2, "Leão do Domador"],
     ];
-    for (const [numero, quantidade, nome] of exemplos) {
+    for (const [numero, quantidade, quantidadeOnda1, nome] of exemplos) {
       await zona.fill(String(numero));
+      await onda.fill("10");
       await expect(catalogo.locator("dt")).toHaveCount(quantidade);
       await expect(catalogo.locator("dt").filter({ hasText: nome })).toBeVisible();
+      await expect(variantes.locator(".card-info-linha")).toHaveCount(numero === 9 ? quantidade + 2 : quantidade);
+      await expect(variantes).toContainText(nome);
+      await onda.fill("1");
+      await expect(variantes.locator(".card-info-linha")).toHaveCount(quantidadeOnda1);
     }
-    await expect(catalogo).toContainText("As Facas aplicam sangramento");
+    await zona.fill("1");
+    await page.fill("#input-monstro-jogadores", "1");
+    await expect(variantes.locator(".card-info-linha").filter({ hasText: "Gárgula de Pedra" })).toContainText("43 HP · 1,8 DEF");
+    await zona.fill("17");
+    await expect(catalogo).toContainText("Facas: até 3 marcas estouram após 0,8 s");
     await zona.fill("22");
-    await expect(catalogo).toContainText("silencia um Clérigo por 5 s");
+    await expect(catalogo).toContainText("bloqueando a cura individual e a habilidade de classe");
     await expect(catalogo).toContainText("Pode impedir a cura");
     await expect(catalogo).not.toContainText("Leão do Domador");
+    await zona.fill("7");
+    await expect(catalogo).toContainText("trava compartilhada de 6 s");
+    await zona.fill("18");
+    await expect(catalogo).toContainText("cada herói dentro das marcas toma 1× ATK uma vez");
+    const engenheiro = catalogo.locator(".card-lacaio").filter({ has: page.getByText("Engenheiro Sucateiro", { exact: true }) });
+    await expect(engenheiro.getByText("Chefes e invocações, como as Metades do Autômato e os reforços do Apito, ficam fora do conserto.")).toBeVisible();
+    await zona.fill("5");
+    await expect(catalogo).toContainText("A poça aparece 0,7 s depois mesmo se o Sapo-Boi morrer");
+    const cardDistancia = page.locator(".grade-monstros .card-monstro").nth(1);
+    await expect(cardDistancia).not.toContainText("Poça Ácida do Sapo-Boi");
+    await onda.fill("2");
+    await expect(cardDistancia).toContainText("Poça Ácida do Sapo-Boi");
     await verificarSemOverflowHorizontal(page, "catalogo dos lacaios");
     expect(erros).toEqual([]);
   });

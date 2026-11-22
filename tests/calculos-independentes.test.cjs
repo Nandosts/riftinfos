@@ -578,7 +578,7 @@ test("catálogo de zonas: Mestre de Cerimônias (Anel de Fogo), chefes alternati
     assert.ok(circo.resumoSkillBoss.includes(termo), `Mestre de Cerimônias deve listar ${termo}`);
   }
   assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("Balão-Bomba") || descricao.includes("Balão-Bomba")));
-  assert.ok(circo.lacaios.some(({ nome, descricao }) => nome.includes("invulnerável enquanto o Domador vive") || descricao.includes("invulnerável enquanto o Domador vive")));
+  assert.match(circo.lacaios.find(({ nome }) => nome === "Leão do Domador").descricao, /pelo menos 1 HP enquanto o Domador vive/);
 
   // Temas com chefe alternativo 50/50 e seus multiplicadores reais
   assert.equal(ruinas.boss, "Rei Esqueleto");

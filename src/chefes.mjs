@@ -134,6 +134,19 @@ function renderizarSimuladorMonstros() {
     ? { ...temaBase, ...temaBase.varianteAlternativa, temFrenesiGruk: false }
     : temaBase;
   const frenesiGruk = Boolean(tema.temFrenesiGruk && simularFrenesiGruk);
+  const variantesNaOnda = [...temaBase.lacaios, ...(temaBase.lacaiosInvocados ?? [])]
+    .filter(({ escalaOnda, chefe }) =>
+      escalaOnda && esc.onda >= escalaOnda.ondaMinima && (!chefe || esc.temBoss && tema.boss === chefe)
+    )
+    .map(({ nome, escalaOnda }) => {
+      const base = esc[escalaOnda.base];
+      return {
+        nome,
+        hp: Math.max(1, Math.round(base.hp * escalaOnda.multHp)),
+        def: base.def * (escalaOnda.multDef ?? 1),
+      };
+    })
+    .sort((a, b) => a.hp - b.hp);
   esc.boss.hp = Math.max(1, Math.round(esc.boss.hp * (tema.multHp || 1)));
   esc.skeleton.hp = Math.max(1, Math.round(esc.skeleton.hp));
   esc.goblin.hp = Math.max(1, Math.round(esc.goblin.hp));
@@ -146,16 +159,19 @@ function renderizarSimuladorMonstros() {
   const efeitoArma = heroi.metricas.analiseEfeitoArma;
   const singularidade = efeitoArma?.tipo === "singularity" ? efeitoArma : null;
 
+  function calcularDanoSingularidade(hp, chefe = false) {
+    if (!singularidade) return 0;
+    const percentual = chefe ? singularidade.pctBossBase : singularidade.pctMobBase;
+    return calcularDanoDiretoInimigo(hp * percentual, { hp, def: 0 }, tetoDanoInimigos).dano;
+  }
+
   function calcularDueloInimigo(inimigo, multSkill = 1.25, chefe = false) {
     const fatorDefInimigo = 100 / (100 + inimigo.def * 4);
     const hitNormal = calcularFaixaGolpeInimigo(heroi.metricas.golpeNormalBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
     const hitCrit = calcularFaixaGolpeInimigo(heroi.metricas.golpeCritBruto * multDanoHeroi, inimigo, tetoDanoInimigos);
     const dpsFisico = heroi.metricas.dpsFisicoMedio ?? heroi.metricas.dpsCombateMedio;
     const dpsBleed = heroi.metricas.dpsBleedVerdadeiro || 0;
-    const danoBrutoSingularidade = singularidade ? inimigo.hp * (chefe ? singularidade.pctBossBase : singularidade.pctMobBase) : 0;
-    const danoSingularidade = singularidade
-      ? calcularDanoDiretoInimigo(danoBrutoSingularidade, { ...inimigo, def: 0 }, tetoDanoInimigos).dano
-      : 0;
+    const danoSingularidade = calcularDanoSingularidade(inimigo.hp, chefe);
     const dpsSingularidade = singularidade
       ? danoSingularidade * (1 + singularidade.chanceEco) / singularidade.cada
       : 0;
@@ -406,7 +422,7 @@ function renderizarSimuladorMonstros() {
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Tempo estimado para derrotar (TTK) ${Explicacoes.criarBadgeOrigemHtml("estimado")}</span>
         <strong class="valor-indicador" style="color:var(--gold);">${!estimarDps ? "—" : formatarTtk(dBoss)}</strong>
-        <span class="nota-indicador">Em combate individual contínuo, com todos os ataques acertando</span>
+        <span class="nota-indicador">Em combate individual contínuo, com todos os ataques acertando.${estimarDps && tema.notaDpsBoss ? ` ${escaparHtml(tema.notaDpsBoss)}` : ""}</span>
       </div>
       <div class="card-indicador-boss">
         <span class="subtitulo-indicador">Principal risco modelado ${Explicacoes.criarBadgeOrigemHtml("calculado")}</span>
@@ -433,6 +449,7 @@ function renderizarSimuladorMonstros() {
           </summary>
           <div class="catalogo-lacaios-conteudo">
             ${temaBase.mecanicaLacaios ? `<p class="catalogo-lacaios-mecanica">${escaparHtml(temaBase.mecanicaLacaios)}</p>` : ""}
+            <p class="small muted">As recargas descritas são as do jogo em condições padrão. Um inimigo pode precisar esperar por um alvo válido ou pelo próximo ataque.</p>
             <dl class="lista-lacaios-zona">
               ${temaBase.lacaios.map(({ nome, tipo, descricao, pontos, efeito, tipoEfeito = "nenhum", destaque }) => {
                 const listaPontos = Array.isArray(pontos) && pontos.length ? pontos : [descricao];
@@ -469,18 +486,31 @@ function renderizarSimuladorMonstros() {
       </span>
     </div>
 
+    ${variantesNaOnda.length ? `
+      <section class="card-info" aria-labelledby="titulo-variantes-onda">
+        <h4 id="titulo-variantes-onda">Vida dos lacaios nesta onda</h4>
+        <p class="small muted">Os cards abaixo usam os atributos base do grupo. Aqui aparecem os lacaios que podem surgir na onda normal, já com seus ajustes. A Singularidade considera um alvo ao alcance, de vida cheia e sem escudo.</p>
+        ${variantesNaOnda.map(({ nome, hp, def }) => {
+          const dano = calcularDanoSingularidade(hp);
+          const textoDano = singularidade
+            ? ` · ${formatadorInteiro.format(dano)} por implosão da Singularidade${singularidade.chanceEco ? ` · ${formatadorInteiro.format(Math.min(hp, dano * 2))} com eco (20%)` : ""}`
+            : "";
+          return `<div class="card-info-linha"><span>${escaparHtml(nome)}</span><strong>${formatadorInteiro.format(hp)} HP · ${formatadorDecimal1.format(def)} DEF${textoDano}</strong></div>`;
+        }).join("")}
+      </section>` : ""}
+
     <div class="grade-monstros">
       <article class="card-monstro">
         <div class="card-monstro-topo">
           <h4>${escaparHtml(tema.melee)}</h4>
           <span class="small muted">Atributos base · ${formatadorInteiro.format(esc.skeleton.gold)}g · ${formatadorInteiro.format(esc.skeleton.exp)} XP</span>
         </div>
-        <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
+        <div class="card-info-linha"><span>HP / DEF base do grupo</span><strong>${formatarNumeroCompacto(esc.skeleton.hp)} / ${formatadorDecimal1.format(esc.skeleton.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.skeleton.atk)} / ${esc.skeleton.aspd.toFixed(1)}/s</strong></div>
         ${renderizarDanoPorAcerto(dSkel)}
         ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dSkel)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dSkel.danoRecebido)} (${dSkel.golpesParaMorrer} hits para morrer)</strong></div>
-        ${temaBase.mostrarBleedLadino ? `
+        ${temaBase.mostrarBleedLadino && esc.onda >= 2 ? `
         <div class="card-info-linha"><span>Sangramento do Ladino (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(bleedLadinoNormalPorSeg)}/s (${formatarNumeroCompacto(bleedLadinoNormalPorSeg * 4)} em 4s)</strong></div>
         <div class="card-info-linha"><span class="small muted">Super do Ladino (3,2× + DoT)</span><span class="small" style="color:#ff9aa8;">${formatarNumeroCompacto(bleedLadinoSuper5s)} total em 5,5s</span></div>` : temaBase.mostrarVaporCaldeireiro ? `
         <div class="card-info-linha"><span>Vapor do Caldeireiro (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(vaporCaldeireiroTick)} a cada 0,5s (${formatarNumeroCompacto(vaporCaldeireiroTick * 2)}/s)</strong></div>
@@ -493,12 +523,12 @@ function renderizarSimuladorMonstros() {
           <h4>${escaparHtml(tema.ranged)}</h4>
           <span class="small muted">Atributos base · ${formatadorInteiro.format(esc.goblin.gold)}g · ${formatadorInteiro.format(esc.goblin.exp)} XP</span>
         </div>
-        <div class="card-info-linha"><span>HP / DEF</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
+        <div class="card-info-linha"><span>HP / DEF base do grupo</span><strong>${formatarNumeroCompacto(esc.goblin.hp)} / ${formatadorDecimal1.format(esc.goblin.def)}</strong></div>
         <div class="card-info-linha"><span>ATK / ASPD</span><strong>${formatarNumeroCompacto(esc.goblin.atk)} / ${esc.goblin.aspd.toFixed(1)}/s</strong></div>
         ${renderizarDanoPorAcerto(dGob)}
         ${estimarDps ? `<div class="card-info-linha"><span>Tempo estimado para derrotar (solo)</span><strong style="color:var(--gold);">${formatarTtk(dGob)}</strong></div>` : ""}
         <div class="card-info-linha"><span>Hit Físico em Você (c/ DEF)</span><strong>${formatarNumeroCompacto(dGob.danoRecebido)} (${dGob.golpesParaMorrer} hits para morrer)</strong></div>
-        ${temaBase.mostrarPocaAcida ? `
+        ${temaBase.mostrarPocaAcida && esc.onda >= 2 ? `
         <div class="card-info-linha"><span>Poça Ácida do Sapo-Boi (s/ DEF)</span><strong style="color:#ff8a9b;">${formatarNumeroCompacto(pocaSapoBoiPorSeg)}/s por 5s (se pisar)</strong></div>` : temaBase.destaqueRanged ? `
         <div class="card-info-linha"><span>${escaparHtml(temaBase.destaqueRanged.rotulo)}</span><strong class="small" style="color:var(--gold);">${escaparHtml(temaBase.destaqueRanged.texto)}</strong></div>` : ""}
       </article>
@@ -506,6 +536,7 @@ function renderizarSimuladorMonstros() {
       <article class="card-monstro boss">
         <div class="card-monstro-topo">
           <h4>${escaparHtml(tema.boss.toUpperCase())} (Z${esc.zona})</h4>
+          ${esc.temBoss ? "" : `<span class="small muted">Referência com a escala da onda selecionada. O chefe aparece na onda 10.</span>`}
           <span class="small" style="color:var(--gold);">${formatadorInteiro.format(esc.boss.gold)}g · ${formatadorInteiro.format(esc.boss.exp)} XP</span>
         </div>
         ${temaBase.varianteAlternativa ? `
@@ -518,6 +549,11 @@ function renderizarSimuladorMonstros() {
         <div class="card-info-linha"><span>HP Total (+${((esc.multParty - 1) * 100).toFixed(0)}% Party)</span><strong>${formatarNumeroCompacto(esc.boss.hp)}</strong></div>
         <div class="card-info-linha"><span>ATK / DEF (Mitigação)</span><strong>${formatarNumeroCompacto(esc.boss.atk)} / ${formatadorDecimal1.format(esc.boss.def)} (-${((1 - dBoss.fatorDefInimigo) * 100).toFixed(1)}%)</strong></div>
         ${renderizarDanoPorAcerto(dBoss)}
+        ${tema.tempera ? `
+          <div class="card-info-linha"><span>Dano direto para quebrar a Têmpera</span><strong>${formatadorInteiro.format(Math.ceil(esc.boss.hp * tema.tempera.limiarHp))} antes da redução</strong></div>
+          ${singularidade ? `<div class="card-info-linha"><span>Implosão durante a Têmpera</span><strong>${formatadorInteiro.format(Math.max(1, Math.round(dBoss.danoSingularidade * tema.tempera.multDano)))} de dano · conta ${formatadorInteiro.format(dBoss.danoSingularidade)} para quebrar</strong></div>` : ""}
+        ` : ""}
+        ${tema.auraProximidade ? `<div class="card-info-linha"><span>${escaparHtml(tema.auraProximidade.nome)} (ao se aproximar)</span><strong>${formatarNumeroCompacto(Math.round(esc.boss.atk * tema.auraProximidade.fatorTick))} a cada ${formatadorDecimal1.format(tema.auraProximidade.intervaloSeg)} s, sem DEF</strong></div>` : ""}
         <div class="card-info-linha"><span>Golpes diretos (com DEF)</span><strong>Básico: ${formatarNumeroCompacto(dBoss.danoRecebido)}${dBoss.bateuTetoBasico ? " (teto 60%)" : ""} · ${skillDireta}: ${formatarNumeroCompacto(dBoss.danoSkillFisica)}${dBoss.bateuTetoSkill ? " (teto 60%)" : ""}</strong></div>
         ${comboDot ? `
           <section class="resumo-sobrevivencia-chefe" aria-label="Risco da habilidade">
