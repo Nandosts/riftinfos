@@ -22,13 +22,13 @@ test.describe("Tier List (funcional completo)", () => {
         const sets = ids.filter((id) => id.startsWith("set_"));
 
         if (filtro === "todos") {
-          expect(sets.length).toBe(36);
+          expect(sets.length).toBe(modo === "fc" ? 42 : 36);
           expect(rings.length).toBe(10);
         } else if (filtro === "ring") {
           expect(sets.length).toBe(0);
           expect(rings.length).toBe(10);
         } else {
-          expect(sets.length).toBe(12);
+          expect(sets.length).toBe(modo === "fc" ? 14 : 12);
           expect(rings.length).toBe(10);
         }
       }
@@ -52,8 +52,15 @@ test.describe("Tier List (funcional completo)", () => {
     await expect(page.locator("#tierlist-detalhe")).toContainText("revive um aliado com 45% de vida");
     await expect(page.locator("#tierlist-detalhe")).toContainText("Cidade Mecânica");
     await page.click('[data-tl-modo="fc"]');
-    await expect(page.locator('[data-tl-card="set_royalclock"]')).toHaveCount(0);
-    await expect(page.locator("#tierlist-detalhe .tl-ficha-fc")).toBeVisible();
+    const cardsFcNovos = page.locator(".tl-card").filter({ has: page.locator(".tl-card-novo") });
+    await expect(cardsFcNovos).toHaveCount(6);
+    await expect(cardsFcNovos.locator(".tl-card-tag")).toHaveText(Array(6).fill(/^≈ .+ FC$/));
+    await expect(page.locator('[data-tl-card="set_royalclock"]')).toHaveAttribute("aria-pressed", "true");
+    const ficha = page.locator("#tierlist-detalhe .tl-ficha-fc");
+    await expect(ficha).toBeVisible();
+    await expect(ficha).toContainText("Atributos das peças estimados pela curva do conjunto Serafim Dourado");
+    await expect(ficha.locator("[data-tl-slot]")).toHaveCount(3);
+    await expect(ficha.locator('[data-tl-slot="weapon"]')).toContainText("Cetro do Relojoeiro Real");
     await page.click('[data-tl-modo="utilidade"]');
 
     // Avalia os 10 anéis nas 3 classes

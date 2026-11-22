@@ -35,6 +35,7 @@ export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtiv
             <strong>${inteiro(fc)} FC</strong>
             <small class="rs-fc-delta pos">+${inteiro(fc - fcBase)} sobre o personagem sem equipamento (${inteiro(fcBase)} FC)</small>
           </div>
+          ${item.conjuntoReferencia ? `<p class="note small">Atributos das peças estimados pela curva do conjunto ${escaparHtml(item.conjuntoReferencia)}. Os bônus de conjunto são os de ${escaparHtml(item.nome)}.</p>` : ""}
           ${item.bonusConjunto ? `<div class="rs-set-box">${item.bonusConjunto.map(bonus => `<div class="small on">${escaparHtml(bonus)}</div>`).join("")}</div>` : ""}
           <h3 class="rs-equipado-title">Equipado</h3>
           <div class="rs-slots4">

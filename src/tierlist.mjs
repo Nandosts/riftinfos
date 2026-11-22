@@ -194,7 +194,8 @@ function construirCatalogoItens() {
     const util = UTILIDADE_CONJUNTOS[key];
     const arma = catalogoArmas[setInfo.armaKind];
     const rarity = setInfo.raridadePadrao;
-    const referenciaFc = setInfo.curvaReferencia ? null : calcularFcReferencia(setInfo.classe, [
+    const conjuntoReferencia = catalogoConjuntos[setInfo.curvaReferencia]?.nome;
+    const referenciaFc = calcularFcReferencia(setInfo.classe, [
       { slot: "weapon", kind: setInfo.armaKind, name: setInfo.armaNome, rarity, set: key },
       { slot: "helmet", kind: setInfo.elmoKind, name: setInfo.elmoNome, rarity, set: key },
       { slot: "armor", kind: setInfo.armaduraKind, name: setInfo.armaduraNome, rarity, set: key },
@@ -224,12 +225,13 @@ function construirCatalogoItens() {
       limiteUtilidade: util?.limite,
       referenciaFc,
       bonusConjunto,
+      conjuntoReferencia,
       curvaEstimada: anel?.estimado,
       detalhes: [
         ...bonusConjunto,
-        ...(setInfo.curvaReferencia ? [
+        ...(conjuntoReferencia ? [
           "Onde conseguir: drop raríssimo dos chefes da Cidade Mecânica. A partir da zona 18 no ciclo normal, cai uma peça da classe do jogador que recebeu o drop.",
-          "Simulador: os atributos automáticos dessas peças usam outros Arcanos como referência. A comparação Por FC aguarda dados das peças.",
+          `No ranking Por FC, os atributos das peças são estimados a partir do conjunto ${conjuntoReferencia}.`,
         ] : []),
         `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || arma?.notaSkill || "Habilidade padrão da classe."}`,
       ],
@@ -464,7 +466,7 @@ function renderizarTabela() {
 
   if (descricaoModo) {
     descricaoModo.textContent = modoAtual === "fc"
-      ? "FC simulado com uma base fixa de personagem. Clique em um item para ver a ficha de cálculo. Os tiers são relativos ao filtro e o FC usa atributos, sem passivas de combate. Armas avulsas aparecem em Por Utilidade. Os novos conjuntos da Cidade Mecânica entram quando houver dados dos atributos por nível."
+      ? "FC simulado com uma base fixa de personagem. Os tiers são relativos ao filtro. O símbolo ≈ indica peças com atributos estimados. Clique para ver a ficha e a referência usada."
       : "Tier List opinativa com foco em chefes e Raids. A ordem considera proteção, revive, controle e dano. No filtro Armas avulsas, a nota considera a habilidade da arma equipada.";
   }
   if (controlesFc) controlesFc.hidden = modoAtual !== "fc";
@@ -493,7 +495,7 @@ function renderizarTabela() {
               const clsRar = ({ 3: "epico", 4: "lendario", 6: "imortal", 7: "arcano" })[item.raridade] || "";
               const clsSel = item.id === itemSelecionadoId ? "selecionado" : "";
               const badgeTag = modoAtual === "fc"
-                ? `${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
+                ? `${item.conjuntoReferencia || item.curvaEstimada ? "≈ " : ""}${formatarNumeroCompacto(item.referenciaFc.fc)} FC`
                 : item.tagUtilidade;
               const seloNovo = item.novo ? "Novo" : "";
               const rotulo = [item.nome, item.categoriaLabel, item.raridadeNome, seloNovo, badgeTag].filter(Boolean).join(" · ");
