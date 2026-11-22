@@ -90,7 +90,8 @@ test.describe("Tier List (funcional completo)", () => {
     await expect(ficha.locator('[data-tl-slot="weapon"]')).toContainText("Cetro do Relojoeiro Real");
     for (const id of ["aeronaut", "madtinker"]) {
       await page.click(`[data-tl-card="set_${id}"]`);
-      await expect(ficha).toContainText("Prévia genérica");
+      await expect(ficha).not.toContainText("Prévia genérica");
+      await verificarCanvasComSprite(page, "canvas[data-tl-heroi]");
       await expect(ficha.locator("[data-tl-slot]")).toHaveCount(3);
     }
     await page.click('[data-tl-modo="utilidade"]');
