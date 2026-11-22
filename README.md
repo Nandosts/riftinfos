@@ -70,6 +70,39 @@ O navegador carrega os módulos diretamente. Cada módulo declara suas dependên
 
 Para dividir uma mudança entre agentes, combine quem altera cada área e quem coordena os arquivos compartilhados. Por exemplo, dá para trabalhar na bancada do simulador e no radar em paralelo. Mudanças no cálculo de FC ou no catálogo podem afetar várias telas e precisam ser combinadas entre as áreas.
 
+## Atualizar sprites e PNGs do jogo
+
+Quando o RiftStream lançar novos conjuntos, armas, anéis ou zonas, use o script de sincronização (requer Node.js 18+):
+
+```sh
+npm run atualizar:sprites
+```
+
+O script:
+
+1. Baixa o bundle atual de `https://riftstream.com.br/` (ou lê um arquivo local com `--bundle=caminho/arquivo.js`).
+2. Localiza automaticamente os blocos de pixel art, ícones, gemas e auras sem depender dos nomes minificados do build.
+3. Valida todos os conjuntos, armas, anéis e gemas em memória antes de gravar `sprites.js` e atualizar o `?v=...` em `index.html` e `tierlist.html`.
+4. Gera ou atualiza os PNGs correspondentes em `exports/` preservando arquivos manuais (como `exports/itens/casulo-de-vexxaris.png`).
+
+Opções úteis:
+
+```sh
+npm run atualizar:sprites:validar                            # testa extração e validação sem gravar arquivos
+node scripts/atualizar_sprites.mjs --somente-sprites         # atualiza só sprites.js e o cache-bust dos HTMLs
+node scripts/atualizar_sprites.mjs --somente-pngs            # exporta só os PNGs em exports/
+node scripts/atualizar_sprites.mjs --com-gifs                # também gera GIFs animados (requer ImageMagick "magick")
+```
+
+Depois de atualizar os sprites (e cadastrar eventuais itens novos em `src/dados.mjs`), valide o projeto:
+
+```sh
+npm test
+npm run test:e2e
+```
+
+Se novos ícones mudarem intencionalmente as capturas de referência, atualize-as com `npm run test:e2e:update` e confira visualmente o resultado.
+
 ## Problemas comuns
 
 - **A página não abre:** confira se o terminal continua executando o servidor e se o endereço usa a porta `4173`.

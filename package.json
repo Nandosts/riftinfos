@@ -9,7 +9,9 @@
   "scripts": {
     "test": "node tests/review-regression.test.cjs && node tests/calculos-independentes.test.cjs",
     "test:e2e": "playwright test",
-    "test:e2e:update": "playwright test --update-snapshots"
+    "test:e2e:update": "playwright test --update-snapshots",
+    "atualizar:sprites": "node scripts/atualizar_sprites.mjs",
+    "atualizar:sprites:validar": "node scripts/atualizar_sprites.mjs --validar"
   },
   "repository": {
     "type": "git",
