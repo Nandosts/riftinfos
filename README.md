@@ -70,22 +70,31 @@ O navegador carrega os módulos diretamente. Cada módulo declara suas dependên
 
 Para dividir uma mudança entre agentes, combine quem altera cada área e quem coordena os arquivos compartilhados. Por exemplo, dá para trabalhar na bancada do simulador e no radar em paralelo. Mudanças no cálculo de FC ou no catálogo podem afetar várias telas e precisam ser combinadas entre as áreas.
 
-## Atualizar sprites e PNGs do jogo
+## Scripts de manutenção e análise
 
-Quando o RiftStream lançar novos conjuntos, armas, anéis ou zonas, use o script de sincronização (requer Node.js 18+):
+Todos os scripts exigem Node.js 18+ e aceitam `--ajuda` para ver todas as opções.
+
+| Comando | Para que serve |
+| --- | --- |
+| `npm run diagnostico` | Roda todos os scripts abaixo em sequência (baixando o bundle uma única vez) e salva o resumo completo em `relatorio-diagnostico.md` (ignorado pelo Git). Aceita `-- --aplicar` e `-- --com-e2e`. |
+| `npm run verificar:patch` | Baixa o bundle vivo do RiftStream, compara com a referência salva (`--salvar-referencia`) e aponta novos conjuntos, armas, anéis, zonas ou mudanças de combate em relação a `src/dados.mjs`. |
+| `npm run atualizar:sprites` | Atualiza `sprites.js` direto do bundle vivo (validando em memória antes de salvar), atualiza o `?v=...` dos HTMLs e exporta os PNGs em `exports/` preservando arquivos manuais como `exports/itens/casulo-de-vexxaris.png`. |
+| `npm run calibrar:curvas` | Varre perfis públicos do ranking via API, separa as amostras por peça e raridade, calcula a curva por nível (`atk`, `def`, `hp`, `crit`, `spd`) e marca curvas com menos de 3 amostras como provisórias. |
+| `npm run auditar:monstros` | Confere as fórmulas de onda, chefes e lacaios de `src/dados.mjs` contra o cliente oficial, separando erro de parser (código `1`) de divergência de regra (código `2`). |
+| `npm run verificar:release` | Confere se todas as referências locais em HTML/JS existem no disco, valida imports e exports nomeados em todos os módulos `.mjs`, alerta sobre `?v=...` pendentes (`--atualizar-cache-bust`) e roda `npm test` (`--com-e2e` para Playwright). |
+| `npm run otimizar:build` | Simula combinações de conjuntos, anéis, gemas e distribuição exata de atributos via CLI (`--classe=cleric\|warrior\|archer`, `--objetivo=fc\|dps\|cura\|escudo-aurora\|resistencia-fisica`, `--nivel=750`, `--ilvl=300`). |
+
+### Fluxo rápido após um patch do RiftStream
 
 ```sh
-npm run atualizar:sprites
+npm run verificar:patch                                      # 1. ver o que mudou no bundle do jogo
+npm run atualizar:sprites                                    # 2. atualizar sprites.js e PNGs em exports/
+npm run auditar:monstros                                     # 3. conferir fórmulas de ondas, chefes e lacaios
+npm run calibrar:curvas                                      # 4. coletar curvas reais de peças novas equipadas
+npm run verificar:release -- --atualizar-cache-bust          # 5. atualizar ?v=... e rodar testes
 ```
 
-O script:
-
-1. Baixa o bundle atual de `https://riftstream.com.br/` (ou lê um arquivo local com `--bundle=caminho/arquivo.js`).
-2. Localiza automaticamente os blocos de pixel art, ícones, gemas e auras sem depender dos nomes minificados do build.
-3. Valida todos os conjuntos, armas, anéis e gemas em memória antes de gravar `sprites.js` e atualizar o `?v=...` em `index.html` e `tierlist.html`.
-4. Gera ou atualiza os PNGs correspondentes em `exports/` preservando arquivos manuais (como `exports/itens/casulo-de-vexxaris.png`).
-
-Opções úteis:
+Opções úteis de `atualizar_sprites.mjs`:
 
 ```sh
 npm run atualizar:sprites:validar                            # testa extração e validação sem gravar arquivos
@@ -94,14 +103,15 @@ node scripts/atualizar_sprites.mjs --somente-pngs            # exporta só os PN
 node scripts/atualizar_sprites.mjs --com-gifs                # também gera GIFs animados (requer ImageMagick "magick")
 ```
 
-Depois de atualizar os sprites (e cadastrar eventuais itens novos em `src/dados.mjs`), valide o projeto:
+Exemplos de `otimizar_build.mjs`:
 
 ```sh
-npm test
-npm run test:e2e
+node scripts/otimizar_build.mjs --classe=cleric --objetivo=escudo-aurora --nivel=750 --ilvl=300
+node scripts/otimizar_build.mjs --classe=warrior --objetivo=fc --nivel=750 --ilvl=300
+node scripts/otimizar_build.mjs --classe=archer --objetivo=dps --nivel=750 --ilvl=300 --vit-min=15
 ```
 
-Se novos ícones mudarem intencionalmente as capturas de referência, atualize-as com `npm run test:e2e:update` e confira visualmente o resultado.
+Se novos ícones mudarem intencionalmente as capturas de referência, rode `npm run test:e2e:update` e confira visualmente o resultado.
 
 ## Problemas comuns
 

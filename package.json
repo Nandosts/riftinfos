@@ -11,7 +11,13 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "atualizar:sprites": "node scripts/atualizar_sprites.mjs",
-    "atualizar:sprites:validar": "node scripts/atualizar_sprites.mjs --validar"
+    "atualizar:sprites:validar": "node scripts/atualizar_sprites.mjs --validar",
+    "verificar:patch": "node scripts/verificar_patch.mjs",
+    "calibrar:curvas": "node scripts/calibrar_curvas.mjs",
+    "auditar:monstros": "node scripts/auditar_monstros.mjs",
+    "verificar:release": "node scripts/verificar_release.mjs",
+    "otimizar:build": "node scripts/otimizar_build.mjs",
+    "diagnostico": "node scripts/rodar_diagnostico.mjs"
   },
   "repository": {
     "type": "git",

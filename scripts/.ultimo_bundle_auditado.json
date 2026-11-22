@@ -1,0 +1,48 @@
+{
+  "atualizadoEm": "2026-11-22T21:34:43.427Z",
+  "asset": "/assets/index-Bjj_wFjq.js",
+  "tamanhoBytes": 1446922,
+  "resumo": {
+    "zonasCiclo": {
+      "local": 9,
+      "jogo": 9
+    },
+    "combate": {
+      "capAspd": 4.6,
+      "skillCdMult": 1.5,
+      "hitCapWarrior": 0.6,
+      "hitCapCleric": 0.6,
+      "hitCapArcher": 0.6,
+      "rageInterval": 15,
+      "rageAtk": 1.1,
+      "rageDef": 0.93
+    },
+    "conjuntos": {
+      "local": 42,
+      "jogo": 42,
+      "novos": []
+    },
+    "passivasArmas": {
+      "jogo": 29,
+      "novas": [],
+      "divergentes": []
+    },
+    "aneisEspeciais": {
+      "jogo": 8,
+      "novos": []
+    },
+    "calibracaoPendente": {
+      "conjuntos": [
+        "steamknight (ref: obsidian)",
+        "tesladuel (ref: thunderlord)",
+        "royalclock (ref: seraphgold)",
+        "etheralch (ref: eclipsepriest)",
+        "aeronaut (ref: trapeze)",
+        "madtinker (ref: firework)"
+      ],
+      "aneis": [
+        "look 19 (Anel da Teia Escarlate)"
+      ]
+    }
+  }
+}
