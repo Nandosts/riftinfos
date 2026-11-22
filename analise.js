@@ -175,11 +175,13 @@
         detalhes: "Neste modelo: (ATK × 2,4 + nível × 1,5 + 6) × bônus de velocidade × multiplicador de cura da arma."
       });
     } else if (classe === "archer") {
+      const aspdReal = normalizarNumero(metricasCombate?.cadenciaReal ?? metricasCombate?.aspdReal, null, 0);
+      const critChance = normalizarNumero(statusCalculados?.crit ?? statusCalculados?.critChance, 0, 0, 100);
       indicadores.push({
         id: "cadencia",
         titulo: "Cadência & Crítico",
         pergunta: "Qual é a velocidade de disparo?",
-        valor: aspdReal ? aspdReal.toFixed(2) : "—",
+        valor: aspdReal === null ? "—" : aspdReal.toFixed(2),
         unidade: "tiros/s",
         origem: "calculado",
         resumo: `Ataques contínuos com ${critChance.toFixed(1)}% de chance de crítico.`,

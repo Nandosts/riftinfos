@@ -32,6 +32,9 @@ test.describe("Resumo e Histórico", () => {
     await page.fill("#input-nick", "nando");
     await page.click('#formulario-busca button[type="submit"]');
     await expect(page.locator("#cabecalho-perfil")).toContainText("Arqueiro");
+    const cadencia = page.locator('[data-indicador-id="cadencia"]');
+    await expect(cadencia).toContainText("4.60 tiros/s");
+    await expect(cadencia).toContainText("60.0% de chance de crítico");
 
     // Perfil sem power oficial
     await page.fill("#input-nick", "sempoder");
