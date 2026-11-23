@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0b19">
+  <meta name="description" content="Catálogo de itens do RiftStream. Consulte equipamentos, gemas e cosméticos e compare os estágios de aparência das peças.">
+  <link rel="canonical" href="https://riftinfo.netlify.app/wiki">
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
+  <title>Wiki de Itens · RiftInfos</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
+  <link rel="stylesheet" href="/style.css?v=20261118a">
+  <link rel="stylesheet" href="/aparencia.css">
+  <link rel="stylesheet" href="/estilos/wiki.css">
+  <script src="/aparencia.js"></script>
+  <script src="/sprites.js?v=20261122wiki" defer></script>
+  <script type="module" src="/src/wiki.mjs"></script>
+</head>
+<body>
+  <a class="atalho-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" translate="no"><span aria-hidden="true"></span> RiftInfos</a>
+      <label class="preferencia-fonte">Fonte
+        <select id="fonte-site">
+          <option value="pixelada">Pixelada</option>
+          <option value="limpa">Limpa</option>
+        </select>
+      </label>
+    </div>
+  </header>
+  <main class="wrap wiki" id="conteudo-principal">
+    <header class="intro">
+      <h1>Wiki de Itens</h1>
+      <p>Encontre uma peça, confira o conjunto e veja como o visual muda conforme o nível do item.</p>
+    </header>
+
+    <section class="wiki-aparencias" aria-labelledby="aparencias-titulo">
+      <h2 id="aparencias-titulo">Estágios de aparência</h2>
+      <p>O RiftStream mostra o estágio de aparência na linha de descrição de equipamentos que têm um modelo com ficha própria. A raridade aparece separadamente. Um Cajado Gasto pode ser Comum mesmo no nível 188.</p>
+      <ol class="wiki-estagios" id="wiki-estagios"></ol>
+      <p class="note small">Faixas conferidas em equipamentos de perfis públicos. Alguns modelos mantêm o mesmo ícone nos quatro estágios.</p>
+    </section>
+
+    <section aria-labelledby="catalogo-titulo">
+      <h2 id="catalogo-titulo">Catálogo</h2>
+      <form class="wiki-filtros" id="wiki-filtros" role="search" aria-label="Buscar no catálogo">
+        <label>Item ou conjunto
+          <input type="search" id="wiki-busca" placeholder="Ex. Cetro da Aurora">
+        </label>
+        <label>Categoria
+          <select id="wiki-categoria">
+            <option value="">Todas</option>
+            <option value="weapon">Armas</option>
+            <option value="helmet">Elmos</option>
+            <option value="armor">Armaduras</option>
+            <option value="ring">Anéis</option>
+            <option value="cosmetic">Cosméticos</option>
+            <option value="gem">Gemas</option>
+            <option value="consumable">Consumíveis</option>
+            <option value="fragment">Fragmentos</option>
+          </select>
+        </label>
+        <label>Classe
+          <select id="wiki-classe">
+            <option value="">Todas</option>
+            <option value="warrior">Guerreiro</option>
+            <option value="cleric">Clérigo</option>
+            <option value="archer">Arqueiro</option>
+          </select>
+        </label>
+        <label>Raridade do item
+          <select id="wiki-raridade"><option value="">Todas</option></select>
+        </label>
+      </form>
+      <p class="note small" id="wiki-status" role="status">Carregando catálogo…</p>
+      <div class="wiki-itens" id="wiki-itens"></div>
+      <noscript>Ative o JavaScript para consultar o catálogo.</noscript>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,132 @@
+.wiki {
+  padding-block: clamp(24px, 5vw, 56px);
+}
+
+.wiki .intro p {
+  max-width: 62ch;
+}
+
+.wiki-aparencias {
+  padding: clamp(14px, 3vw, 26px);
+  margin-bottom: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.wiki-estagios, .wiki-itens, .wiki-filtros, .wiki-visuais {
+  display: grid;
+  gap: 10px;
+}
+
+.wiki-estagios, .wiki-visuais {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 135px), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wiki-estagios li, .wiki-visuais li {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-alt);
+  overflow-wrap: anywhere;
+}
+
+.wiki-filtros {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr));
+  margin-top: 15px;
+}
+
+.wiki-filtros label {
+  display: grid;
+  gap: 5px;
+}
+
+.wiki-filtros :is(input, select) {
+  width: 100%;
+  min-width: 0;
+}
+
+.wiki-itens {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  align-items: start;
+}
+
+.wiki-item {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-alt);
+}
+
+.wiki-item[open] {
+  grid-column: 1 / -1;
+}
+
+.wiki-item summary {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.wiki-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.wiki-item summary::after {
+  content: "+";
+  color: var(--cyan);
+}
+
+.wiki-item[open] summary::after {
+  content: "−";
+}
+
+.wiki-item summary strong, .wiki-item summary small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.wiki-item summary small {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.wiki-item canvas, .wiki-item img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.wiki-item-cor {
+  color: var(--wiki-cor, var(--text));
+}
+
+.wiki-detalhe {
+  padding: 0 12px 12px;
+}
+
+.wiki-detalhe p {
+  margin-block: 0 10px;
+}
+
+.wiki-visuais canvas {
+  width: 52px;
+  height: 52px;
+}
+
+.wiki :focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
