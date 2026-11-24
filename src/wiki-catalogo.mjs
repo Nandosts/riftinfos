@@ -8,6 +8,8 @@ export const estagiosAparencia = [
   { tier: 3, nome: "Mítico", niveis: "Nv. 40 em diante" },
 ];
 
+export const nivelMinimoEquipamento = { 6: 100, 7: 130 };
+
 const armasAvulsas = {
   bombbow: "archer",
 };
@@ -78,14 +80,13 @@ export function montarCatalogoWiki(kinds = {}) {
     rarity: anel.raridadeMin,
     detalhe: anel.efeito,
     obtencao: anel.obtencao,
-    notaVisual: "A ficha do anel mostra a raridade. O ícone segue o modelo do anel.",
+    notaVisual: "A ficha do anel mostra a raridade. Quando há uma seção de efeito, ela descreve a habilidade do anel. O ícone segue o modelo do anel e a ficha não exibe os rótulos de estágio de aparência.",
   }));
   const notaBasicos = "A ficha do item básico mostra a raridade mesmo em níveis altos. O jogo não exibe um rótulo de estágio para esse modelo.";
   const basicos = [
     ...[["warrior", "Espada"], ["cleric", "Cajado"], ["archer", "Arco"]].map(([classe, nome]) => ({
       id: "basico-" + classe, slot: "weapon", nome: nome + " básico", classe, notaVisual: notaBasicos,
       buscaExtra: classe === "cleric" ? "Cajado Gasto" : undefined,
-      detalhe: classe === "cleric" ? "Cajado Gasto é um exemplo deste modelo básico." : undefined,
     })),
     { id: "basico-elmo", slot: "helmet", nome: "Elmo básico", notaVisual: notaBasicos },
     { id: "basico-armadura", slot: "armor", nome: "Armadura básica", notaVisual: notaBasicos },

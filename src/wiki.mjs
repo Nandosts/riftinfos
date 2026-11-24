@@ -1,7 +1,7 @@
 import { gerarSvgFragmento } from "./alquimia.mjs";
 import { coresRaridade, nomesClasses, nomesRaridade, nomesSlots } from "./dados.mjs";
 import { escaparHtml } from "./formato.mjs";
-import { estagiosAparencia, montarCatalogoWiki } from "./wiki-catalogo.mjs";
+import { estagiosAparencia, montarCatalogoWiki, nivelMinimoEquipamento } from "./wiki-catalogo.mjs";
 
 const sprites = window.RiftSprites;
 const catalogo = montarCatalogoWiki(sprites?.catalogoKindsOficial);
@@ -37,8 +37,10 @@ function desenharIcones(raiz, item) {
 function renderizarDetalhe(item) {
   const detalhes = [item.detalhe, item.obtencao, item.notaVisual].filter(Boolean).map((texto) => `<p>${escaparHtml(texto)}</p>`);
   if (item.temEstagios) {
-    detalhes.push(`<ul class="wiki-visuais">${estagiosAparencia.map(({ tier, nome, niveis }) => `
-      <li>${renderizarIcone(item, tier)}<strong>${nome}</strong><span class="note small">${niveis}</span></li>
+    const nivelMinimo = nivelMinimoEquipamento[item.rarity];
+    const estagios = nivelMinimo ? estagiosAparencia.slice(-1) : estagiosAparencia;
+    detalhes.push(`<ul class="wiki-visuais">${estagios.map(({ tier, nome, niveis }) => `
+      <li>${renderizarIcone(item, tier)}<strong>${nome}</strong><span class="note small">${nivelMinimo ? `Nv. ${nivelMinimo} em diante · mínimo da raridade` : niveis}</span></li>
     `).join("")}</ul>`);
   }
   return detalhes.join("");
