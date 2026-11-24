@@ -631,6 +631,12 @@ function construirModoFichaVisualHtml(
               </small>
             ` : ""}
           </div>
+          ${temCuraEmGrupo ? `
+            <div class="rs-htile rs-htile-dps">
+              <span title="${notaDpsFicha}">DPS ESTIMADO</span>
+              <b style="color:var(--gold);">${formatadorInteiro.format(Math.round(metSim.dpsCombateMedio))}/s</b>
+            </div>
+          ` : ""}
         </div>
 
         ${caixasSetsEquipadosHtml}
@@ -725,7 +731,8 @@ function construirModoFichaVisualHtml(
           <span>FC simulado: <strong style="color:var(--gold); font-family:var(--pix);">${formatadorInteiro.format(fcSim)}</strong></span>
           ${deltaFc !== null ? `<span class="rs-fc-delta ${deltaFc >= 0 ? "pos" : "neg"}">(${deltaFc >= 0 ? "+" : ""}${formatadorInteiro.format(deltaFc)})</span>` : ""}
           <span>·</span>
-          <span>${temCuraEmGrupo ? "Cura em grupo" : "DPS"}: <strong style="color:var(--cyan);">${formatarNumeroCompacto(temCuraEmGrupo ? metSim.curaSkillLuzDivina : metSim.dpsCombateMedio)}${temCuraEmGrupo ? "" : "/s"}</strong></span>
+          ${temCuraEmGrupo ? `<span>Cura em grupo: <strong style="color:var(--green);">${formatarNumeroCompacto(metSim.curaSkillLuzDivina)}</strong></span><span>·</span>` : ""}
+          <span title="${notaDpsFicha}">DPS: <strong style="color:var(--cyan);">${formatarNumeroCompacto(metSim.dpsCombateMedio)}/s</strong></span>
           <span>·</span>
           <span>HP: <strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></span>
         </div>

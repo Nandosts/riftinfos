@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { prepararPagina, verificarCanvasComSprite } from "./helpers/ambiente.mjs";
+import { prepararPagina, verificarCanvasComSprite, verificarSemOverflowHorizontal } from "./helpers/ambiente.mjs";
 
 test.describe("Simulador e Compartilhamento", () => {
   test("origem, modos Ficha/Lista, classes, busca/equipar peças, atributos e auto-stats", async ({ page }, testInfo) => {
@@ -58,6 +58,10 @@ test.describe("Simulador e Compartilhamento", () => {
     const { erros } = await prepararPagina(page, "/index.html?aba=simulador");
     const sim = page.locator("#simulador-container");
     await sim.locator('[data-sim-classe-btn="cleric"]').first().click();
+    await expect(sim.locator(".rs-hero-tiles")).toContainText("CURA EM GRUPO");
+    await expect(sim.locator(".rs-hero-tiles .rs-htile-dps")).toContainText(/DPS ESTIMADO\s*[\d.]+\/s/);
+    await expect(sim.locator(".rs-live-summary-bar")).toContainText(/Cura em grupo:.*DPS:/s);
+    await verificarSemOverflowHorizontal(page, "ficha do Clérigo com cura e DPS");
     await sim.locator("#sim-details-avancadas summary").click();
     await sim.locator('[data-sim-set-rapido="royalclock"]').first().click();
     await expect(sim.locator(".rs-set-box")).toContainText("Relojoeiro Real");

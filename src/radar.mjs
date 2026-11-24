@@ -420,9 +420,10 @@ function renderizarResultadoRadar() {
       .map(([sk, cnt]) => `${catalogoConjuntos[sk]?.nome || sk} (${cnt})`)
       .join(", ") || "Misto";
 
-    const desempenhoTxt = p.cls === "cleric"
-      ? `${formatarNumeroCompacto(met.curaSkillLuzDivina)} cura`
-      : `${formatarNumeroCompacto(met.dpsCombateMedio)} DPS est.`;
+    const dpsTxt = `${formatarNumeroCompacto(met.dpsCombateMedio)} DPS est.`;
+    const curaTxt = p.cls === "cleric" && met.infoArma?.skillTipo !== "dano"
+      ? `<div class="small muted">${formatarNumeroCompacto(met.curaSkillLuzDivina)} cura em grupo</div>`
+      : "";
 
     return `
       <tr>
@@ -434,7 +435,7 @@ function renderizarResultadoRadar() {
         <td>${escaparHtml(arma?.name || "—")}</td>
         <td>${escaparHtml(anel?.name || "—")}</td>
         <td>${escaparHtml(resumoSets)}</td>
-        <td class="num">${desempenhoTxt}</td>
+        <td class="num">${dpsTxt}${curaTxt}</td>
         <td class="num">
           ${perfilCarregadoP1 ? `<button type="button" class="btn-mini" data-radar-comparar="${escaparHtml(nickLimpo)}" data-radar-plat="${plat}" data-radar-cls="${escaparHtml(p.cls)}">VS</button>` : ""}
         </td>

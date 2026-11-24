@@ -303,6 +303,10 @@
   color: #ffe27a;
 }
 
+.rs-hero-tiles > .rs-htile-dps {
+  grid-column: 1 / -1;
+}
+
 .rs-fc-delta {
   font-size: 10px;
   font-weight: 700;

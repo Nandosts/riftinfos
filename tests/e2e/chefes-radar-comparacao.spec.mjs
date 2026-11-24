@@ -351,7 +351,7 @@ test.describe("Chefes, Radar e Comparação", () => {
                     ? [
                         { login: "halscriolo", displayName: "Halscriolo", cls: "warrior", level: 320, fc: 195000000 },
                         { login: "nando", displayName: "Nando", cls: "archer", level: 310, fc: 182000000 },
-                        { login: "sempoder", displayName: "Sempoder", cls: "warrior", level: 280, fc: 0 },
+                        { login: "sempoder", displayName: "Sempoder", cls: "cleric", level: 280, fc: 0 },
                       ]
                     : [],
               }),
@@ -364,7 +364,9 @@ test.describe("Chefes, Radar e Comparação", () => {
             if (login === "sempoder" && falharSempoder) {
               return route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
             }
-            const dados = PERFIS_MOCK[login]?.warrior || PERFIS_MOCK[login]?.archer || PERFIS_MOCK.halscriolo.warrior;
+            const dados = login === "sempoder"
+              ? { ...PERFIS_MOCK.halscriolo.cleric, login, displayName: "Sempoder" }
+              : PERFIS_MOCK[login]?.warrior || PERFIS_MOCK[login]?.archer;
             return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(dados) });
           },
         },
@@ -389,6 +391,9 @@ test.describe("Chefes, Radar e Comparação", () => {
     await expect(btnRetry).toBeVisible();
     await btnRetry.click();
     await expect(page.locator("#resultado-radar-live")).toContainText("3 analisados com sucesso");
+    const desempenhoClerigo = page.getByRole("row").filter({ has: page.locator('[data-radar-abrir="sempoder"]') });
+    await expect(desempenhoClerigo).toContainText("DPS est.");
+    await expect(desempenhoClerigo).toContainText("cura em grupo");
 
     const chamadasPerfilAntesFiltro = controleApi.chamadasApi.filter((u) => (u.pathname || String(u)).includes("/api/profile/")).length;
 
