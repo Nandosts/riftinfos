@@ -539,6 +539,7 @@ function construirModoFichaVisualHtml(
         ` : ""}
         ${textoPassivaPecaAtiva ? `<div class="rs-icard-lore-ef">★ ${escaparHtml(textoPassivaPecaAtiva)}</div>` : ""}
         ${infoAnelAtivo?.obtencao ? `<div class="small muted" style="margin-top:4px;">📍 <strong>Como conseguir:</strong> ${escaparHtml(infoAnelAtivo.obtencao)}</div>` : ""}
+        ${kindReferencia ? '<p class="note small"><strong>Faltam dados desta peça.</strong> Ao estimar os atributos, o simulador usa a curva de outro conjunto.</p>' : ""}
         ${textoCurvaPecaAtiva ? `<div class="small muted" style="margin-top:2px;">📊 ${escaparHtml(textoCurvaPecaAtiva)}</div>` : ""}
       </div>
     `

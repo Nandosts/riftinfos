@@ -1,4 +1,4 @@
-import { dadosClasses, nomesClasses, nomesSlots } from "./dados.mjs";
+import { catalogoEscalasPecas, curvasReferenciaPecas, dadosClasses, nomesClasses, nomesSlots } from "./dados.mjs";
 import { escaparHtml, formatadorDecimal1, formatadorDecimal2, formatadorInteiro } from "./formato.mjs";
 import { construirEditorEngastes } from "./simulador/engastes.mjs";
 
@@ -86,6 +86,9 @@ export function renderizarFichaFc(item, nivel, atributos, slotAtivo, engasteAtiv
                     <strong>${escaparHtml(peca.name)}</strong>
                   </div>
                 </div>
+                ${curvasReferenciaPecas.has(peca.kind) && !catalogoEscalasPecas[peca.kind]
+                  ? '<p class="note small"><strong>Faltam dados desta peça.</strong> Os atributos são estimados pela curva de outro conjunto.</p>'
+                  : ""}
                 ${listaAtributos([
                   ["ATK", peca.atk], ["HP", peca.hp], ["DEF", peca.def], ["Crítico", `+${peca.crit} p.p.`], ["VEL", `+${peca.spd}%`],
                 ])}
