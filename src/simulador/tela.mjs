@@ -27,6 +27,14 @@ import {
   renderizarCanvasesFichaSimulador,
 } from "./ficha.mjs";
 
+const objetivosOuro = {
+  fc: { nome: "FC máximo", unidade: "FC", medir: ({ fc }) => fc },
+  custo: { nome: "Custo-benefício (FC)", unidade: "FC por 1 milhão de ouro", medir: ({ fc }) => fc },
+  dps: { nome: "DPS", unidade: "DPS", medir: ({ met }) => met.dpsCombateMedio },
+  ehp: { nome: "Vida efetiva", unidade: "de vida efetiva", medir: ({ met }) => met.ehp },
+  cura: { nome: "Cura", unidade: "de poder de cura", medir: ({ met }) => met.healPower },
+};
+
 const containerSimulador = document.querySelector("#simulador-container");
 
 function renderizarSimulador() {
@@ -95,7 +103,12 @@ function renderizarSimulador() {
   const fcSim = calcularFc(simulacao.estadoSimulador.cls, stSim);
   const metSim = calcularMetricasCombate(simulacao.estadoSimulador.cls, simulacao.estadoSimulador.level, stSim, simulacao.estadoSimulador.itens);
 
-  // Melhor atributo para +1 ponto em FC
+  const { cls, level, atributos, itens } = simulacao.estadoSimulador;
+  const objetivosDisponiveis = Object.entries(objetivosOuro).filter(([chave]) => chave !== "cura" || cls === "cleric");
+  const objetivoAtual = objetivosDisponiveis.some(([chave]) => chave === simulacao.objetivoOuro)
+    ? simulacao.objetivoOuro : "fc";
+  const objetivo = objetivosOuro[objetivoAtual];
+  const valorBase = objetivo.medir({ fc: fcSim, met: metSim });
   const mapaNomesAttrs = [
     { chave: "str", nome: "Força (FOR)" },
     { chave: "vit", nome: "Vitalidade (VIT)" },
@@ -103,17 +116,40 @@ function renderizarSimulador() {
     { chave: "agi", nome: "Agilidade (AGI)" },
     { chave: "luk", nome: "Sorte (SOR)" },
   ];
-  let melhorAttr = mapaNomesAttrs[0];
-  let melhorGanho = -1;
+  let melhorAttr = null;
+  let melhorGanho = 0;
   for (const attr of mapaNomesAttrs) {
-    const copiaAttrs = { ...simulacao.estadoSimulador.atributos, [attr.chave]: simulacao.estadoSimulador.atributos[attr.chave] + 1 };
-    const fcTeste = calcularFc(simulacao.estadoSimulador.cls, calcularStatusSimulados(simulacao.estadoSimulador.cls, simulacao.estadoSimulador.level, copiaAttrs, simulacao.estadoSimulador.itens));
-    const delta = fcTeste - fcSim;
-    if (delta > melhorGanho) {
-      melhorGanho = delta;
+    const nivelAtual = atributos[attr.chave];
+    if (nivelAtual >= 5000) continue;
+    const copiaAttrs = { ...atributos, [attr.chave]: nivelAtual + 1 };
+    const status = calcularStatusSimulados(cls, level, copiaAttrs, itens);
+    let ganho = objetivo.medir({
+      fc: calcularFc(cls, status),
+      met: calcularMetricasCombate(cls, level, status, itens),
+    }) - valorBase;
+    if (objetivoAtual === "custo") {
+      // Curva estimada pelos preços de compra observados no jogo.
+      const custo = Math.round(159.61 * 1.07 ** nivelAtual);
+      ganho = ganho * 1_000_000 / custo;
+    }
+    if (ganho > melhorGanho) {
+      melhorGanho = ganho;
       melhorAttr = attr;
     }
   }
+  const ganhoFormatado = melhorAttr
+    ? `+${melhorGanho.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${objetivo.unidade}`
+    : "";
+  const seletorObjetivoHtml = `
+    <label for="sim-objetivo-ouro">Objetivo</label>
+    <select id="sim-objetivo-ouro">
+      ${objetivosDisponiveis.map(([chave, opt]) => `<option value="${chave}" ${chave === objetivoAtual ? "selected" : ""}>${opt.nome}</option>`).join("")}
+    </select>
+    ${objetivoAtual === "custo" ? '<small>Preço do próximo nível estimado.</small>' : ""}
+    ${objetivoAtual === "ehp" ? '<small>Vida efetiva contra dano físico mitigado pela defesa.</small>' : ""}
+    ${objetivoAtual === "dps" ? '<small>DPS estimado contra alvo sem defesa.</small>' : ""}
+  `;
+  const dicaObjetivo = melhorAttr ? `Melhor +1 em ${melhorAttr.nome} (${ganhoFormatado})` : "Nenhum +1 melhora este objetivo.";
 
   let fcOrig = null;
   let metOrig = null;
@@ -192,7 +228,9 @@ function renderizarSimulador() {
     const fichaHtml = construirModoFichaVisualHtml(
       linhasAttrsHtml,
       melhorAttr,
-      melhorGanho,
+      ganhoFormatado,
+      seletorObjetivoHtml,
+      dicaObjetivo,
       conjuntosDaClasse,
       setAtivo3Pecas,
       resumoPainelDireitoHtml,
@@ -341,11 +379,12 @@ function renderizarSimulador() {
 
           ${linhasAttrsHtml}
           <div class="sim-dica-melhor" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-            <span>💡 Melhor atributo agora: <strong>+1 em ${melhorAttr.nome}</strong> (+${formatadorInteiro.format(melhorGanho)} FC)</span>
-            <span style="display:inline-flex;gap:6px;">
+            ${seletorObjetivoHtml}
+            <span aria-live="polite">${dicaObjetivo}</span>
+            ${melhorAttr ? `<span style="display:inline-flex;gap:6px;">
               <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="1">+1 ${melhorAttr.chave.toUpperCase()}</button>
               <button type="button" class="btn-mini btn-atalho-ativo" data-attr-btn="${melhorAttr.chave}" data-delta="10">+10 ${melhorAttr.chave.toUpperCase()}</button>
-            </span>
+            </span>` : ""}
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:-2px;">

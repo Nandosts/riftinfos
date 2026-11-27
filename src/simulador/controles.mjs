@@ -35,6 +35,11 @@ const btnSimResetar = document.querySelector("#btn-sim-resetar");
 function vincularEventosSimulador() {
   if (!containerSimulador) return;
 
+  containerSimulador.querySelector("#sim-objetivo-ouro")?.addEventListener("change", (event) => {
+    simulacao.objetivoOuro = event.currentTarget.value;
+    renderizarSimulador();
+  });
+
   // Controles da Barra Superior do Modo Criativo
   containerSimulador.querySelectorAll("[data-sim-modo-vis]").forEach((btn) => {
     btn.addEventListener("click", (e) => {

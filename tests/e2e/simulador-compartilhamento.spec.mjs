@@ -54,6 +54,30 @@ test.describe("Simulador e Compartilhamento", () => {
     expect(erros).toEqual([]);
   });
 
+  test("recomenda o próximo atributo pelo objetivo de ouro", async ({ page }) => {
+    const { erros } = await prepararPagina(page, "/index.html?aba=simulador");
+    const sim = page.locator("#simulador-container");
+    const objetivo = sim.getByLabel("Objetivo");
+    await sim.locator('[data-sim-classe-btn="cleric"]').first().click();
+    await expect(objetivo).toHaveValue("fc");
+    for (const [valor, unidade] of [
+      ["custo", "FC por 1 milhão de ouro"],
+      ["dps", "DPS"],
+      ["ehp", "vida efetiva"],
+      ["cura", "poder de cura"],
+    ]) {
+      await objetivo.selectOption(valor);
+      await expect(sim.locator(".rs-badge-melhor-attr")).toContainText(unidade);
+    }
+    await verificarSemOverflowHorizontal(page, "objetivo de gasto de ouro");
+    await sim.locator('[data-sim-modo-vis="lista"]').first().click();
+    await expect(objetivo).toHaveValue("cura");
+    await sim.locator("#sim-classe").selectOption("archer");
+    await expect(objetivo.locator('option[value="cura"]')).toHaveCount(0);
+    await expect(objetivo).toHaveValue("fc");
+    expect(erros).toEqual([]);
+  });
+
   test("equipa peças da Cidade Mecânica e mostra as projeções dos anéis da Raid", async ({ page }) => {
     const { erros } = await prepararPagina(page, "/index.html?aba=simulador");
     const sim = page.locator("#simulador-container");

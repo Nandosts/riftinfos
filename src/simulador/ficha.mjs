@@ -222,7 +222,9 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
 function construirModoFichaVisualHtml(
   linhasAttrsHtml,
   melhorAttr,
-  melhorGanho,
+  ganhoFormatado,
+  seletorObjetivoHtml,
+  dicaObjetivo,
   conjuntosDaClasse,
   setAtivo3Pecas,
   resumoPainelDireitoHtml,
@@ -323,13 +325,13 @@ function construirModoFichaVisualHtml(
   ];
 
   const linhasGastarOuroHtml = descricoesAtributosOficiais.map(({ chave, rotulo, desc }) => {
-    const ehMelhor = melhorAttr.chave === chave;
+    const ehMelhor = melhorAttr?.chave === chave;
     return `
       <div class="rs-urow ${ehMelhor ? "melhor-fc" : ""}">
         <div class="rs-urow-top">
           <div class="rs-urow-title">
             <b>${rotulo}</b>
-            ${ehMelhor ? `<span class="rs-badge-melhor-attr" title="Maior ganho de FC por ponto agora">★ +${formatadorInteiro.format(melhorGanho)} FC</span>` : ""}
+            ${ehMelhor ? `<span class="rs-badge-melhor-attr" title="Melhor ganho para o objetivo selecionado">★ ${ganhoFormatado}</span>` : ""}
           </div>
           <div class="rs-urow-controls">
             <label class="rs-lv-wrap" for="sim-attr-${chave}">
@@ -710,7 +712,8 @@ function construirModoFichaVisualHtml(
 
         <div class="rs-attrs-head">
           <h3>GASTAR OURO</h3>
-          <span class="rs-gold">💡 Melhor ganho de FC: +1 em ${melhorAttr.nome.toUpperCase()} (+${formatadorInteiro.format(melhorGanho)} FC)</span>
+          ${seletorObjetivoHtml}
+          <span class="rs-gold" aria-live="polite">${dicaObjetivo}</span>
         </div>
 
         <div class="rs-upg">
