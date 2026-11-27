@@ -186,7 +186,8 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
       <div class="card-info">
         <h4>Status Finais &amp; Combate</h4>
         <div class="card-info-linha"><span>ATK / DEF</span><strong>${formatadorDecimal1.format(stSim.atk)} / ${formatadorDecimal1.format(stSim.def)}</strong></div>
-        <div class="card-info-linha"><span>Vida Máxima / EHP</span><strong>${formatarNumeroCompacto(stSim.maxHp)} / ${formatarNumeroCompacto(metSim.ehp)}</strong></div>
+        <div class="card-info-linha"><span>Vida máxima (HP)</span><strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></div>
+        <div class="card-info-linha"><span>Vida efetiva (com defesa)</span><strong>${formatarNumeroCompacto(metSim.ehp)}</strong></div>
         <div class="card-info-linha"><span>ASPD (Cadência Real)</span><strong>${stSim.aspd.toFixed(2)} (${metSim.cadenciaReal.toFixed(2)}/s)</strong></div>
         <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
         <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
@@ -697,9 +698,9 @@ function construirModoFichaVisualHtml(
             <small>Normal ${formatarNumeroCompacto(metSim.golpeNormalBruto)}</small>
           </div>
           <div class="rs-tile">
-            <span>EHP (TANQUE)</span>
+            <span>VIDA EFETIVA (COM DEFESA)</span>
             <b>${formatarNumeroCompacto(metSim.ehp)}</b>
-            <small>Mitig. ${(metSim.reducaoDefesa * 100).toFixed(1)}%</small>
+            <small>Contra dano físico mitigado</small>
           </div>
           <div class="rs-tile">
             <span>${temCuraEmGrupo ? "CURA EM GRUPO" : "DANO DA SKILL"}</span>

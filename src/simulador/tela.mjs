@@ -31,7 +31,7 @@ const objetivosOuro = {
   fc: { nome: "FC máximo", unidade: "FC", medir: ({ fc }) => fc },
   custo: { nome: "Custo-benefício (FC)", unidade: "FC por 1 milhão de ouro", medir: ({ fc }) => fc },
   dps: { nome: "DPS", unidade: "DPS", medir: ({ met }) => met.dpsCombateMedio },
-  ehp: { nome: "Vida efetiva", unidade: "de vida efetiva", medir: ({ met }) => met.ehp },
+  ehp: { nome: "Vida efetiva (considerando a defesa)", unidade: "de vida efetiva", medir: ({ met }) => met.ehp },
   cura: { nome: "Cura", unidade: "de poder de cura", medir: ({ met }) => met.healPower },
 };
 
