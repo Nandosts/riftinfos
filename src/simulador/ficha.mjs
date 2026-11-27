@@ -127,6 +127,13 @@ function descreverProjecaoAnel(metricas) {
   return "";
 }
 
+function explicarVidaEfetiva(status, metricas) {
+  const hp = formatadorInteiro.format(status.maxHp);
+  const defesa = formatadorDecimal1.format(status.def);
+  const total = formatadorInteiro.format(metricas.ehp);
+  return `Vida efetiva = HP × (1 + DEF × 0,04). Nesta build: ${hp} × (1 + ${defesa} × 0,04) ≈ ${total}. Vale para dano físico que passa pela defesa.`;
+}
+
 function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOrig) {
   const deltaFc = fcOrig !== null ? fcSim - fcOrig : 0;
   const classeBanner = deltaFc > 0 ? "up" : deltaFc < 0 ? "down" : "eq";
@@ -187,7 +194,7 @@ function construirPainelResumoSimuladorHtml(stSim, fcSim, metSim, fcOrig, metOri
         <h4>Status Finais &amp; Combate</h4>
         <div class="card-info-linha"><span>ATK / DEF</span><strong>${formatadorDecimal1.format(stSim.atk)} / ${formatadorDecimal1.format(stSim.def)}</strong></div>
         <div class="card-info-linha"><span>Vida máxima (HP)</span><strong>${formatarNumeroCompacto(stSim.maxHp)}</strong></div>
-        <div class="card-info-linha"><span>Vida efetiva (com defesa)</span><strong>${formatarNumeroCompacto(metSim.ehp)}</strong></div>
+        <div class="card-info-linha" title="${escaparHtml(explicarVidaEfetiva(stSim, metSim))}"><span>Vida efetiva (com defesa)</span><strong>${formatarNumeroCompacto(metSim.ehp)}</strong></div>
         <div class="card-info-linha"><span>ASPD (Cadência Real)</span><strong>${stSim.aspd.toFixed(2)} (${metSim.cadenciaReal.toFixed(2)}/s)</strong></div>
         <div class="card-info-linha"><span>Crítico / Dano Crít.</span><strong>${stSim.crit.toFixed(1)}% / ${(metSim.multCrit * 100).toFixed(0)}%</strong></div>
         <div class="card-info-linha"><span>Golpe Normal → Crítico</span><strong>${formatarNumeroCompacto(metSim.golpeNormalBruto)} → ${formatarNumeroCompacto(metSim.golpeCritBruto)}</strong></div>
@@ -697,7 +704,7 @@ function construirModoFichaVisualHtml(
             <b>${formatarNumeroCompacto(metSim.golpeCritBruto)}</b>
             <small>Normal ${formatarNumeroCompacto(metSim.golpeNormalBruto)}</small>
           </div>
-          <div class="rs-tile">
+          <div class="rs-tile" title="${escaparHtml(explicarVidaEfetiva(stSim, metSim))}">
             <span>VIDA EFETIVA (COM DEFESA)</span>
             <b>${formatarNumeroCompacto(metSim.ehp)}</b>
             <small>Contra dano físico mitigado</small>
