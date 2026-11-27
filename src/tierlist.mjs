@@ -238,7 +238,7 @@ function construirCatalogoItens() {
         ...bonusConjunto,
         ...(conjuntoReferencia ? [
           "Onde conseguir: drop raríssimo dos chefes da Cidade Mecânica. A partir da zona 18 no ciclo normal, cai uma peça da classe do jogador que recebeu o drop.",
-          `No ranking Por FC, os atributos das peças são estimados a partir do conjunto ${conjuntoReferencia}.`,
+          `No ranking Por FC, as peças sem amostra usam estimativas a partir do conjunto ${conjuntoReferencia}.`,
         ] : []),
         `Arma (${setInfo.armaNome}): ${arma?.efeito?.texto || arma?.notaSkill || "Habilidade padrão da classe."}`,
       ],

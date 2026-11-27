@@ -4,6 +4,7 @@ import {
   catalogoConjuntos,
   catalogoEscalasPecas,
   catalogoGemas,
+  curvasReferenciaPecas,
   coresRaridade,
   nomesClasses,
   nomesRaridade,
@@ -503,16 +504,21 @@ function construirModoFichaVisualHtml(
   const textoPassivaPecaAtiva = ehAnel
     ? (infoAnelAtivo?.efeito || "Sem efeito passivo especial.")
     : (infoArmaAtiva?.efeito?.texto || infoArmaAtiva?.notaSkill || infoKindOficialAtivo?.effect || "");
+  const kindReferencia = kindAtivo && !catalogoEscalasPecas[kindAtivo] ? curvasReferenciaPecas.get(kindAtivo) : null;
   const escPecaAtiva = ehAnel
     ? infoAnelAtivo?.escalaPorNivel
-    : (kindAtivo ? catalogoEscalasPecas[kindAtivo] : null);
+    : (kindAtivo ? catalogoEscalasPecas[kindReferencia || kindAtivo] : null);
   const rotuloFonteCurva = ehAnel && infoAnelAtivo?.estimado
     ? "perfil estimado da Raid"
+    : kindReferencia
+      ? `emprestada de ${infoSetAtivo ? catalogoConjuntos[infoSetAtivo.curvaReferencia]?.nome || "outra peça" : "outra peça"}`
+    : escPecaAtiva?.nivelAmostra
+      ? `estimativa com 1 peça observada no Nv. ${escPecaAtiva.nivelAmostra}`
     : escPecaAtiva?.raridadeBase !== undefined
       ? `base ${nomesRaridade[escPecaAtiva.raridadeBase] || "medida"}`
       : "medida na API";
   const textoCurvaPecaAtiva = escPecaAtiva
-    ? `Curva por nível (${rotuloFonteCurva}): ~${String(escPecaAtiva.atk).replace(".", ",")} ATK · ${String(escPecaAtiva.def).replace(".", ",")} DEF · ${String(escPecaAtiva.hp).replace(".", ",")} HP · ${String(escPecaAtiva.crit).replace(".", ",")} CRÍT (+${escPecaAtiva.spd}% VEL fixa)`
+    ? `Curva por nível (${rotuloFonteCurva}): ~${String(Number(escPecaAtiva.atk.toFixed(3))).replace(".", ",")} ATK · ${String(Number(escPecaAtiva.def.toFixed(3))).replace(".", ",")} DEF · ${String(Number(escPecaAtiva.hp.toFixed(3))).replace(".", ",")} HP · ${String(Number(escPecaAtiva.crit.toFixed(3))).replace(".", ",")} CRÍT (+${escPecaAtiva.spd}% VEL fixa)`
     : "";
 
   const blocoDetalhesPecaSelecionadaHtml = (infoSetAtivo || textoPassivaPecaAtiva || textoCurvaPecaAtiva)

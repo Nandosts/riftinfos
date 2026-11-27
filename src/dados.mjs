@@ -488,6 +488,10 @@ const catalogoAneis = {
 };
 
 const catalogoEscalasPecas = {
+  etherhood: { raridadeBase: 7, nivelAmostra: 442, atk: 2012 / 442, def: 1403 / 442, hp: 6855 / 442, crit: 205 / 442, spd: 8 },
+  etherrobe: { raridadeBase: 7, nivelAmostra: 370, atk: 1688 / 370, def: 1341 / 370, hp: 7778 / 370, crit: 174 / 370, spd: 8 },
+  aerobow: { raridadeBase: 7, nivelAmostra: 374, atk: 10, def: 2.786, hp: 7.305, crit: 0.471, spd: 16 },
+  tinkerhat: { raridadeBase: 7, nivelAmostra: 220, atk: 4.591, def: 2.814, hp: 8.295, crit: 0.318, spd: 8 },
   bloodaxe: { raridadeBase: 4, atk: 4.8, def: 1.03, hp: 2.86, crit: 0.185, spd: 8 },
   berserkhelm: { raridadeBase: 4, atk: 1.86, def: 1.031, hp: 6.213, crit: 0.187, spd: 8 },
   berserkhide: { raridadeBase: 4, atk: 1.646, def: 1.223, hp: 9.469, crit: 0.183, spd: 8 },

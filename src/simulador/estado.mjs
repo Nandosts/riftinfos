@@ -172,8 +172,8 @@ function calcularAtributosPadraoPeca(slot, classe, raridade = 7, itemLevel = 250
     const kindPadraoClasse = slot === "weapon"
       ? ({ warrior: "sword", archer: "bow", cleric: "staff" }[classe] || "sword")
       : "";
-    const kindCurva = curvasReferenciaPecas.get(kind) || kind;
-    const escPeca = catalogoEscalasPecas[kindCurva] || catalogoEscalasPecas[kindPadraoClasse];
+    const escPeca = catalogoEscalasPecas[kind] ||
+      catalogoEscalasPecas[curvasReferenciaPecas.get(kind)] || catalogoEscalasPecas[kindPadraoClasse];
     if (escPeca) {
       const rarBase = escPeca.raridadeBase ?? 7;
       const fatorRar = multRar / (multiplicadoresRaridadeItem[rarBase] ?? 1.0);
